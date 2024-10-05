@@ -1,0 +1,1073 @@
+/*FUENTES - NO TOCAR*/
+@font-face {
+    font-family: 'Texto';
+    src: url(../fonts/Roboto-Regular.ttf);
+}
+
+@font-face {
+    font-family: 'Light';
+    src: url(../fonts/Roboto-Light.ttf);
+}
+
+@font-face {
+    font-family: 'Titulos-1';
+    src: url(../fonts/Roboto-Black.ttf);
+}
+
+@font-face {
+    font-family: 'Titulos-2';
+    src: url(../fonts/Roboto-Bold.ttf);
+}
+
+/*FORMATOS - NO TOCAR*/
+body {
+    font-family: 'Texto';
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+footer {
+    font-family: 'Texto';
+}
+
+a {
+    margin: 0;
+    text-decoration: none;
+}
+
+
+.a-hover-contact p a:hover{
+    color:#031930;
+}
+
+
+.accordion-button:not(.collapsed) {
+    transition: background-color 0.4s ease;
+}
+
+.accordion-collapse {
+    transition: height 0.4s ease;
+}
+
+.accordion-body {
+    transition: opacity 0.4s ease;
+}
+
+.accordion-body.collapsing {
+    opacity: 0;
+}
+
+.accordion-body.show {
+    opacity: 1;
+}
+
+
+p {
+    margin: 0;
+}
+
+h1 {
+    font-family: 'Titulos-1';
+    color: #031930;
+    font-size: 40px;
+}
+
+h2 {
+    font-family: 'Titulos-2';
+    color: #031930;
+}
+
+.p-light {
+    font-family: 'Light';
+    font-size: larger;
+}
+
+.p-regular {
+    font-size: 'Texto';
+}
+
+.p-light-ad {
+    font-family: 'Light';
+    font-size: 3.5vh;
+}
+
+@keyframes moveUnderline {
+    0% {
+        background-size: 0 100%;
+    }
+    100% {
+        background-size: 100% 100%;
+    }
+}
+
+#pensado-ti {
+    position: relative;
+    display: inline-block;
+    font-size: 2.5rem;
+    background: #031930;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: colorChange 1s infinite, scaleUp 1s infinite alternate;
+    padding-bottom: 10px; /* Añade espacio para el subrayado */
+}
+
+@keyframes colorChange {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+@keyframes scaleUp {
+    0% {
+        transform: scale(1);
+    }
+    100% {
+        transform: scale(1.1);
+    }
+}
+
+#pensado-ti::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    right: 50%; /* Inicia desde el centro */
+    bottom: 0;
+    height: 4px;
+    background-color: #3596ff; /* Color del subrayado */
+    transition: transform 0.5s ease; /* Usar transform para animación más fluida */
+    transform-origin: center center; /* Punto de origen de la animación */
+    transform: scaleX(0); /* Inicia con un ancho de 0 */
+}
+
+#pensado-ti:hover::after {
+    left: 0;
+    right: 0; /* Asegura que el subrayado ocupe todo el ancho del elemento */
+    transform: scaleX(1); /* Expande el ancho al 100% */
+}
+
+.acerda-de-headers {
+    font-size: 5vh;
+}
+
+h4 {
+    font-family: 'Texto';
+    color: black;
+}
+
+h5 {
+    font-family: 'Light';
+    font-size: 150px;
+}
+
+.estrellona {
+    font-size: 20px;
+    color: #007bff;
+}
+
+del {
+    font-size: 17px;
+}
+
+
+.productosxd:hover .card-title {
+    color: #007bff;
+}
+
+
+/*HEADER - NO TOCAR*/
+#barra_navegacion {
+    background: #4374A9;
+}
+
+#boton-buscar {
+    color: white;
+    background: #031930;
+    transition: background-color 0.2s;
+}
+
+#boton-buscar:hover {
+    color: #031930;
+    background: white;
+    transition: background-color 0.2s;
+}
+
+#personal1 {
+    font-size: 25px;
+    font-family: 'Titulos-2';
+}
+
+#login:hover {
+    color: white;
+}
+
+@keyframes frequentTada {
+    0%, 100% {
+        transform: none;
+    }
+    10%, 20% {
+        transform: scale(1.1);
+    }
+    30%, 50%, 70%, 90% {
+        transform: scale(1.05) rotate(-3deg);
+    }
+    40%, 60%, 80% {
+        transform: scale(1.05) rotate(3deg);
+    }
+}
+
+.frequent-animation {
+    animation: frequentTada 3s infinite;
+}
+
+
+
+/*--------------------------------------------------------------------------------*/
+/*PAGINA PRINCIPAL*/
+.carousel-item img {
+    max-height: 200px;
+    object-fit: cover;
+}
+.product-name {
+    font-size: 1rem;
+}
+.product-price {
+    font-size: 1rem;
+    color: #4374A9;
+}
+
+
+h5, b {
+    font-size: 20px;
+}
+
+.carousel-smooth .carousel-item {
+    transition: transform 1s ease;
+}
+
+.tech-image {
+    width: 100%;
+    height: 200px;
+    object-fit: contain;
+    background-color: #f8f9fa; /* Fondo ligero para imágenes más pequeñas */
+}
+
+#mainCarousel {
+    width: 100%;
+    max-width: 1450px;
+    margin: 0 auto;
+}
+
+#mainCarousel .carousel-inner,
+#mainCarousel .carousel-item,
+#mainCarousel img {
+    width: 100%;
+    height: auto;
+    max-height: 400px;
+    object-fit: cover;
+}
+
+#productCarousel .carousel-item .row {
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+#productCarousel .carousel-item .col-md-2 {
+    width: 16.666667%;
+}
+
+.carousel-control-prev,
+.carousel-control-next {
+    width: 40px;
+    height: 40px;
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    background-color: transparent;
+}
+
+.carousel-control-prev {
+    left: -20px;
+}
+
+.carousel-control-next {
+    right: -20px;
+}
+
+.payment-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.payment-info h2 {
+    margin-bottom: 0;
+}
+
+.payment-options {
+    text-align: center;
+}
+
+.conditions-link {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.bank-logos {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-top: 10px;
+}
+
+.bank-logo {
+    height: 70px;
+    width: auto;
+}
+
+.more-payment-options {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-light {
+    padding: 5px 10px;
+    font-size: 18px;
+}
+
+.view-all-link {
+    color: #007bff;
+    text-decoration: none;
+}
+
+
+
+.brands-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px; /* Espacio entre los elementos */
+}
+
+.brand-item {
+    flex: 1;
+    min-width: 100px; /* Ancho mínimo para cada elemento */
+    max-width: calc(20% - 10px); /* Máximo 5 elementos por fila */
+}
+
+.brand-logo {
+    width: 100%;
+    height: 100px;
+    object-fit: contain;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.brand-logo:hover {
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+    #mainCarousel img {
+        max-height: 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .bank-logos {
+        flex-wrap: wrap;
+    }
+    
+    .bank-logo {
+        height: 30px;
+        margin: 5px;
+    }
+    
+    .brands-container {
+        justify-content: center;
+    }
+    
+    .brand-item {
+        flex-basis: calc(33.333% - 10px);
+        max-width: calc(33.333% - 10px);
+    }
+}
+
+@media (max-width: 576px) {
+    .brand-item {
+        flex-basis: calc(50% - 10px);
+        max-width: calc(50% - 10px);
+    }
+}
+
+
+
+
+/*--------------------------------------------------------------------------------*/
+/*INICIAR SESIÓN*/
+
+
+.inicio-back {
+    background: #4374A9;
+}
+
+#botones-inicio-xd {
+    border: 0.5px solid #4374A9;
+}
+
+#botones-inicio-xd:hover {
+    background: #4374A9;
+    color: white;
+}
+
+#botones-inicio-xd i {
+    margin-right: 10px;
+}
+
+.hd-ini {
+    color:#031930;
+}
+
+#boton-ini-reg {
+    font-family: 'Texto';
+    background:#4374A9;
+    color: white;
+    transition: background-color 0.2s;
+}
+
+#boton-ini-reg:hover {
+    background:#031930;
+    color: white;
+    transition: background-color 0.2s;
+}
+
+/*--------------------------------------------------------------------------------*/
+/*REGISTRARSE*/
+
+.benefits-section {
+    background:#4374A9;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.benefits-section p.p-light {
+    font-size: 1.2em;
+    color: white;
+    text-align: center;
+    margin-bottom: 20px;
+}
+.benefits-section ul {
+    padding-left: 0;
+    list-style: none;
+}
+.benefits-section ul li {
+    font-family: 'Light';
+    font-size: 1.1em;
+    color: white;
+    padding: 10px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+.benefits-section ul li:last-child {
+    border-bottom: none;
+}
+.benefits-section ul li i {
+    margin-right: 10px;
+    color:#031930;
+}
+
+/*--------------------------------------------------------------------------------*/
+/*MIS FAVORITOS*/
+.btn-danger {
+    background:#031930;
+    border: none;
+    transition: background-color 0.2s;
+}
+
+.btn-danger:hover {
+    background:#4374A9;
+    color: white;
+    transition: background-color 0.2s;
+}
+
+
+#mis-favs {
+    color: black;
+}
+
+#mis-favs:hover {
+    color:#007bff;
+}
+
+
+
+
+.modal-body .d-flex {
+    flex-wrap: wrap;
+}
+
+.modal-body .d-flex img {
+    max-width: 100%;
+    height: auto;
+}
+
+.modal-body .d-block {
+    max-width: calc(100% - 150px); /* Ajusta este valor según el ancho máximo de las imágenes */
+    padding-left: 15px;
+}
+
+.modal-body .p-light-ad {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media (min-width: 1200px) {
+    .modal-body .d-block {
+        max-width: calc(100% - 200px); /* Ajusta este valor según el ancho máximo de las imágenes para pantallas más grandes */
+    }
+}
+
+
+
+
+
+
+/*--------------------------------------------------------------------------------*/
+/*PRODUCTO*/
+.img-thumbnail {
+    max-width: 100%; /* Establece el ancho máximo al 100% del contenedor */
+    height: auto; /* Permite que la altura se ajuste automáticamente para mantener la proporción */
+}
+
+
+.product-name {
+    display: flex;
+    align-items: center;
+}
+.product-name h2 {
+    margin-right: 10px;
+}
+.favorite-icon {
+    color: white;
+    cursor: pointer;
+    font-size: 1.5em;
+    transition: color 0.3s;
+}
+.favorite-icon.filled {
+    color: red;
+}
+
+
+.precio-prod {
+    font-size: 30px;
+}
+
+#agregarCarrito {
+    background:#4374A9;
+    color: white;
+}
+
+#agregarCarrito:hover {
+    background: #C9D4DE;
+    color: #4374A9;
+}
+/*--------------------------------------------------------------------------------*/
+/*CARRITO*/
+
+
+/*--------------------------------------------------------------------------------*/
+/*PRIVACIDAD*/
+.btn-privacity {
+    background:#4374A9;
+    color: white;
+}
+
+.btn-privacity:hover {
+    border: 1px solid #4374A9;
+    color: #031930;
+}
+
+
+
+/*--------------------------------------------------------------------------------*/
+/*BUSQUEDA PRODUCTOS*/
+.product-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    padding: 15px;
+    margin: 15px 0;
+    text-align: center;
+}
+.product-image {
+    max-width: 100%;
+    height: 200px;
+}
+.filter-aside {
+    max-width: 250px;
+}
+
+
+
+/*--------------------------------------------------------------------------------*/
+/*MI CUENTA*/
+
+
+h4 {
+    font-size: 1.275rem;
+    color: var(--bs-emphasis-color);
+}
+
+
+.wrapper {
+    align-items: stretch;
+    display: flex;
+    width: 100%;
+}
+
+#sidebar {
+    max-width: 264px;
+    min-width: 264px;
+    background: #C9D4DE;
+    transition: all 0.35s ease-in-out;
+}
+
+.main {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-width: 0;
+    overflow: hidden;
+    transition: all 0.35s ease-in-out;
+    width: 100%;
+    background: #E2E2E5;
+}
+
+.main-mi-cu {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    transition: all 0.35s ease-in-out;
+    width: 100%;
+    background: #E2E2E5;
+}
+
+
+
+.sidebar-logo {
+    padding: 10px;
+}
+#para-margin {
+    margin: 0;
+}
+
+.sidebar-logo a {
+    color: #031930;
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+.sidebar-nav {
+    list-style: none;
+    margin-bottom: 0;
+    padding-left: 0;
+    margin-left: 0;
+}
+
+.sidebar-header {
+    color: #e9ecef;
+    font-size: .75rem;
+    padding: 1.5rem 1.5rem .375rem;
+}
+
+a.sidebar-link {
+    padding: .625rem 1.625rem;
+    color: #031930;
+    position: relative;
+    display: block;
+    font-size: 1.2rem;
+    font-family: 'Light';
+}
+
+a.sidebar-link:hover {
+    color:#4374A9;
+}
+
+.sidebar-link[data-bs-toggle="collapse"]::after {
+    border: solid;
+    border-width: 0 .075rem .075rem 0;
+    content: "";
+    display: inline-block;
+    padding: 2px;
+    position: absolute;
+    right: 1.5rem;
+    top: 1.4rem;
+    transform: rotate(-135deg);
+    transition: all .2s ease-out;
+}
+
+.sidebar-link[data-bs-toggle="collapse"].collapsed::after {
+    transform: rotate(45deg);
+    transition: all .2s ease-out;
+}
+
+.avatar {
+    height: 40px;
+    width: 40px;
+}
+
+.navbar-expand .navbar-nav {
+    margin-left: auto;
+}
+
+.content {
+    flex: 1;
+    max-width: 100vw;
+    width: 100vw;
+}
+
+@media (min-width:768px) {
+    .content {
+        max-width: auto;
+        width: auto;
+    }
+}
+
+.card {
+    box-shadow: 0 0 .875rem 0 rgba(150, 61, 25, 0.05);
+    margin-bottom: 24px;
+}
+
+.illustration-img {
+    max-width: 150px;
+    width: 100%;
+}
+
+
+#sidebar.collapsed {
+    margin-left: -300px;
+}
+
+
+.theme-toggle {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-65%);
+    text-align: center;
+    z-index: 10;
+    right: 0;
+    left: auto;
+    border: none;
+    background-color: var(--bs-body-color);
+}
+
+html[data-bs-theme="dark"] .theme-toggle .fa-sun,
+html[data-bs-theme="light"] .theme-toggle .fa-moon {
+    cursor: pointer;
+    padding: 10px;
+    display: block;
+    font-size: 1.25rem;
+    color: #FFF;
+}
+
+html[data-bs-theme="dark"] .theme-toggle .fa-moon {
+    display: none;
+}
+
+html[data-bs-theme="light"] .theme-toggle .fa-sun {
+    display: none;
+}
+
+
+/*--------------------------------------------------------------------------------*/
+
+/*CONFIGURAR CUENTA*/
+
+#mi-cuentita-xd {
+    font-size: 40px;
+}
+
+
+/*--------------------------------------------------------------------------------*/
+/*AYUDA*/
+#btns-ayuda {
+    background: #C9D4DE;
+}
+
+#btns-ayuda:hover {
+    background: #aec4d8;
+}
+
+
+.font-header {
+    color: white;
+    font-size: 18px;
+}
+
+.font-header:hover {
+    color: #031930;
+}
+
+/*--------------------------------------------------------------------------------*/
+/*ARMA TU PC*/
+.cuadros-atpc {
+    background: #C9D4DE;
+}
+
+.butn-atpc {
+    font-family: 'Light';
+    background: #031930;
+    color: white;
+    transition: background-color 0.2s;
+}
+
+.butn-atpc:hover {
+    background:#4374A9;
+    color: white;
+    transition: background-color 0.2s;
+}
+
+.butn-atpc1 {
+    font-family: 'Light';
+    background:#4374A9;
+    color: white;
+    transition: background-color 0.2s;
+}
+
+.butn-atpc1:hover {
+    
+    background: #031930;
+    color: white;
+    transition: background-color 0.2s;
+}
+
+.ir-pagar {
+    background:#4374a925;
+    border-radius: 20px;
+    color: black;
+}
+
+
+/*--------------------------------------------------------------------------------*/
+/*IR A PAGAR*/
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+#cardDetails input {
+    max-width: 300px;
+}
+
+.card {
+    background-color: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+}
+
+.confirmation-message {
+    display: none;
+    text-align: center;
+    margin-top: 20px;
+    font-size: 30px;
+    animation: wave-animation 1.2s infinite;
+}
+
+.confirmation-message i {
+    font-size: 50px;
+    color: green;
+}
+
+@keyframes wave-animation {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+#paymentForm .form-check {
+    margin-bottom: 10px;
+}
+
+#resumenCompra {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+#resumenCompra p {
+    margin-bottom: 10px;
+}
+
+.responsive-img {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+}
+
+/*AYUDA*/
+/* Asegúrate de agregar este CSS en tu archivo de estilos o dentro de un <style> en tu HTML */
+
+.btn-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    text-align: center;
+}
+
+.btn-img {
+    max-width: 30px; /* Ajusta el tamaño según sea necesario */
+    margin-right: 8px;
+}
+
+/* Ajustes específicos para dispositivos móviles */
+@media (max-width: 576px) {
+    .btn-text {
+        font-size: 14px; /* Ajusta el tamaño del texto para dispositivos móviles */
+    }
+}
+
+.ayuda-hover:hover {
+    background: red;
+}
+
+
+/*--------------------------------------------------------------------------------*/
+/*FOOTER - NO TOCAR*/
+footer {
+    margin-top: auto;
+}
+
+.links-footer {
+    font-size: 40px;
+}
+
+.links-footer i:hover {
+    color: #4374A9;
+}
+
+.red-social a {
+    margin: 0 20px;
+}
+
+#mi_footer {
+    background: #031930;
+}
+
+#boton-suscribirse {
+    font-family: 'Light';
+    background:#4374A9;
+    color: white;
+    transition: background-color 0.2s;
+}
+
+.form-control {
+    border: 2px solid #4374A9; /* Cambia el color según tus preferencias */
+    border-radius: 4px;
+}
+
+#boton-suscribirse:hover {
+    background: #C9D4DE;
+    color: #4374A9;
+    transition: background-color 0.2s;
+}
+
+@media (max-width: 576px) {
+    .card-text {
+        font-size: 0.8rem;
+    }
+}
+
+.hr-footer {
+    background: #3596ff;
+    width: 40px;
+    height: 7px;
+    margin-top: 5px;
+}
+
+#hr-1 {
+    color: white;
+    margin: 0 25vh;
+    padding: 0;
+}
+
+.pie-pagina {
+    width: 100%;
+    background-color: #031930;
+}
+
+.pie-pagina .grupo-1 {
+    width: 100%;
+    max-width: 1200px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 50px;
+    padding: 30px 0px;
+}
+
+.pie-pagina .grupo-1 .box h2 {
+    color: white;
+    font-size: 20px;
+}
+
+.pie-pagina .grupo-1 .box p {
+    color: white;
+    margin-bottom: 10px;
+}
+
+.red-social {
+    display: flex;
+    align-items: center;
+}
+
+.pie-pagina .grupo-2 {
+    background-color: #031930;
+    padding: 15px 10px;
+    text-align: center;
+    color: white;
+}
+
+.pie-pagina .grupo-2 small {
+    font-size: 15px;
+}
+
+
+.mas_info a {
+    margin: 0 100px;
+    color: #4374A9;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.mas_info a:hover {
+    color: white;
+}
+
+@media screen and (max-width:800px) {
+    .pie-pagina .grupo-1 {
+        width: 90%;
+        grid-template-columns: repeat(1, 1fr);
+    }
+}
