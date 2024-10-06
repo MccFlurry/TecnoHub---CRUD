@@ -1,15 +1,16 @@
-/* Reseteo y estilos generales */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+:root {
+    --primary-color: #0066cc;
+    --secondary-color: #4da6ff;
+    --background-color: #f0f8ff;
+    --text-color: #333333;
+    --white: #ffffff;
 }
 
 body {
     font-family: 'Arial', sans-serif;
     line-height: 1.6;
-    color: #333;
-    background-color: #f4f4f4;
+    color: var(--text-color);
+    background-color: var(--background-color);
 }
 
 .container {
@@ -21,8 +22,8 @@ body {
 
 /* Header */
 header {
-    background-color: #333;
-    color: #fff;
+    background-color: var(--primary-color);
+    color: var(--white);
     padding: 1rem 0;
 }
 
@@ -34,51 +35,63 @@ nav ul {
 }
 
 nav ul li a {
-    color: #fff;
+    color: var(--white);
     text-decoration: none;
     padding: 0.5rem 1rem;
 }
 
 nav ul li a:hover {
-    background-color: #555;
+    background-color: var(--secondary-color);
 }
 
 /* Formularios */
-form {
-    background-color: #fff;
-    padding: 20px;
+.auth-container {
+    max-width: 400px;
+    margin: 2rem auto;
+    background-color: var(--white);
+    padding: 2rem;
     border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="number"],
-select,
-textarea {
+.auth-form .form-group {
+    margin-bottom: 1rem;
+}
+
+.auth-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.auth-form input {
     width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
+    padding: 0.5rem;
     border: 1px solid #ddd;
     border-radius: 4px;
 }
 
-button,
 .btn {
     display: inline-block;
-    background-color: #333;
-    color: #fff;
-    padding: 10px 20px;
+    padding: 0.5rem 1rem;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     text-decoration: none;
+    transition: background-color 0.3s ease;
 }
 
-button:hover,
-.btn:hover {
-    background-color: #555;
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
+.btn-primary:hover {
+    background-color: var(--secondary-color);
+}
+
+.auth-link {
+    text-align: center;
+    margin-top: 1rem;
 }
 
 /* Grilla de productos */
@@ -90,7 +103,7 @@ button:hover,
 }
 
 .producto-card {
-    background-color: #fff;
+    background-color: var(--white);
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     overflow: hidden;
@@ -113,17 +126,18 @@ button:hover,
 
 .producto-info h3 {
     margin-bottom: 10px;
+    color: var(--primary-color);
 }
 
 .producto-info .precio {
     font-weight: bold;
-    color: #e44d26;
+    color: var(--secondary-color);
 }
 
 /* Footer */
 footer {
-    background-color: #333;
-    color: #fff;
+    background-color: var(--primary-color);
+    color: var(--white);
     text-align: center;
     padding: 1rem 0;
     margin-top: 2rem;
@@ -137,5 +151,9 @@ footer {
 
     nav ul li {
         margin-bottom: 10px;
+    }
+
+    .auth-container {
+        width: 90%;
     }
 }

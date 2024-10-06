@@ -37,7 +37,7 @@ def admin_required(f):
 @app.route('/')
 def home():
     productos_destacados = controlador_categoria.obtener_productos_destacados()
-    categorias = controlador_producto.obtener_todas_categorias()
+    categorias = controlador_categoria.obtener_todas_categorias()
     return render_template('home.html', productos=productos_destacados, categorias=categorias)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -46,7 +46,7 @@ def login():
         email = request.form['email']
         contrasena = request.form['contrasena']
         usuario = controlador_usuario.obtener_usuario_por_email(email)
-        if usuario and check_password_hash(usuario.contrasena, contrasena):
+        if usuario and check_password_hash(usuario.contraseña, contrasena):
             session['usuario_id'] = usuario.id
             session['usuario_tipo'] = usuario.tipo
             flash('Inicio de sesión exitoso', 'success')

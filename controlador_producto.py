@@ -1,5 +1,5 @@
 from bd import obtener_conexion
-from clase.clase_producto import Producto
+from clase.clase_producto import Producto                                               
 
 def insertar_producto(nombre, descripcion, precio, stock, categoria_id, imagen):
     conexion = obtener_conexion()

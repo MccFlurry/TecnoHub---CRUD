@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Mis Pedidos{% endblock %}
+
+{% block content %}
+<div class="orders-container">
+    <h2>Mis Pedidos</h2>
+    {% if pedidos %}
+        <div class="pedidos-lista">
+            {% for pedido in pedidos %}
+                <div class="pedido-card">
+                    <h3>Pedido #{{ pedido.id }}</h3>
+                    <p>Fecha: {{ pedido.fecha_pedido.strftime('%d/%m/%Y') }}</p>
+                    <p>Estado: {{ pedido.estado }}</p>
+                    <p>Total: ${{ pedido.total }}</p>
+                    <h4>Productos:</h4>
+                    <ul>
+                        {% for detalle in pedido.detalles %}
+                            <li>{{ detalle.producto.nombre }} (x{{ detalle.cantidad }}) - ${{ detalle.precio_unitario * detalle.cantidad }}</li>
+                        {% endfor %}
+                    </ul>
+                    <a href="{{ url_for('detalle_pedido', id=pedido.id) }}" class="btn-secondary">Ver Detalles</a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No tienes pedidos aún.</p>
+    {% endif %}
+</div>
+{% endblock %}
