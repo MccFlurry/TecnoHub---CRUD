@@ -12,7 +12,7 @@ import controlador_producto_visitado
 import controlador_opinion
 
 app = Flask(__name__)
-app.secret_key = 'mrmilk12'  # Cambia esto por una clave secreta real
+app.secret_key = 'tu_clave_secreta'  # Cambia esto por una clave secreta real
 
 # Decorador login_required
 def login_required(f):
