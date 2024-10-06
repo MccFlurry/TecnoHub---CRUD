@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     {% block extra_css %}{% endblock %}
 </head>
+
 <body>
     <header>
         <nav>
@@ -15,20 +17,20 @@
                 <li>
                     <select onchange="window.location.href=this.value;">
                         <option value="">Categorías</option>
-                        {% for categoria in obtener_categorias() %}
-                            <option value="{{ url_for('categoria', id=categoria.id) }}">{{ categoria.nombre }}</option>
+                        {% for categoria in categorias %}
+                        <option value="{{ url_for('categoria', id=categoria.id) }}">{{ categoria.nombre }}</option>
                         {% endfor %}
                     </select>
                 </li>
                 <li><a href="{{ url_for('arma_tu_kit') }}">Arma tu Kit</a></li>
                 <li><a href="{{ url_for('carrito') }}">Carrito</a></li>
                 {% if session.get('usuario_id') %}
-                    <li><a href="{{ url_for('mis_favoritos') }}">Mis Favoritos</a></li>
-                    <li><a href="{{ url_for('mis_pedidos') }}">Mis Pedidos</a></li>
-                    <li><a href="{{ url_for('logout') }}">Cerrar Sesión</a></li>
+                <li><a href="{{ url_for('mis_favoritos') }}">Mis Favoritos</a></li>
+                <li><a href="{{ url_for('mis_pedidos') }}">Mis Pedidos</a></li>
+                <li><a href="{{ url_for('logout') }}">Cerrar Sesión</a></li>
                 {% else %}
-                    <li><a href="{{ url_for('login') }}">Iniciar Sesión</a></li>
-                    <li><a href="{{ url_for('registro') }}">Registrarse</a></li>
+                <li><a href="{{ url_for('login') }}">Iniciar Sesión</a></li>
+                <li><a href="{{ url_for('registro') }}">Registrarse</a></li>
                 {% endif %}
             </ul>
         </nav>
@@ -40,11 +42,11 @@
 
     <main>
         {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
         {% endwith %}
 
         {% block content %}{% endblock %}
@@ -57,4 +59,5 @@
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% block extra_js %}{% endblock %}
 </body>
+
 </html>

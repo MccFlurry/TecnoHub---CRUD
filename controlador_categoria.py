@@ -49,3 +49,23 @@ def eliminar_categoria(id):
     conexion.commit()
     conexion.close()
 
+from bd import obtener_conexion
+
+def obtener_productos_destacados():
+    conexion = obtener_conexion()
+    productos_destacados = []
+    with conexion.cursor() as cursor:
+        sql = "SELECT id, nombre, precio FROM productos WHERE destacado = 1"
+        cursor.execute(sql)
+        rows = cursor.fetchall()
+        for row in rows:
+            producto = {
+                "id": row[0],
+                "nombre": row[1],
+                "precio": row[2]
+            }
+            productos_destacados.append(producto)
+    conexion.close()
+    return productos_destacados
+
+

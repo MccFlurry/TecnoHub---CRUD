@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Mis Favoritos{% endblock %}
+
+{% block content %}
+<div class="favorites-container">
+    <h2>Mis Favoritos</h2>
+    {% if favoritos %}
+        <div class="productos-grid">
+            {% for producto in favoritos %}
+                <div class="producto-card">
+                    <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}">
+                    <div class="producto-info">
+                        <h3>{{ producto.nombre }}</h3>
+                        <p class="precio">${{ producto.precio }}</p>
+                        <a href="{{ url_for('producto', id=producto.id) }}" class="btn-secondary">Ver Detalles</a>
+                        <form action="{{ url_for('eliminar_favorito', producto_id=producto.id) }}" method="post">
+                            <button type="submit" class="btn-danger">Eliminar de Favoritos</button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No tienes productos favoritos aún.</p>
+    {% endif %}
+</div>
+{% endblock %}
