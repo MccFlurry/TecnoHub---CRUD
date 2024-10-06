@@ -5,40 +5,118 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}TecnoHub{% endblock %}</title>
+    
+    <!-- Iconos y fuentes externas -->
+    <link rel="icon" href="{{ url_for('static', filename='img/icono.png') }}">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    
+    <!-- Framework CSS (Bootstrap) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    
+    <!-- CSS personalizado -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/anicollections.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    
+    <!-- JavaScript externo -->
+    <script src="https://kit.fontawesome.com/0d7c115e0b.js" crossorigin="anonymous"></script>
+    
     {% block extra_css %}{% endblock %}
 </head>
 
 <body>
-    <header>
-        <nav>
-            <ul>
-                <li><a href="{{ url_for('home') }}">Inicio</a></li>
-                <li>
-                    <select onchange="window.location.href=this.value;">
-                        <option value="">Categorías</option>
-                        {% for categoria in categorias %}
-                        <option value="{{ url_for('categoria', id=categoria.id) }}">{{ categoria.nombre }}</option>
-                        {% endfor %}
-                    </select>
-                </li>
-                <li><a href="{{ url_for('arma_tu_kit') }}">Arma tu Kit</a></li>
-                <li><a href="{{ url_for('carrito') }}">Carrito</a></li>
-                {% if session.get('usuario_id') %}
-                <li><a href="{{ url_for('mis_favoritos') }}">Mis Favoritos</a></li>
-                <li><a href="{{ url_for('mis_pedidos') }}">Mis Pedidos</a></li>
-                <li><a href="{{ url_for('logout') }}">Cerrar Sesión</a></li>
-                {% else %}
-                <li><a href="{{ url_for('login') }}">Iniciar Sesión</a></li>
-                <li><a href="{{ url_for('registro') }}">Registrarse</a></li>
-                {% endif %}
-            </ul>
-        </nav>
-        <form action="{{ url_for('buscar') }}" method="get">
-            <input type="text" name="q" placeholder="Buscar productos...">
-            <button type="submit">Buscar</button>
-        </form>
-    </header>
+    <!-- Header -->
+    <nav class="navbar navbar-expand-lg" id="barra_navegacion">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='img/logo-header.png') }}" alt="TecnoHub" style="width: 350px; height: 100px; border-radius: 20px;" class="img-fluid">
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse flex-column mx-0 mx-md-5" id="navbarNav">
+                <form class="form-inline my-1 my-lg-3 w-100 d-flex" action="{{ url_for('buscar') }}" method="get">
+                    <input class="form-control w-85 me-2" type="search" name="q" placeholder="🔍︎ Buscar" aria-label="Search">
+                    <button class="btn w-15 shadow" type="submit" id="boton-buscar">Buscar</button>
+                </form>
+
+                <div class="d-flex flex-column">
+                    <div class="d-flex flex-row justify-content-between align-items-center">
+                        <a class="nav-link px-2" href="{{ url_for('home') }}" style="border-radius: 10%">
+                            <p class="font-header">
+                                <i class="fa-solid fa-house"></i> Inicio
+                            </p>
+                        </a>
+                        <a class="nav-link px-1" href="#" style="border-radius: 10%">
+                            <select id="categorySelect" class="form-select" aria-label="Default select example" onchange="window.location.href=this.value;">
+                                <option selected>Categorías</option>
+                                {% for categoria in categorias %}
+                                <option value="{{ url_for('categoria', id=categoria.id) }}">{{ categoria.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </a>
+                        <a class="nav-link px-2 frequent-animation" href="{{ url_for('arma_tu_kit') }}" style="border-radius: 10%">
+                            <p class="font-header">
+                                <i class="fa-solid fa-box-open"></i> Arma tu Kit
+                            </p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="collapse navbar-collapse flex-column align-items-end mx-3" id="navbarNav">
+                <div class="d-flex flex-column">
+                    <div class="d-flex flex-row justify-content-between align-items-center mb-4">
+                        {% if session.get('usuario_id') %}
+                        <div class="dropdown">
+                            <a class="btn btn-secondary dropdown-toggle" style="background: #4374A9; margin-right: 10px; border:1px solid #bfcfdd;" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                {{ session.get('usuario_nombre') }}
+                            </a>
+                            <img src="{{ url_for('static', filename='img/user.png') }}" alt="">
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ url_for('mis_pedidos') }}">Mis compras</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('ayuda') }}">Ayuda</a></li>
+                                <div class="dropdown-divider"></div>
+                                <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">Cerrar sesión</a></li>
+                            </ul>
+                        </div>
+                        {% else %}
+                        <a class="nav-link" href="{{ url_for('login') }}" id="login" style="margin-right: 10px;">
+                            <p class="font-header" id="personal1">Iniciar Sesión</p>
+                        </a>
+                        <a class="nav-link" href="{{ url_for('registro') }}" id="registro" style="margin-right: 10px;">
+                            <p class="font-header" id="personal2">Registrarse</p>
+                        </a>
+                        {% endif %}
+                        <a class="nav-link" href="{{ url_for('carrito') }}" id="carrito" style="margin-left: 10px;">
+                            <p class="font-header" id="personal1">
+                                <img src="{{ url_for('static', filename='img/cart.png') }}" alt="">
+                            </p>
+                        </a>
+                    </div>
+                </div>
+                <div class="d-flex flex-column">
+                    <div class="d-flex flex-row justify-content-between align-items-center">
+                        {% if session.get('usuario_id') %}
+                        <a class="nav-link px-2" href="{{ url_for('mi_cuenta') }}" style="border-radius: 10%">
+                            <p class="font-header">
+                                Mi cuenta
+                            </p>
+                        </a>
+                        <a class="nav-link px-2" href="{{ url_for('mis_favoritos') }}" style="border-radius: 10%" data-anijs="if: mouseover, do: pulse animated">
+                            <p class="font-header">
+                                <i class='bx bxs-heart'></i>
+                                Mis favoritos
+                            </p>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
 
     <main>
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -52,10 +130,55 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer>
-        <p>&copy; 2024 Tienda de Electrónicos. Todos los derechos reservados.</p>
+    <!-- Footer -->
+    <footer class="pie-pagina">
+        <div class="grupo-1">
+            <div class="box d-flex flex-column align-items-center">
+                <img src="{{ url_for('static', filename='img/logo-footer.png') }}" class="img-fluid" alt="" style="width: 280px; height: 80px; border-radius: 20px;">
+                <div class="red-social mt-3">
+                    <a href="#"><p class="links-footer"><i class='bx bxl-facebook'></i></p></a>
+                    <a href="#"><p class="links-footer"><i class='bx bxl-instagram-alt'></i></p></a>
+                    <a href="#"><p class="links-footer"><i class="fa-brands fa-x-twitter"></i></p></a>
+                </div>
+            </div>
+
+            <div class="box p-light">
+                <h2>Información de contacto</h2>
+                <hr class="hr-footer">
+                <p>Av. Balta 123, Chiclayo</p>
+                <p>976123456</p>
+                <p>70405517@usat.pe</p>
+            </div>
+
+            <div class="box">
+                <h2>Boletín</h2>
+                <hr class="hr-footer">
+                <input class="form-control mr-sm-2 mb-2" type="email" placeholder="Ingresa tu email" aria-label="Email" style="margin-right: 10px;">
+                <button class="btn my-2 my-sm-0" type="submit" id="boton-suscribirse">Suscribirse</button>
+            </div>
+        </div>
+
+        <hr id="hr-1">
+
+        <div class="grupo-2">
+            <div class="mas_info">
+                <a href="{{ url_for('acerca_de') }}">Acerca de</a>
+                <a href="{{ url_for('contactanos') }}">Contáctanos</a>
+                <a href="{{ url_for('faqs') }}">FAQs</a>
+            </div>
+        
+            <br>
+        
+            <div class="d-flex flex-column flex-sm-row justify-content-between">
+                <small class="order-2 order-sm-1">Creación: <i>lun 25 mayo 2024</i></small>
+                <small class="order-1 order-sm-2">© 2023-2024, Tecnohub SAC - By ohMyCode PE</small>
+                <small class="order-3 order-sm-3">Modificación: <i>jue 4 julio 2024</i></small>
+            </div>
+        </div>
     </footer>
 
+    <script src="{{ url_for('static', filename='js/anijs-min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% block extra_js %}{% endblock %}
 </body>
