@@ -420,6 +420,57 @@ def agregar_resena(id):
     flash('Reseña agregada con éxito', 'success')
     return redirect(url_for('producto', id=id))
 
+@app.route('/mi-cuenta')
+@login_required
+def mi_cuenta():
+    usuario_id = session.get('usuario_id')
+    usuario = usuario_controlador.obtener_usuario_por_id(usuario_id)
+    return render_template('mi-cuenta.html', usuario=usuario)
+
+@app.route('/actualizar-cuenta', methods=['POST'])
+@login_required
+def actualizar_cuenta():
+    usuario_id = session.get('usuario_id')
+    nombre = request.form.get('nombre')
+    apellido = request.form.get('apellido')
+    email = request.form.get('email')
+    password = request.form.get('password')
+
+    usuario_controlador.actualizar_usuario(usuario_id, nombre, apellido, email)
+    if password:
+        usuario_controlador.actualizar_password(usuario_id, generate_password_hash(password))
+
+    flash('Tu cuenta ha sido actualizada exitosamente', 'success')
+    return redirect(url_for('mi_cuenta'))
+
+@app.route('/acerca-de')
+def acerca_de():
+    return render_template('acerca-de.html')
+
+@app.route('/contactanos')
+def contactanos():
+    return render_template('contactanos.html')
+
+@app.route('/enviar-contacto', methods=['POST'])
+def enviar_contacto():
+    nombre = request.form.get('nombre')
+    email = request.form.get('email')
+    asunto = request.form.get('asunto')
+    mensaje = request.form.get('mensaje')
+
+    # Aquí iría la lógica para enviar el correo electrónico
+    # Por ahora, solo mostraremos un mensaje de éxito
+    flash('Tu mensaje ha sido enviado exitosamente. Te contactaremos pronto.', 'success')
+    return redirect(url_for('contactanos'))
+
+@app.route('/faqs')
+def faqs():
+    return render_template('faqs.html')
+
+@app.route('/ayuda')
+def ayuda():
+    return render_template('ayuda.html')
+
 # Iniciar el servidor
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8000, debug=True)
