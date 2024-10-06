@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Arma tu Kit - TecnoHub{% endblock %}
+
+{% block content %}
+    <h1>Arma tu Kit</h1>
+    <form action="{{ url_for('arma_tu_kit') }}" method="post" id="arma-tu-kit-form">
+        <div class="seleccion-producto">
+            <h2>Selecciona un celular</h2>
+            <select name="celular_id" required>
+                <option value="">Elige un celular</option>
+                {% for celular in celulares %}
+                    <option value="{{ celular.id }}">{{ celular.nombre }} - ${{ celular.precio }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="seleccion-producto">
+            <h2>Selecciona una funda</h2>
+            <select name="funda_id" required>
+                <option value="">Elige una funda</option>
+                {% for funda in fundas %}
+                    <option value="{{ funda.id }}">{{ funda.nombre }} - ${{ funda.precio }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="seleccion-producto">
+            <h2>Selecciona unos audífonos</h2>
+            <select name="audifonos_id" required>
+                <option value="">Elige unos audífonos</option>
+                {% for audifonos in audifonos_list %}
+                    <option value="{{ audifonos.id }}">{{ audifonos.nombre }} - ${{ audifonos.precio }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div id="resumen-kit">
+            <h2>Resumen del Kit</h2>
+            <p>Celular: <span id="celular-seleccionado"></span></p>
+            <p>Funda: <span id="funda-seleccionada"></span></p>
+            <p>Audífonos: <span id="audifonos-seleccionados"></span></p>
+            <p>Total: $<span id="total-kit">0.00</span></p>
+        </div>
+
+        <button type="submit">Agregar Kit al Carrito</button>
+    </form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('arma-tu-kit-form');
+    const celularSelect = form.querySelector('select[name="celular_id"]');
+    const fundaSelect = form.querySelector('select[name="funda_id"]');
+    const audifonosSelect = form.querySelector('select[name="audifonos_id"]');
+
+    const celularSpan = document.getElementById('celular-seleccionado');
+    const fundaSpan = document.getElementById('funda-seleccionada');
+    const audifonosSpan = document.getElementById('audifonos-seleccionados');
+    const totalSpan = document.getElementById('total-kit');
+
+    function actualizarResumen() {
+        let total = 0;
+
+        if (celularSelect.value) {
+            const celularOption = celularSelect.selectedOptions[0];
+            celularSpan.textContent = celularOption.textContent;
+            total += parseFloat(celularOption.textContent.split('$')[1]);
+        } else {
+            celularSpan.textContent = '';
+        }
+
+        if (fundaSelect.value) {
+            const fundaOption = fundaSelect.selectedOptions[0];
+            fundaSpan.textContent = fundaOption.textContent;
+            total += parseFloat(fundaOption.textContent.split('$')[1]);
+        } else {
+            fundaSpan.textContent = '';
+        }
+
+        if (audifonosSelect.value) {
+            const audifonosOption = audifonosSelect.selectedOptions[0];
+            audifonosSpan.textContent = audifonosOption.textContent;
+            total += parseFloat(audifonosOption.textContent.split('$')[1]);
+        } else {
+            audifonosSpan.textContent = '';
+        }
+
+        totalSpan.textContent = total.toFixed(2);
+    }
+
+    celularSelect.addEventListener('change', actualizarResumen);
+    fundaSelect.addEventListener('change', actualizarResumen);
+    audifonosSelect.addEventListener('change', actualizarResumen);
+});
+</script>
+{% endblock %}

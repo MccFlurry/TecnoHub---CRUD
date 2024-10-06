@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}{{ producto.nombre }} - TecnoHub{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/producto.css') }}">
+    <div class="producto-detalle">
+        <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}">
+        <div class="producto-info">
+            <h1>{{ producto.nombre }}</h1>
+            <p class="precio">${{ producto.precio }}</p>
+            <p class="calificacion">
+                {% set promedio = calcular_calificacion_promedio(producto.id) %}
+                {% for i in range(5) %}
+                    {% if i < promedio|int %}
+                        ★
+                    {% else %}
+                        ☆
+                    {% endif %}
+                {% endfor %}
+                ({{ promedio }})
+            </p>
+            <p class="descripcion">{{ producto.descripcion }}</p>
+            <form action="{{ url_for('agregar_al_carrito', producto_id=producto.id) }}" method="post">
+                <input type="number" name="cantidad" value="1" min="1" max="{{ producto.stock }}">
+                <button type="submit">Agregar al carrito</button>
+            </form>
+        </div>
+    </div>
+
+    <h2>Reseñas</h2>
+    {% for resena in obtener_resenas(producto.id) %}
+        <div class="resena">
+            <p class="autor">{{ resena.nombre }} {{ resena.apellido }}</p>
+            <p class="calificacion">
+                {% for i in range(5) %}
+                    {% if i < resena.calificacion %}
+                        ★
+                    {% else %}
+                        ☆
+                    {% endif %}
+                {% endfor %}
+            </p>
+            <p class="fecha">{{ resena.fecha.strftime('%d/%m/%Y') }}</p>
+            <p class="comentario">{{ resena.comentario }}</p>
+        </div>
+    {% endfor %}
+
+    {% if session.get('usuario_id') %}
+        <h3>Deja tu reseña</h3>
+        <form action="{{ url_for('agregar_resena', id=producto.id) }}" method="post">
+            <div>
+                <label for="calificacion">Calificación:</label>
+                <select name="calificacion" id="calificacion" required>
+                    <option value="1">1 estrella</option>
+                    <option value="2">2 estrellas</option>
+                    <option value="3">3 estrellas</option>
+                    <option value="4">4 estrellas</option>
+                    <option value="5">5 estrellas</option>
+                </select>
+            </div>
+            <div>
+                <label for="comentario">Comentario:</label>
+                <textarea name="comentario" id="comentario" required></textarea>
+            </div>
+            <button type="submit">Enviar reseña</button>
+        </form>
+    {% else %}
+        <p>Inicia sesión para dejar una reseña.</p>
+    {% endif %}
+{% endblock %}

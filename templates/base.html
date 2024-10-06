@@ -1,96 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TecnoHub Perú - {% block title %}{% endblock %}</title>
-
-    <link rel="icon" href="{{ url_for('static', filename='img/icono.png') }}">
-    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/anicollections.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styleindex.css') }}">
-
-    <script src="https://kit.fontawesome.com/0d7c115e0b.js" crossorigin="anonymous"></script>
+    <title>{% block title %}TecnoHub{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    {% block extra_css %}{% endblock %}
 </head>
-
 <body>
-    <nav class="navbar navbar-expand-lg" id="barra_navegacion">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('home') }}">
-                <img src="{{ url_for('static', filename='img/logo-header.png') }}" style="width: 350px; height: 100px; border-radius: 20px;" class="img-fluid">
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('home') }}">Inicio</a></li>
+                <li>
+                    <select onchange="window.location.href=this.value;">
+                        <option value="">Categorías</option>
+                        {% for categoria in obtener_categorias() %}
+                            <option value="{{ url_for('categoria', id=categoria.id) }}">{{ categoria.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </li>
+                <li><a href="{{ url_for('arma_tu_kit') }}">Arma tu Kit</a></li>
+                <li><a href="{{ url_for('carrito') }}">Carrito</a></li>
+                {% if session.get('usuario_id') %}
+                    <li><a href="{{ url_for('mis_favoritos') }}">Mis Favoritos</a></li>
+                    <li><a href="{{ url_for('mis_pedidos') }}">Mis Pedidos</a></li>
+                    <li><a href="{{ url_for('logout') }}">Cerrar Sesión</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('login') }}">Iniciar Sesión</a></li>
+                    <li><a href="{{ url_for('registro') }}">Registrarse</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        <form action="{{ url_for('buscar') }}" method="get">
+            <input type="text" name="q" placeholder="Buscar productos...">
+            <button type="submit">Buscar</button>
+        </form>
+    </header>
 
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <form class="form-inline my-1 my-lg-3 w-100 d-flex">
-                    <input class="form-control w-85 me-2" type="search" placeholder="🔍︎ Buscar" aria-label="Search">
-                    <button class="btn w-15 shadow" type="submit" id="boton-buscar" formaction="{{ url_for('search') }}">
-                        Buscar
-                    </button>
-                </form>
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
 
-                <div class="navbar-end">
-                    <div class="navbar-item">
-                        {% if session.get('usuario') %}
-                        <div class="dropdown">
-                            <a class="btn btn-secondary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                {{ session.get('usuario') }}
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ url_for('mis_compras') }}">Mis compras</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('ayuda') }}">Ayuda</a></li>
-                                <div class="dropdown-divider"></div>
-                                <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">Cerrar sesión</a></li>
-                            </ul>
-                        </div>
-                        {% else %}
-                        <a class="nav-link" href="{{ url_for('login') }}" id="login" style="margin-left: 10px;">
-                            <p class="font-header">Iniciar sesión</p>
-                        </a>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </nav>
+        {% block content %}{% endblock %}
+    </main>
 
-    {% block content %}
-    {% endblock %}
-
-    <footer class="pie-pagina">
-        <div class="grupo-1">
-            <div class="box">
-                <img src="{{ url_for('static', filename='img/logo-footer.png') }}" class="img-fluid" alt="" style="width: 280px; height: 80px; border-radius: 20px;">
-                <div class="red-social mt-3">
-                    <a href="#"><i class='bx bxl-facebook'></i></a>
-                    <a href="#"><i class='bx bxl-instagram-alt'></i></a>
-                    <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
-                </div>
-            </div>
-            <div class="box p-light">
-                <h2>Información de contacto</h2>
-                <p>Av. Balta 123, Chiclayo</p>
-                <p>976123456</p>
-                <p>70405517@usat.pe</p>
-            </div>
-            <div class="box">
-                <h2>Boletín</h2>
-                <input class="form-control" type="email" placeholder="Ingresa tu email">
-                <button class="btn" type="submit">Suscribirse</button>
-            </div>
-        </div>
-        <hr>
-        <div class="grupo-2">
-            <small>© 2023-2024, Tecnohub SAC - By ohMyCode PE</small>
-        </div>
+    <footer>
+        <p>&copy; 2024 Tienda de Electrónicos. Todos los derechos reservados.</p>
     </footer>
 
-    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/anijs-min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
 </body>
-
 </html>

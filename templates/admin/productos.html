@@ -1,0 +1,39 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Gestión de Productos{% endblock %}
+
+{% block content %}
+    <h1>Gestión de Productos</h1>
+    
+    <a href="{{ url_for('admin_nuevo_producto') }}" class="btn-primary">Añadir Nuevo Producto</a>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for producto in productos %}
+                <tr>
+                    <td>{{ producto.id }}</td>
+                    <td>{{ producto.nombre }}</td>
+                    <td>{{ producto.categoria.nombre }}</td>
+                    <td>${{ producto.precio }}</td>
+                    <td>{{ producto.stock }}</td>
+                    <td>
+                        <a href="{{ url_for('admin_editar_producto', id=producto.id) }}" class="btn-secondary">Editar</a>
+                        <form action="{{ url_for('admin_eliminar_producto', id=producto.id) }}" method="post" style="display:inline;">
+                            <button type="submit" class="btn-danger" onclick="return confirm('¿Estás seguro de que quieres eliminar este producto?');">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

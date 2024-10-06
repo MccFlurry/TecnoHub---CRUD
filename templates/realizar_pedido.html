@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Realizar Pedido - TecnoHub{% endblock %}
+
+{% block content %}
+    <h1>Realizar Pedido</h1>
+    
+    <form action="{{ url_for('realizar_pedido') }}" method="post">
+        <h2>Selecciona una dirección de envío</h2>
+        {% if direcciones %}
+            {% for direccion in direcciones %}
+                <div>
+                    <input type="radio" name="direccion_id" id="direccion_{{ direccion.id }}" value="{{ direccion.id }}" required>
+                    <label for="direccion_{{ direccion.id }}">
+                        {{ direccion.direccion }}, {{ direccion.ciudad }}, {{ direccion.estado }}, {{ direccion.pais }}, CP: {{ direccion.codigo_postal }}
+                    </label>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No tienes direcciones registradas. <a href="{{ url_for('agregar_direccion') }}">Agregar una dirección</a></p>
+        {% endif %}
+        
+        <h2>Resumen del Pedido</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in session['carrito'] %}
+                    <tr>
+                        <td>{{ item.nombre }}</td>
+                        <td>{{ item.cantidad }}</td>
+                        <td>${{ item.precio }}</td>
+                        <td>${{ (item.cantidad * item.precio) | round(2) }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3"><strong>Total</strong></td>
+                    <td><strong>${{ total | round(2) }}</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+        
+        <button type="submit" {% if not direcciones %}disabled{% endif %}>Confirmar Pedido</button>
+    </form>
+{% endblock %}

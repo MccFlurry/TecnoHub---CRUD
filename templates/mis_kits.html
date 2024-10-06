@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Mis Kits - TecnoHub{% endblock %}
+
+{% block content %}
+    <h1>Mis Kits</h1>
+    
+    {% if kits %}
+        <div class="kits-grid">
+            {% for kit in kits %}
+                <div class="kit-card">
+                    <h2>Kit #{{ kit.id }}</h2>
+                    <p>Fecha de creación: {{ kit.fecha_creacion.strftime('%d/%m/%Y') }}</p>
+                    <ul>
+                        <li>Celular: {{ kit.celular.nombre }} - ${{ kit.celular.precio }}</li>
+                        <li>Funda: {{ kit.funda.nombre }} - ${{ kit.funda.precio }}</li>
+                        <li>Audífonos: {{ kit.audifonos.nombre }} - ${{ kit.audifonos.precio }}</li>
+                    </ul>
+                    <p>Total: ${{ (kit.celular.precio + kit.funda.precio + kit.audifonos.precio) | round(2) }}</p>
+                    <form action="{{ url_for('eliminar_kit', kit_id=kit.id) }}" method="post" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este kit?');">
+                        <button type="submit" class="btn-eliminar">Eliminar Kit</button>
+                    </form>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>Aún no has creado ningún kit. <a href="{{ url_for('arma_tu_kit') }}">¡Crea tu primer kit ahora!</a></p>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Gestión de Pedidos{% endblock %}
+
+{% block content %}
+    <h1>Gestión de Pedidos</h1>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Fecha</th>
+                <th>Total</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pedido in pedidos %}
+                <tr>
+                    <td>{{ pedido.id }}</td>
+                    <td>{{ pedido.usuario.nombre }} {{ pedido.usuario.apellido }}</td>
+                    <td>{{ pedido.fecha_pedido.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td>${{ pedido.total }}</td>
+                    <td>{{ pedido.estado }}</td>
+                    <td>
+                        <a href="{{ url_for('admin_detalle_pedido', id=pedido.id) }}" class="btn-secondary">Ver Detalles</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
