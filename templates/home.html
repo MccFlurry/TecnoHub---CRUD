@@ -1,148 +1,46 @@
 {% extends "base.html" %}
 
-{% block title %}TecnoHub Perú - Inicio{% endblock %}
+{% block title %}Inicio - TecnoHub{% endblock %}
 
 {% block content %}
-    <div id="mainCarousel" class="carousel slide carousel-smooth" data-bs-ride="carousel">
-        <div class="carousel-inner">
-            <div class="carousel-item active">
-                <img src="img/banner3.jpg" class="d-block w-100" alt="Banner 1">
-            </div>
-            <div class="carousel-item">
-                <img src="img/banner2.jpg" class="d-block w-100" alt="Banner 2">
-            </div>
-            <div class="carousel-item">
-                <img src="img/banner1.jpg" class="d-block w-100" alt="Banner 3">
-            </div>
-        </div>
-        <div class="carousel-indicators">
-            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="0" class="active"
-                aria-current="true" aria-label="Slide 1"></button>
-            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
-            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
-        </div>
-        <button class="carousel-control-prev ms-4" type="button" data-bs-target="#mainCarousel"
-            data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
-        </button>
-        <button class="carousel-control-next me-4" type="button" data-bs-target="#mainCarousel"
-            data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
-        </button>
-    </div>
+    <h1>Bienvenido a nuestra TecnoHub</h1>
 
-    <section class="section-icons my-4">
-        <div class="container">
-            <div class="row justify-content-center text-center">
-                <div class="col-12 col-md-6 col-lg-4 box-icons">
-                    <div class="d-flex flex-column align-items-center">
-                        <div class="ms-4">
-                            <h5>Envio gratis</h5>
-                            <b>a todo el perú</b>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-12 col-md-6 col-lg-4 box-icons">
-                    <div class="d-flex flex-column align-items-center">
-                        <div class="ms-4">
-                            <h5>Servicio al cliente</h5>
-                            <b>24/7</b>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-12 col-md-6 col-lg-4 box-icons">
-                    <div class="d-flex flex-column align-items-center">
-                        <div class="ms-4">
-                            <h5>Garantía de</h5>
-                            <b>devolución de dinero</b>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <section id="banners">
+        <!-- Aquí irían los 3 banners principales -->
+        <div class="banner">Banner 1</div>
+        <div class="banner">Banner 2</div>
+        <div class="banner">Banner 3</div>
+    </section>
+
+    <section id="categorias">
+        <h2>Lo mejor en tecnología</h2>
+        <div class="categorias-grid">
+            {% for categoria in categorias %}
+                <a href="{{ url_for('categoria', id=categoria.id) }}" class="categoria-item">
+                    <img src="{{ url_for('static', filename='img/categorias/' + categoria.nombre.lower() + '.jpg') }}" alt="{{ categoria.nombre }}">
+                    <h3>{{ categoria.nombre }}</h3>
+                </a>
+            {% endfor %}
         </div>
     </section>
 
-    <!-- Lo mejor en tecnología -->
-    <section class="container my-4">
-        <h2 class="text-center">Lo mejor en tecnología</h2>
-        <div class="row">
-            <div class="col-md-4 col-sm-6 mb-3">
-                <a href="{{ url_for('celulares') }}"><img src="img/celulares.jpg" class="img-fluid tech-image"
-                        data-anijs="if: mouseover, do: swing animated"></a>
-                <h3 class="text-center">Celulares</h3>
-            </div>
-            <div class="col-md-4 col-sm-6 mb-3">
-                <a href="{{ url_for('smartwatch') }}"><img src="img/smartwach.jpg" class="img-fluid tech-image"
-                        data-anijs="if: mouseover, do: bounce animated" alt="Smartwatch"></a>
-                <h3 class="text-center">Smartwatch</h3>
-            </div>
-            <div class="col-md-4 col-sm-6 mb-3">
-                <a href="{{ url_for('accesorios') }}"><img src="img/accesorios.jpg" class="img-fluid tech-image"
-                        data-anijs="if: mouseover, do: swing animated" alt="Accesorios"></a>
-                <h3 class="text-center">Accesorios</h3>
-            </div>
+    <section id="productos-destacados">
+        <h2>Productos Destacados</h2>
+        <div class="productos-grid">
+            {% for producto in productos_destacados %}
+                {% include "componentes/producto_card.html" %}
+            {% endfor %}
         </div>
     </section>
 
-    <!-- Pensado para tí -->
-    <section class="product">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="section-header text-center pb-5">
-                        <h2 id="pensado-ti">Pensado para tí</h2>
-                    </div>
-                </div>
+    {% if session.get('usuario_id') %}
+        <section id="productos-recientes">
+            <h2>Pensado para ti</h2>
+            <div class="productos-grid">
+                {% for producto in productos_recientes %}
+                    {% include "componentes/producto_card.html" %}
+                {% endfor %}
             </div>
-            <div class="row">
-                <!-- Lista de productos aquí -->
-                <!-- Ejemplo -->
-                <div class="col-12 col-md-12 col-lg-3">
-                    <a href="{{ url_for('producto1') }}" class="productosxd">
-                        <div class="card bg-light shadow-sm border-0 px-2 py-3 mb-4">
-                            <div class="text-center">
-                                <img src="img/productos/applew8.webp" class="img-fluid" alt="">
-                            </div>
-                            <div class="card-body text-center">
-                                <h4 class="card-title">Apple Watch S8</h4>
-                                <p class="estrellona">★★★★★</p>
-                                <h5>
-                                    <span>S/ 1,619.00</span> <br>
-                                    <span class="text-muted"><del>S/ 1,759.00</del></span>
-                                </h5>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Pago y marcas -->
-    <section class="container mt-4 payment-section shadow-lg">
-        <div class="row justify-content-center align-items-center text-center">
-            <div class="col-md-3 mb-3 mb-md-0">
-                <h2>Paga cómodo y seguro</h2>
-            </div>
-            <div class="col-md-3 mb-3 mb-md-0">
-                <h3>Hasta 12 meses sin interes</h3>
-            </div>
-            <div class="col-md-6 mb-3 mb-md-0 payment-options">
-                <div class="bank-logos d-flex justify-content-center">
-                    <img src="img/medios-pago/interbank.png" alt="Divídelo"
-                        class="bank-logo img-fluid rounded mx-2 " data-anijs="if: mouseover, do: flip animated">
-                    <img src="img/medios-pago/bbva.jpg" alt="BBVA" class="bank-logo img-fluid rounded mx-2"
-                        data-anijs="if: mouseover, do: flip animated">
-                    <img src="img/medios-pago/bcp.jpg" alt="BCP" class="bank-logo img-fluid rounded mx-2"
-                        data-anijs="if: mouseover, do: flip animated">
-                    <img src="img/medios-pago/yape.png" alt="Yape" class="bank-logo img-fluid rounded mx-2"
-                        data-anijs="if: mouseover, do: flip animated">
-                    <img src="img/medios-pago/scotiabank.jpeg" alt="Scotiabank"
-                        class="bank-logo img-fluid rounded mx-2" data-anijs="if: mouseover, do: flip animated">
-                </div>
-            </div>
-        </div>
-    </section>
+        </section>
+    {% endif %}
 {% endblock %}

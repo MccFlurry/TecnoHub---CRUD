@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Confirmación de Pedido - TecnoHub{% endblock %}
+
+{% block content %}
+    <h1>Confirmación de Pedido</h1>
+    
+    <div class="confirmacion-pedido">
+        <h2>¡Gracias por tu compra!</h2>
+        <p>Tu pedido #{{ pedido.id }} ha sido recibido y está siendo procesado.</p>
+        
+        <h3>Detalles del Pedido</h3>
+        <p>Fecha: {{ pedido.fecha_pedido.strftime('%d/%m/%Y') }}</p>
+        <p>Estado: {{ pedido.estado }}</p>
+        
+        <h3>Productos</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in pedido.detalles %}
+                    <tr>
+                        <td>{{ detalle.producto.nombre }}</td>
+                        <td>{{ detalle.cantidad }}</td>
+                        <td>${{ detalle.precio_unitario }}</td>
+                        <td>${{ (detalle.cantidad * detalle.precio_unitario) | round(2) }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3"><strong>Total</strong></td>
+                    <td><strong>${{ pedido.total | round(2) }}</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+        
+        <h3>Dirección de Envío</h3>
+        <p>
+            {{ pedido.direccion.direccion }}, {{ pedido.direccion.ciudad }}, {{ pedido.direccion.estado }},
+            {{ pedido.direccion.pais }}, CP: {{ pedido.direccion.codigo_postal }}
+        </p>
+        
+        <a href="{{ url_for('mis_pedidos') }}" class="btn-primario">Ver Mis Pedidos</a>
+    </div>
+{% endblock %}

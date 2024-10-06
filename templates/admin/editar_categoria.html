@@ -1,0 +1,15 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'Editar' if categoria else 'Nueva' }} Categoría{% endblock %}
+
+{% block content %}
+    <h1>{{ 'Editar' if categoria else 'Nueva' }} Categoría</h1>
+    
+    <form action="{{ url_for('admin_editar_categoria', id=categoria.id) if categoria else url_for('admin_nueva_categoria') }}" method="post">
+        <div>
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" name="nombre" value="{{ categoria.nombre if categoria else '' }}" required>
+        </div>
+        <button type="submit" class="btn-primary">{{ 'Actualizar' if categoria else 'Crear' }} Categoría</button>
+    </form>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Detalle de Usuario{% endblock %}
+
+{% block content %}
+    <h1>Detalle de Usuario</h1>
+    
+    <div class="user-details">
+        <p><strong>ID:</strong> {{ usuario.id }}</p>
+        <p><strong>Nombre:</strong> {{ usuario.nombre }} {{ usuario.apellido }}</p>
+        <p><strong>Email:</strong> {{ usuario.email }}</p>
+        <p><strong>Tipo:</strong> {{ usuario.tipo }}</p>
+        <p><strong>Fecha de registro:</strong> {{ usuario.fecha_registro.strftime('%d/%m/%Y') }}</p>
+    </div>
+    
+    <h2>Pedidos del Usuario</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID Pedido</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pedido in usuario.pedidos %}
+                <tr>
+                    <td>{{ pedido.id }}</td>
+                    <td>{{ pedido.fecha_pedido.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ pedido.estado }}</td>
+                    <td>${{ pedido.total }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

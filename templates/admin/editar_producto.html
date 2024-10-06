@@ -1,0 +1,44 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'Editar' if producto else 'Nuevo' }} Producto{% endblock %}
+
+{% block content %}
+    <h1>{{ 'Editar' if producto else 'Nuevo' }} Producto</h1>
+    
+    <form action="{{ url_for('admin_editar_producto', id=producto.id) if producto else url_for('admin_nuevo_producto') }}" method="post" enctype="multipart/form-data">
+        <div>
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" name="nombre" value="{{ producto.nombre if producto else '' }}" required>
+        </div>
+        <div>
+            <label for="descripcion">Descripción:</label>
+            <textarea id="descripcion" name="descripcion" required>{{ producto.descripcion if producto else '' }}</textarea>
+        </div>
+        <div>
+            <label for="precio">Precio:</label>
+            <input type="number" id="precio" name="precio" step="0.01" value="{{ producto.precio if producto else '' }}" required>
+        </div>
+        <div>
+            <label for="stock">Stock:</label>
+            <input type="number" id="stock" name="stock" value="{{ producto.stock if producto else '' }}" required>
+        </div>
+        <div>
+            <label for="categoria_id">Categoría:</label>
+            <select id="categoria_id" name="categoria_id" required>
+                {% for categoria in categorias %}
+                    <option value="{{ categoria.id }}" {% if producto and producto.categoria_id == categoria.id %}selected{% endif %}>
+                        {{ categoria.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="imagen">Imagen:</label>
+            <input type="file" id="imagen" name="imagen" accept="image/*">
+            {% if producto and producto.imagen %}
+                <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}" style="max-width: 200px;">
+            {% endif %}
+        </div>
+        <button type="submit" class="btn-primary">{{ 'Actualizar' if producto else 'Crear' }} Producto</button>
+    </form>
+{% endblock %}

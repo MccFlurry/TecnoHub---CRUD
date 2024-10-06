@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Resultados de búsqueda para "{{ query }}" - TecnoHub{% endblock %}
+
+{% block content %}
+    <h1>Resultados de búsqueda para "{{ query }}"</h1>
+    
+    {% if productos %}
+        <div class="productos-grid">
+            {% for producto in productos %}
+                {% include "componentes/producto_card.html" %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No se encontraron productos que coincidan con tu búsqueda. Intenta con otros términos.</p>
+    {% endif %}
+{% endblock %}

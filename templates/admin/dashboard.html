@@ -1,0 +1,30 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+    <h1>Dashboard de Administración</h1>
+    
+    <div class="dashboard-summary">
+        <div class="summary-card">
+            <h2>Productos</h2>
+            <p>Total: {{ total_productos }}</p>
+            <a href="{{ url_for('admin_productos') }}">Ver productos</a>
+        </div>
+        <div class="summary-card">
+            <h2>Pedidos</h2>
+            <p>Pendientes: {{ pedidos_pendientes }}</p>
+            <a href="{{ url_for('admin_pedidos') }}">Ver pedidos</a>
+        </div>
+        <div class="summary-card">
+            <h2>Usuarios</h2>
+            <p>Total: {{ total_usuarios }}</p>
+            <a href="{{ url_for('admin_usuarios') }}">Ver usuarios</a>
+        </div>
+        <div class="summary-card">
+            <h2>Ingresos</h2>
+            <p>Este mes: ${{ ingresos_mes }}</p>
+            <a href="#">Ver detalles</a>
+        </div>
+    </div>
+{% endblock %}

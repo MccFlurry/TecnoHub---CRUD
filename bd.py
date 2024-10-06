@@ -1,8 +1,9 @@
-import pymysql 
+import pymysql
 
 def obtener_conexion():
-    return pymysql.connect(host='localhost',
-                                port=3306,
-                                user='root',
-                                password='',
-                                db='py_paginaweb')
+    return pymysql.connect(
+        host="localhost",
+        user="root",
+        passwd="",
+        db="py_paginaweb",
+    )

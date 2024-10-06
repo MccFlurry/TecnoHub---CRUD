@@ -1,0 +1,47 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Detalle de Pedido #{{ pedido.id }}{% endblock %}
+
+{% block content %}
+    <h1>Detalle de Pedido #{{ pedido.id }}</h1>
+    
+    <div class="pedido-info">
+        <p><strong>Usuario:</strong> {{ pedido.usuario.nombre }} {{ pedido.usuario.apellido }}</p>
+        <p><strong>Fecha:</strong> {{ pedido.fecha_pedido.strftime('%d/%m/%Y %H:%M') }}</p>
+        <p><strong>Estado:</strong> {{ pedido.estado }}</p>
+        <p><strong>Total:</strong> ${{ pedido.total }}</p>
+    </div>
+    
+    <h2>Productos</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detalle in pedido.detalles %}
+                <tr>
+                    <td>{{ detalle.producto.nombre }}</td>
+                    <td>{{ detalle.cantidad }}</td>
+                    <td>${{ detalle.precio_unitario }}</td>
+                    <td>${{ detalle.cantidad * detalle.precio_unitario }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <h2>Actualizar Estado</h2>
+    <form action="{{ url_for('admin_actualizar_estado_pedido', id=pedido.id) }}" method="post">
+        <select name="nuevo_estado" required>
+            <option value="pendiente" {% if pedido.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+            <option value="enviado" {% if pedido.estado == 'enviado' %}selected{% endif %}>Enviado</option>
+            <option value="entregado" {% if pedido.estado == 'entregado' %}selected{% endif %}>Entregado</option>
+            <option value="cancelado" {% if pedido.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
+        </select>
+        <button type="submit" class="btn-primary">Actualizar Estado</button>
+    </form>
+{% endblock %}
