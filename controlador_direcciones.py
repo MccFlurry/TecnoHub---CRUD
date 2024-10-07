@@ -13,11 +13,17 @@ def obtener_direcciones_usuario(usuario_id):
     conexion = obtener_conexion()
     direcciones = []
     with conexion.cursor() as cursor:
-        sql = "SELECT id, usuario_id, direccion, ciudad, estado, pais, codigo_postal FROM direcciones WHERE usuario_id = %s"
-        cursor.execute(sql, (usuario_id,))
-        rows = cursor.fetchall()
-        for row in rows:
-            direcciones.append(Direccion(**row))
+        cursor.execute("SELECT id, usuario_id, direccion, ciudad, estado, pais, codigo_postal FROM direcciones WHERE usuario_id = %s", (usuario_id,))
+        for row in cursor.fetchall():
+            direcciones.append({
+                'id': row[0],
+                'usuario_id': row[1],
+                'direccion': row[2],
+                'ciudad': row[3],
+                'estado': row[4],
+                'pais': row[5],
+                'codigo_postal': row[6]
+            })
     conexion.close()
     return direcciones
 

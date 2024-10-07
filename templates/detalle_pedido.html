@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Detalle de Pedido - TecnoHub{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-center mb-8">Detalle de Pedido #{{ pedido['id'] }}</h1>
+
+    <div class="max-w-3xl mx-auto bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+        <div class="p-6">
+            <h2 class="text-2xl font-semibold mb-4">Información del Pedido</h2>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                    <p class="text-gray-400">ID del Pedido:</p>
+                    <p class="font-semibold">{{ pedido['id'] }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400">Fecha del Pedido:</p>
+                    <p class="font-semibold">{{ pedido['fecha_pedido'].strftime('%d-%m-%Y %H:%M') }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400">Estado del Pedido:</p>
+                    <p class="font-semibold">{{ pedido['estado']|capitalize }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400">Total:</p>
+                    <p class="font-semibold">${{ "%.2f"|format(pedido['total']) }}</p>
+                </div>
+            </div>
+
+            <h2 class="text-2xl font-semibold mb-4">Información del Cliente</h2>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                    <p class="text-gray-400">Nombre:</p>
+                    <p class="font-semibold">{{ pedido['nombre'] }} {{ pedido['apellido'] }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400">Email:</p>
+                    <p class="font-semibold">{{ pedido['email'] }}</p>
+                </div>
+            </div>
+            <h2 class="text-2xl font-semibold mb-4">Dirección de Envío</h2>
+            <div class="mb-6">
+                <p class="font-semibold">{{ pedido['direccion'] }}, {{ pedido['ciudad'] }}</p>
+                <p class="font-semibold">{{ pedido['direccion_estado'] }}, {{ pedido['pais'] }}</p>
+            </div>
+
+            <h2 class="text-2xl font-semibold mb-4">Productos</h2>
+            <table class="w-full mb-6">
+                <thead>
+                    <tr class="text-left border-b border-gray-700">
+                        <th class="py-2">Producto</th>
+                        <th class="py-2">Cantidad</th>
+                        <th class="py-2">Precio Unitario</th>
+                        <th class="py-2">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in pedido['detalles'] %}
+                    <tr class="border-b border-gray-700">
+                        <td class="py-2">{{ item['nombre'] }}</td>
+                        <td class="py-2">{{ item['cantidad'] }}</td>
+                        <td class="py-2">${{ "%.2f"|format(item['precio_unitario']) }}</td>
+                        <td class="py-2">${{ "%.2f"|format(item['cantidad'] * item['precio_unitario']) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="py-2 text-right"><strong>Total:</strong></td>
+                        <td class="py-2"><strong>${{ "%.2f"|format(pedido['total']) }}</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-8 text-center">
+        <a href="{{ url_for('mis_pedidos') }}"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">
+            Volver a la Lista de Pedidos
+        </a>
+    </div>
+</div>
+{% endblock %}

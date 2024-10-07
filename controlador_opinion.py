@@ -2,7 +2,7 @@ from bd import obtener_conexion
 from clase.clase_opinion import Opinion
 from pymysql.cursors import DictCursor
 
-def agregar_opinion(producto_id, usuario_id, comentario, calificacion):
+def agregar_opiniones(producto_id, usuario_id, comentario, calificacion):
     conexion = obtener_conexion()
     with conexion.cursor() as cursor:
         sql = "INSERT INTO opiniones (producto_id, usuario_id, comentario, calificacion) VALUES (%s, %s, %s, %s)"

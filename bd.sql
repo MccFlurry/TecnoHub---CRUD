@@ -27,9 +27,9 @@ CREATE TABLE productos (
     descripcion TEXT,
     precio DECIMAL(10, 2) NOT NULL,
     stock INT NOT NULL,
-    categorias_id INT,
+    categoria_id INT,
     imagen VARCHAR(255),
-    FOREIGN KEY (categorias_id) REFERENCES categorias(id)
+    FOREIGN KEY (categoria_id) REFERENCES categorias(id)
 );
 
 -- Tabla de opiniones
@@ -47,10 +47,12 @@ CREATE TABLE opiniones (
 -- Tabla de pedidos
 CREATE TABLE pedidos (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    usuario_id INT,
-    fecha_pedido TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    estado ENUM('pendiente', 'enviado', 'entregado') DEFAULT 'pendiente',
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+    usuario_id INT NOT NULL,
+    direccion_id INT NOT NULL,
+    fecha DATETIME NOT NULL,
+    estado VARCHAR(20) NOT NULL,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+    FOREIGN KEY (direccion_id) REFERENCES direcciones(id)
 );
 
 -- Tabla de detalles de pedido

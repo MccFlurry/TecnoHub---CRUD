@@ -4,22 +4,13 @@ from pymysql.cursors import DictCursor
 
 def obtener_todas_categorias():
     conexion = obtener_conexion()
-    categorias_list = []
-    try:
-        with conexion.cursor(DictCursor) as cursor:
-            sql = "SELECT id, nombre FROM categorias"
-            cursor.execute(sql)
-            rows = cursor.fetchall()
-            print("Categorías obtenidas:", rows)
-            for row in rows:
-                categorias_list.append(categorias(**row))
-    except Exception as e:
-        print(f"Error al obtener categorías: {e}")
-    finally:
-        conexion.close()
-    
-    return categorias_list
-
+    categorias = []
+    with conexion.cursor(DictCursor) as cursor:
+        sql = "SELECT id, nombre FROM categorias"
+        cursor.execute(sql)
+        categorias = cursor.fetchall()
+    conexion.close()
+    return categorias
 
 def obtener_categorias_por_id(id):
     conexion = obtener_conexion()
