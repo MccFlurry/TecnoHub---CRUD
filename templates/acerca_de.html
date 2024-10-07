@@ -1,26 +1,30 @@
 {% extends "base.html" %}
 
-{% block title %}Acerca de Nosotros{% endblock %}
+{% block title %}Acerca de Nosotros - TecnoHub{% endblock %}
 
 {% block content %}
-<div class="acerca-de-container">
-    <h2>Acerca de Nuestra Tienda</h2>
-    <section class="mision-vision">
-        <h3>Nuestra Misión</h3>
-        <p>Proporcionar a nuestros clientes los mejores productos electrónicos con un servicio excepcional, garantizando calidad y satisfacción en cada compra.</p>
+<div class="container mx-auto px-4 py-8">
+    <h2 class="text-3xl font-bold text-center mb-8">Acerca de Nuestra Tienda</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <section class="bg-gray-800 rounded-lg p-6 shadow-lg">
+            <h3 class="text-xl font-semibold mb-4 text-blue-500">Nuestra Misión</h3>
+            <p class="text-gray-300">Proporcionar a nuestros clientes los mejores productos electrónicos con un servicio excepcional, garantizando calidad y satisfacción en cada compra.</p>
+        </section>
         
-        <h3>Nuestra Visión</h3>
-        <p>Ser la tienda en línea líder en electrónica, reconocida por nuestra innovación, variedad de productos y excelencia en atención al cliente.</p>
+        <section class="bg-gray-800 rounded-lg p-6 shadow-lg">
+            <h3 class="text-xl font-semibold mb-4 text-blue-500">Nuestra Visión</h3>
+            <p class="text-gray-300">Ser la tienda en línea líder en electrónica, reconocida por nuestra innovación, variedad de productos y excelencia en atención al cliente.</p>
+        </section>
+    </div>
+
+    <section class="bg-gray-800 rounded-lg p-6 shadow-lg mt-8">
+        <h3 class="text-xl font-semibold mb-4 text-blue-500">Nuestra Historia</h3>
+        <p class="text-gray-300">Fundada en 2020, nuestra tienda nació con la idea de hacer que la tecnología sea accesible para todos. Desde entonces, hemos crecido constantemente, ampliando nuestra gama de productos y mejorando nuestros servicios para satisfacer las necesidades cambiantes de nuestros clientes.</p>
     </section>
 
-    <section class="historia">
-        <h3>Nuestra Historia</h3>
-        <p>Fundada en 2020, nuestra tienda nació con la idea de hacer que la tecnología sea accesible para todos. Desde entonces, hemos crecido constantemente, ampliando nuestra gama de productos y mejorando nuestros servicios para satisfacer las necesidades cambiantes de nuestros clientes.</p>
-    </section>
-
-    <section class="valores">
-        <h3>Nuestros Valores</h3>
-        <ul>
+    <section class="bg-gray-800 rounded-lg p-6 shadow-lg mt-8">
+        <h3 class="text-xl font-semibold mb-4 text-blue-500">Nuestros Valores</h3>
+        <ul class="list-disc list-inside text-gray-300 space-y-2">
             <li>Calidad en nuestros productos y servicios</li>
             <li>Innovación constante</li>
             <li>Atención al cliente excepcional</li>

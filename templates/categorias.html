@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}{{ categorias.nombre }} - TecnoHub{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-center mb-8">{{ categorias.nombre }}</h1>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {% for producto in productos %}
+        <div class="bg-gray-800 rounded-lg overflow-hidden shadow-lg transform transition-all duration-300 hover:scale-105">
+            <img src="{{ url_for('static', filename='img/' + producto.imagen) }}" alt="{{ producto.nombre }}" class="w-full h-48 object-cover">
+            <div class="p-4">
+                <h3 class="text-xl font-semibold mb-2">{{ producto.nombre }}</h3>
+                <p class="text-blue-500 font-bold text-lg mb-4">${{ producto.precio }}</p>
+                <a href="{{ url_for('producto', id=producto.id) }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 inline-block w-full text-center">
+                    Ver detalles
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,15 +1,34 @@
 {% extends "admin/base.html" %}
 
-{% block title %}{{ 'Editar' if categoria else 'Nueva' }} Categoría{% endblock %}
+{% block title %}{{ 'Editar' if categorias else 'Nueva' }} Categoría{% endblock %}
+
+{% block header %}{{ 'Editar' if categorias else 'Nueva' }} Categoría{% endblock %}
 
 {% block content %}
-    <h1>{{ 'Editar' if categoria else 'Nueva' }} Categoría</h1>
-    
-    <form action="{{ url_for('admin_editar_categoria', id=categoria.id) if categoria else url_for('admin_nueva_categoria') }}" method="post">
-        <div>
-            <label for="nombre">Nombre:</label>
-            <input type="text" id="nombre" name="nombre" value="{{ categoria.nombre if categoria else '' }}" required>
-        </div>
-        <button type="submit" class="btn-primary">{{ 'Actualizar' if categoria else 'Crear' }} Categoría</button>
-    </form>
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <form action="{{ url_for('admin_editar_categorias', id=categorias.id) if categorias else url_for('admin_nueva_categorias') }}" method="post" class="space-y-8 divide-y divide-gray-200">
+            <div class="space-y-8 divide-y divide-gray-200 sm:space-y-5">
+                <div class="pt-8 space-y-6 sm:pt-10 sm:space-y-5">
+                    <div class="space-y-6 sm:space-y-5">
+                        <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
+                            <label for="nombre" class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
+                                Nombre
+                            </label>
+                            <div class="mt-1 sm:mt-0 sm:col-span-2">
+                                <input type="text" name="nombre" id="nombre" value="{{ categorias.nombre if categorias else '' }}" required class="max-w-lg block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-5">
+                <div class="flex justify-end">
+                    <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        {{ 'Actualizar' if categorias else 'Crear' }} Categoría
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
 {% endblock %}

@@ -1,35 +1,38 @@
 {% extends "base.html" %}
 
-{% block title %}Contáctanos{% endblock %}
+{% block title %}Contáctanos - TecnoHub{% endblock %}
 
 {% block content %}
-<div class="contacto-container">
-    <h2>Contáctanos</h2>
-    <div class="contacto-info">
-        <p><strong>Dirección:</strong> Calle Principal 123, Ciudad, País</p>
-        <p><strong>Teléfono:</strong> +1 234 567 8900</p>
-        <p><strong>Email:</strong> info@nuestratienda.com</p>
-        <p><strong>Horario de Atención:</strong> Lunes a Viernes de 9:00 AM a 6:00 PM</p>
-    </div>
+<div class="container mx-auto px-4 py-8">
+    <h2 class="text-3xl font-bold text-center mb-8">Contáctanos</h2>
+    <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+            <h3 class="text-xl font-semibold mb-4 text-blue-500">Información de Contacto</h3>
+            <p class="mb-2"><strong>Dirección:</strong> Calle Principal 123, Ciudad, País</p>
+            <p class="mb-2"><strong>Teléfono:</strong> +1 234 567 8900</p>
+            <p class="mb-2"><strong>Email:</strong> info@tecnohub.com</p>
+            <p class="mb-2"><strong>Horario de Atención:</strong> Lunes a Viernes de 9:00 AM a 6:00 PM</p>
+        </div>
 
-    <form action="{{ url_for('enviar_mensaje') }}" method="post" class="contacto-form">
-        <div class="form-group">
-            <label for="nombre">Nombre:</label>
-            <input type="text" id="nombre" name="nombre" required>
-        </div>
-        <div class="form-group">
-            <label for="email">Correo electrónico:</label>
-            <input type="email" id="email" name="email" required>
-        </div>
-        <div class="form-group">
-            <label for="asunto">Asunto:</label>
-            <input type="text" id="asunto" name="asunto" required>
-        </div>
-        <div class="form-group">
-            <label for="mensaje">Mensaje:</label>
-            <textarea id="mensaje" name="mensaje" required></textarea>
-        </div>
-        <button type="submit" class="btn-primary">Enviar Mensaje</button>
-    </form>
+        <form action="{{ url_for('enviar_contacto') }}" method="post" class="bg-gray-800 rounded-lg p-6 shadow-lg">
+            <div class="mb-4">
+                <label for="nombre" class="block text-sm font-medium text-gray-300 mb-2">Nombre:</label>
+                <input type="text" id="nombre" name="nombre" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="mb-4">
+                <label for="email" class="block text-sm font-medium text-gray-300 mb-2">Correo electrónico:</label>
+                <input type="email" id="email" name="email" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="mb-4">
+                <label for="asunto" class="block text-sm font-medium text-gray-300 mb-2">Asunto:</label>
+                <input type="text" id="asunto" name="asunto" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="mb-4">
+                <label for="mensaje" class="block text-sm font-medium text-gray-300 mb-2">Mensaje:</label>
+                <textarea id="mensaje" name="mensaje" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 h-32"></textarea>
+            </div>
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">Enviar Mensaje</button>
+        </form>
+    </div>
 </div>
 {% endblock %}

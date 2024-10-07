@@ -3,51 +3,61 @@
 {% block title %}Realizar Pedido - TecnoHub{% endblock %}
 
 {% block content %}
-    <h1>Realizar Pedido</h1>
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-center mb-8">Realizar Pedido</h1>
     
-    <form action="{{ url_for('realizar_pedido') }}" method="post">
-        <h2>Selecciona una dirección de envío</h2>
-        {% if direcciones %}
-            {% for direccion in direcciones %}
-                <div>
-                    <input type="radio" name="direccion_id" id="direccion_{{ direccion.id }}" value="{{ direccion.id }}" required>
-                    <label for="direccion_{{ direccion.id }}">
-                        {{ direccion.direccion }}, {{ direccion.ciudad }}, {{ direccion.estado }}, {{ direccion.pais }}, CP: {{ direccion.codigo_postal }}
-                    </label>
-                </div>
-            {% endfor %}
-        {% else %}
-            <p>No tienes direcciones registradas. <a href="{{ url_for('agregar_direccion') }}">Agregar una dirección</a></p>
-        {% endif %}
-        
-        <h2>Resumen del Pedido</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Producto</th>
-                    <th>Cantidad</th>
-                    <th>Precio</th>
-                    <th>Subtotal</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in session['carrito'] %}
-                    <tr>
-                        <td>{{ item.nombre }}</td>
-                        <td>{{ item.cantidad }}</td>
-                        <td>${{ item.precio }}</td>
-                        <td>${{ (item.cantidad * item.precio) | round(2) }}</td>
-                    </tr>
+    <form action="{{ url_for('realizar_pedido') }}" method="post" class="max-w-2xl mx-auto">
+        <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-8">
+            <h2 class="text-xl font-semibold mb-4">Selecciona una dirección de envío</h2>
+            {% if direcciones %}
+                {% for direccion in direcciones %}
+                    <div class="mb-2">
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="direccion_id" value="{{ direccion.id }}" required class="form-radio text-blue-600">
+                            <span class="ml-2">
+                                {{ direccion.direccion }}, {{ direccion.ciudad }}, {{ direccion.estado }}, {{ direccion.pais }}, CP: {{ direccion.codigo_postal }}
+                            </span>
+                        </label>
+                    </div>
                 {% endfor %}
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="3"><strong>Total</strong></td>
-                    <td><strong>${{ total | round(2) }}</strong></td>
-                </tr>
-            </tfoot>
-        </table>
+            {% else %}
+                <p class="text-gray-300">No tienes direcciones registradas. <a href="{{ url_for('agregar_direccion') }}" class="text-blue-500 hover:underline">Agregar una dirección</a></p>
+            {% endif %}
+        </div>
         
-        <button type="submit" {% if not direcciones %}disabled{% endif %}>Confirmar Pedido</button>
+        <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-8">
+            <h2 class="text-xl font-semibold mb-4">Resumen del Pedido</h2>
+            <table class="w-full mb-4">
+                <thead>
+                    <tr class="text-left border-b border-gray-700">
+                        <th class="py-2">Producto</th>
+                        <th class="py-2">Cantidad</th>
+                        <th class="py-2">Precio</th>
+                        <th class="py-2">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in session['carrito'] %}
+                        <tr class="border-b border-gray-700">
+                            <td class="py-2">{{ item.nombre }}</td>
+                            <td class="py-2">{{ item.cantidad }}</td>
+                            <td class="py-2">${{ item.precio }}</td>
+                            <td class="py-2">${{ (item.cantidad * item.precio) | round(2) }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="py-2"><strong>Total</strong></td>
+                        <td class="py-2"><strong>${{ total | round(2) }}</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300" {% if not direcciones %}disabled{% endif %}>
+            Confirmar Pedido
+        </button>
     </form>
+</div>
 {% endblock %}

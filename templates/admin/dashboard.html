@@ -2,29 +2,118 @@
 
 {% block title %}Dashboard{% endblock %}
 
+{% block header %}Dashboard{% endblock %}
+
 {% block content %}
-    <h1>Dashboard de Administración</h1>
-    
-    <div class="dashboard-summary">
-        <div class="summary-card">
-            <h2>Productos</h2>
-            <p>Total: {{ total_productos }}</p>
-            <a href="{{ url_for('admin_productos') }}">Ver productos</a>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
+                        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">
+                                Total Productos
+                            </dt>
+                            <dd class="text-lg font-semibold text-gray-900">
+                                {{ total_productos }}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-5 py-3">
+                <div class="text-sm">
+                    <a href="{{ url_for('admin_productos') }}" class="font-medium text-blue-700 hover:text-blue-900">Ver todos</a>
+                </div>
+            </div>
         </div>
-        <div class="summary-card">
-            <h2>Pedidos</h2>
-            <p>Pendientes: {{ pedidos_pendientes }}</p>
-            <a href="{{ url_for('admin_pedidos') }}">Ver pedidos</a>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
+                        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">
+                                Pedidos Pendientes
+                            </dt>
+                            <dd class="text-lg font-semibold text-gray-900">
+                                {{ pedidos_pendientes }}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-5 py-3">
+                <div class="text-sm">
+                    <a href="{{ url_for('admin_pedidos') }}" class="font-medium text-green-700 hover:text-green-900">Ver todos</a>
+                </div>
+            </div>
         </div>
-        <div class="summary-card">
-            <h2>Usuarios</h2>
-            <p>Total: {{ total_usuarios }}</p>
-            <a href="{{ url_for('admin_usuarios') }}">Ver usuarios</a>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
+                        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">
+                                Total Usuarios
+                            </dt>
+                            <dd class="text-lg font-semibold text-gray-900">
+                                {{ total_usuarios }}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-5 py-3">
+                <div class="text-sm">
+                    <a href="{{ url_for('admin_usuarios') }}" class="font-medium text-yellow-700 hover:text-yellow-900">Ver todos</a>
+                </div>
+            </div>
         </div>
-        <div class="summary-card">
-            <h2>Ingresos</h2>
-            <p>Este mes: ${{ ingresos_mes }}</p>
-            <a href="#">Ver detalles</a>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-red-500 rounded-md p-3">
+                        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">
+                                Ingresos del Mes
+                            </dt>
+                            <dd class="text-lg font-semibold text-gray-900">
+                                ${{ ingresos_mes }}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-5 py-3">
+                <div class="text-sm">
+                    <a href="#" class="font-medium text-red-700 hover:text-red-900">Ver detalles</a>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- You can add more sections here, such as recent orders or top-selling products -->
 {% endblock %}

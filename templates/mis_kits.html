@@ -3,27 +3,29 @@
 {% block title %}Mis Kits - TecnoHub{% endblock %}
 
 {% block content %}
-    <h1>Mis Kits</h1>
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-center mb-8">Mis Kits</h1>
     
     {% if kits %}
-        <div class="kits-grid">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {% for kit in kits %}
-                <div class="kit-card">
-                    <h2>Kit #{{ kit.id }}</h2>
-                    <p>Fecha de creación: {{ kit.fecha_creacion.strftime('%d/%m/%Y') }}</p>
-                    <ul>
+                <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+                    <h2 class="text-xl font-semibold mb-4">Kit #{{ kit.id }}</h2>
+                    <p class="mb-4">Fecha de creación: {{ kit.fecha_creacion.strftime('%d/%m/%Y') }}</p>
+                    <ul class="space-y-2 mb-4">
                         <li>Celular: {{ kit.celular.nombre }} - ${{ kit.celular.precio }}</li>
                         <li>Funda: {{ kit.funda.nombre }} - ${{ kit.funda.precio }}</li>
                         <li>Audífonos: {{ kit.audifonos.nombre }} - ${{ kit.audifonos.precio }}</li>
                     </ul>
-                    <p>Total: ${{ (kit.celular.precio + kit.funda.precio + kit.audifonos.precio) | round(2) }}</p>
+                    <p class="text-lg font-bold mb-4">Total: ${{ (kit.celular.precio + kit.funda.precio + kit.audifonos.precio) | round(2) }}</p>
                     <form action="{{ url_for('eliminar_kit', kit_id=kit.id) }}" method="post" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este kit?');">
-                        <button type="submit" class="btn-eliminar">Eliminar Kit</button>
+                        <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">Eliminar Kit</button>
                     </form>
                 </div>
             {% endfor %}
         </div>
     {% else %}
-        <p>Aún no has creado ningún kit. <a href="{{ url_for('arma_tu_kit') }}">¡Crea tu primer kit ahora!</a></p>
+        <p class="text-center text-gray-300">Aún no has creado ningún kit. <a href="{{ url_for('arma_tu_kit') }}" class="text-blue-500 hover:underline">¡Crea tu primer kit ahora!</a></p>
     {% endif %}
+</div>
 {% endblock %}

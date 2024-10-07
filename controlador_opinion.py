@@ -1,5 +1,6 @@
 from bd import obtener_conexion
 from clase.clase_opinion import Opinion
+from pymysql.cursors import DictCursor
 
 def agregar_opinion(producto_id, usuario_id, comentario, calificacion):
     conexion = obtener_conexion()
@@ -31,9 +32,17 @@ def obtener_opiniones_producto(producto_id):
 
 def calcular_calificacion_promedio(producto_id):
     conexion = obtener_conexion()
-    with conexion.cursor() as cursor:
-        sql = "SELECT AVG(calificacion) as promedio FROM opiniones WHERE producto_id = %s"
-        cursor.execute(sql, (producto_id,))
+    promedio = 0
+    with conexion.cursor(DictCursor) as cursor:  # Aquí pasamos DictCursor correctamente
+        cursor.execute("""
+        SELECT AVG(calificacion) as promedio
+        FROM opiniones
+        WHERE producto_id = %s
+        """, (producto_id,))
         resultado = cursor.fetchone()
+        if resultado and resultado['promedio']:
+            promedio = round(resultado['promedio'], 1)
     conexion.close()
-    return resultado['promedio'] if resultado['promedio'] else 0
+    return promedio
+
+

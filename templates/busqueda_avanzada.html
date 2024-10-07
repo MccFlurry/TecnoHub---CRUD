@@ -3,44 +3,47 @@
 {% block title %}Búsqueda Avanzada - TecnoHub{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/busqueda_avanzada.css') }}">
-    <h1>Búsqueda Avanzada</h1>
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-center mb-8">Búsqueda Avanzada</h1>
     
-    <form action="{{ url_for('busqueda_avanzada') }}" method="get">
-        <div>
-            <label for="q">Buscar:</label>
-            <input type="text" id="q" name="q" value="{{ query }}">
+    <form action="{{ url_for('busqueda_avanzada') }}" method="get" class="max-w-2xl mx-auto bg-gray-800 rounded-lg p-6 shadow-lg mb-8">
+        <div class="space-y-4">
+            <div>
+                <label for="q" class="block text-sm font-medium text-gray-300">Buscar:</label>
+                <input type="text" id="q" name="q" value="{{ query }}" class="mt-1 block w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label for="categorias" class="block text-sm font-medium text-gray-300">Categoría:</label>
+                <select id="categorias" name="categorias" class="mt-1 block w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Todas las categorías</option>
+                    {% for categorias in categorias %}
+                        <option value="{{ categorias.id }}" {% if categorias_id|int == categorias.id %}selected{% endif %}>
+                            {{ categorias.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="precio_min" class="block text-sm font-medium text-gray-300">Precio mínimo:</label>
+                <input type="number" id="precio_min" name="precio_min" value="{{ precio_min }}" min="0" step="0.01" class="mt-1 block w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label for="precio_max" class="block text-sm font-medium text-gray-300">Precio máximo:</label>
+                <input type="number" id="precio_max" name="precio_max" value="{{ precio_max }}" min="0" step="0.01" class="mt-1 block w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
         </div>
-        <div>
-            <label for="categoria">Categoría:</label>
-            <select id="categoria" name="categoria">
-                <option value="">Todas las categorías</option>
-                {% for categoria in categorias %}
-                    <option value="{{ categoria.id }}" {% if categoria_id|int == categoria.id %}selected{% endif %}>
-                        {{ categoria.nombre }}
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
-        <div>
-            <label for="precio_min">Precio mínimo:</label>
-            <input type="number" id="precio_min" name="precio_min" value="{{ precio_min }}" min="0" step="0.01">
-        </div>
-        <div>
-            <label for="precio_max">Precio máximo:</label>
-            <input type="number" id="precio_max" name="precio_max" value="{{ precio_max }}" min="0" step="0.01">
-        </div>
-        <button type="submit">Buscar</button>
+        <button type="submit" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">Buscar</button>
     </form>
     
-    <h2>Resultados de la búsqueda</h2>
+    <h2 class="text-2xl font-bold mb-4">Resultados de la búsqueda</h2>
     {% if productos %}
-        <div class="productos-grid">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {% for producto in productos %}
                 {% include "componentes/producto_card.html" %}
             {% endfor %}
         </div>
     {% else %}
-        <p>No se encontraron productos que coincidan con tu búsqueda.</p>
+        <p class="text-center text-gray-300">No se encontraron productos que coincidan con tu búsqueda.</p>
     {% endif %}
+</div>
 {% endblock %}
