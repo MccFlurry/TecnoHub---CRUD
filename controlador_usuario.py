@@ -1,5 +1,5 @@
 from bd import obtener_conexion
-from clase.clase_usuario import Usuario 
+from clase.clase_usuario import Usuario
 from pymysql.cursors import DictCursor
 
 def insertar_usuario(nombre, apellido, email, contrasena, tipo, foto):
@@ -13,12 +13,26 @@ def insertar_usuario(nombre, apellido, email, contrasena, tipo, foto):
 def obtener_usuario_por_id(id):
     conexion = obtener_conexion()
     usuario = None
-    with conexion.cursor(dictionary=True) as cursor:  # Configuramos para que devuelva un diccionario
-        sql = "SELECT id, nombre, apellido, email, contraseña, tipo, foto FROM usuarios WHERE id = %s"
+    with conexion.cursor(DictCursor) as cursor:
+        # Asegúrate de seleccionar 'contraseña' en la consulta SQL
+        sql = """
+        SELECT id, nombre, apellido, email, tipo, foto, fecha_registro, contraseña
+        FROM usuarios
+        WHERE id = %s
+        """
         cursor.execute(sql, (id,))
         row = cursor.fetchone()
         if row:
-            usuario = Usuario(**row)
+            usuario = Usuario(
+                id=row['id'],
+                nombre=row['nombre'],
+                apellido=row['apellido'],
+                email=row['email'],
+                tipo=row['tipo'],
+                foto=row['foto'],
+                fecha_registro=row['fecha_registro'],
+                contraseña=row['contraseña']
+            )
     conexion.close()
     return usuario
 
@@ -26,11 +40,12 @@ def obtener_usuario_por_email(email):
     conexion = obtener_conexion()
     usuario = None
     with conexion.cursor(DictCursor) as cursor:
-        sql = "SELECT id, nombre, apellido, email, contraseña, tipo, foto FROM usuarios WHERE email = %s"
+        # Aquí mantenemos el nombre original 'contraseña' (con tilde)
+        sql = "SELECT id, nombre, apellido, email, contraseña, tipo, foto, fecha_registro FROM usuarios WHERE email = %s"
         cursor.execute(sql, (email,))
         row = cursor.fetchone()
         if row:
-            usuario = Usuario(**row)
+            usuario = Usuario(**row)  # Pasa el diccionario completo con 'contraseña'
     conexion.close()
     return usuario
 
@@ -49,3 +64,26 @@ def eliminar_usuario(id):
         cursor.execute(sql, (id,))
     conexion.commit()
     conexion.close()
+
+def contar_usuarios():
+    conexion = obtener_conexion()
+    total_usuarios = 0
+    with conexion.cursor(DictCursor) as cursor:
+        sql = "SELECT COUNT(*) as total FROM usuarios"
+        cursor.execute(sql)
+        total_usuarios = cursor.fetchone()['total']  # Obtiene el número total de usuarios
+    conexion.close()
+    return total_usuarios
+
+def obtener_todos_usuarios():
+    conexion = obtener_conexion()
+    usuarios = []
+    with conexion.cursor(DictCursor) as cursor:
+        sql = "SELECT id, nombre, apellido, email, tipo, foto, contraseña, fecha_registro FROM usuarios"  # Incluye fecha_registro
+        cursor.execute(sql)
+        rows = cursor.fetchall()
+        for row in rows:
+            usuario = Usuario(**row)
+            usuarios.append(usuario)
+    conexion.close()
+    return usuarios

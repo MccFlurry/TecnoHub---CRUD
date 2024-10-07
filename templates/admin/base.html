@@ -3,40 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Panel de Administración{% endblock %} - Tienda de Electrónicos</title>
+    <title>{% block title %}Panel de Administración{% endblock %} - TecnoHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
     {% block extra_css %}{% endblock %}
 </head>
-<body>
-    <header>
-        <nav>
-            <ul>
-                <li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
-                <li><a href="{{ url_for('admin_productos') }}">Productos</a></li>
-                <li><a href="{{ url_for('admin_pedidos') }}">Pedidos</a></li>
-                <li><a href="{{ url_for('admin_categorias') }}">Categorías</a></li>
-                <li><a href="{{ url_for('admin_usuarios') }}">Usuarios</a></li>
-                <li><a href="{{ url_for('home') }}">Volver a la tienda</a></li>
-                <li><a href="{{ url_for('logout') }}">Cerrar sesión</a></li>
-            </ul>
-        </nav>
-    </header>
+<body class="bg-gray-100">
+    <div class="flex h-screen bg-gray-100">
+        <!-- Sidebar -->
+        <aside class="hidden md:flex md:flex-shrink-0">
+            <div class="flex flex-col w-64">
+                <div class="flex items-center justify-center h-16 bg-blue-600">
+                    <span class="text-white font-semibold text-lg">TecnoHub Admin</span>
+                </div>
+                <div class="flex-grow flex flex-col overflow-y-auto bg-blue-800 text-white">
+                    <nav class="flex-1 px-2 py-4 space-y-1">
+                        <a href="{{ url_for('admin_dashboard') }}" class="flex items-center px-4 py-2 hover:bg-blue-700 rounded-md">
+                            <svg class="mr-3 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                            </svg>
+                            Dashboard
+                        </a>
+                        <a href="{{ url_for('admin_productos') }}" class="flex items-center px-4 py-2 hover:bg-blue-700 rounded-md">
+                            <svg class="mr-3 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                            </svg>
+                            Productos
+                        </a>
+                        <a href="{{ url_for('admin_pedidos') }}" class="flex items-center px-4 py-2 hover:bg-blue-700 rounded-md">
+                            <svg class="mr-3 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                            </svg>
+                            Pedidos
+                        </a>
+                        <a href="{{ url_for('admin_categorias') }}" class="flex items-center px-4 py-2 hover:bg-blue-700 rounded-md">
+                            <svg class="mr-3 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                            </svg>
+                            Categorías
+                        </a>
+                        <a href="{{ url_for('admin_usuarios') }}" class="flex items-center px-4 py-2 hover:bg-blue-700 rounded-md">
+                            <svg class="mr-3 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                            </svg>
+                            Usuarios
+                        </a>
+                    </nav>
+                </div>
+                <div class="flex-shrink-0 flex border-t border-blue-700 p-4">
+                    <a href="{{ url_for('home') }}" class="flex-shrink-0 w-full group block">
+                        <div class="flex items-center">
+                            <div>
+                                <svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-white">
+                                    Volver a la tienda
+                                </p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </aside>
 
-    <main>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
-        {% block content %}{% endblock %}
-    </main>
-
-    <footer>
-        <p>&copy; 2024 Panel de Administración - Tienda de Electrónicos</p>
-    </footer>
+        <!-- Main content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <header class="bg-white shadow-sm">
+                <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+                    <h1 class="text-lg leading-6 font-semibold text-gray-900">
+                        {% block header %}Panel de Administración{% endblock %}
+                    </h1>
+                </div>
+            </header>
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
+                <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} mb-4">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+        </div>
+    </div>
 
     <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
     {% block extra_js %}{% endblock %}

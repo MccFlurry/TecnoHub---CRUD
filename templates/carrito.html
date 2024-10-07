@@ -3,48 +3,52 @@
 {% block title %}Carrito de Compras - TecnoHub{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/carrito.css') }}">
-    <h1>Carrito de Compras</h1>
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-center mb-8">Carrito de Compras</h1>
     
     {% if carrito %}
-        <form action="{{ url_for('actualizar_carrito') }}" method="post">
-            <table>
+        <form action="{{ url_for('actualizar_carrito') }}" method="post" class="bg-gray-800 rounded-lg p-6 shadow-lg">
+            <table class="w-full">
                 <thead>
-                    <tr>
-                        <th>Producto</th>
-                        <th>Precio</th>
-                        <th>Cantidad</th>
-                        <th>Subtotal</th>
-                        <th>Acciones</th>
+                    <tr class="text-left border-b border-gray-700">
+                        <th class="py-2">Producto</th>
+                        <th class="py-2">Precio</th>
+                        <th class="py-2">Cantidad</th>
+                        <th class="py-2">Subtotal</th>
+                        <th class="py-2">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for item in carrito %}
-                        <tr>
-                            <td>{{ item.nombre }}</td>
-                            <td>${{ item.precio }}</td>
-                            <td>
-                                <input type="number" name="cantidad_{{ item.producto_id }}" value="{{ item.cantidad }}" min="1">
+                        <tr class="border-b border-gray-700">
+                            <td class="py-4">{{ item.nombre }}</td>
+                            <td class="py-4">${{ item.precio }}</td>
+                            <td class="py-4">
+                                <input type="number" name="cantidad_{{ item.producto_id }}" value="{{ item.cantidad }}" min="1" class="bg-gray-700 text-white rounded-md py-1 px-2 w-20">
                             </td>
-                            <td>${{ (item.precio * item.cantidad) | round(2) }}</td>
-                            <td>
-                                <button type="submit" name="eliminar" value="{{ item.producto_id }}" formaction="{{ url_for('eliminar_del_carrito', producto_id=item.producto_id) }}">Eliminar</button>
+                            <td class="py-4">${{ (item.precio * item.cantidad) | round(2) }}</td>
+                            <td class="py-4">
+                                <button type="submit" name="eliminar" value="{{ item.producto_id }}" formaction="{{ url_for('eliminar_del_carrito', producto_id=item.producto_id) }}" class="text-red-500 hover:text-red-700">Elim
+inar</button>
                             </td>
                         </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="3"><strong>Total</strong></td>
-                        <td><strong>${{ total | round(2) }}</strong></td>
+                        <td colspan="3" class="py-4"><strong>Total</strong></td>
+                        <td class="py-4"><strong>${{ total | round(2) }}</strong></td>
                         <td></td>
                     </tr>
                 </tfoot>
             </table>
-            <button type="submit">Actualizar Carrito</button>
+            <div class="mt-6 flex justify-between">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">Actualizar Carrito</button>
+                <a href="{{ url_for('realizar_pedido') }}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">Realizar Pedido</a>
+            </div>
         </form>
-        <a href="{{ url_for('realizar_pedido') }}" class="btn-primario">Realizar Pedido</a>
     {% else %}
-        <p>Tu carrito está vacío. <a href="{{ url_for('home') }}">Continúa comprando</a></p>
+        <p class="text-center text-gray-300">Tu carrito está vacío. <a href="{{ url_for('home') }}" class="text-blue-500 hover:underline">Continúa comprando</a></p>
     {% endif %}
+</div>
 {% endblock %}

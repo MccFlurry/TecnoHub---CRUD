@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Cambiar Contraseña - TecnoHub{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-md mx-auto bg-gray-800 rounded-lg p-6 shadow-lg">
+        <h2 class="text-2xl font-bold text-center mb-6">Cambiar Contraseña</h2>
+        <form action="{{ url_for('cambiar_contrasena') }}" method="post" class="space-y-4">
+            <div>
+                <label for="contrasena_actual" class="block text-sm font-medium text-gray-300">Contraseña actual:</label>
+                <input type="password" id="contrasena_actual" name="contrasena_actual" required class="mt-1 block w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label for="nueva_contrasena" class="block text-sm font-medium text-gray-300">Nueva contraseña:</label>
+                <input type="password" id="nueva_contrasena" name="nueva_contrasena" required class="mt-1 block w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label for="confirmar_contrasena" class="block text-sm font-medium text-gray-300">Confirmar nueva contraseña:</label>
+                <input type="password" id="confirmar_contrasena" name="confirmar_contrasena" required class="mt-1 block w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">Cambiar contraseña</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

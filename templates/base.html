@@ -5,181 +5,174 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}TecnoHub{% endblock %}</title>
-    
-    <!-- Iconos y fuentes externas -->
+
+    <!-- Iconos y fuentes -->
     <link rel="icon" href="{{ url_for('static', filename='img/icono.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    
-    <!-- Framework CSS (Bootstrap) -->
+
+    <!-- CSS de Bootstrap y personalizado -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-    
-    <!-- CSS personalizado -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/anicollections.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-    
-    <!-- JavaScript externo -->
-    <script src="https://kit.fontawesome.com/0d7c115e0b.js" crossorigin="anonymous"></script>
-    
+
     {% block extra_css %}{% endblock %}
 </head>
 
-<body>
+<body class="bg-gray-900 text-white">
     <!-- Header -->
-    <nav class="navbar navbar-expand-lg" id="barra_navegacion">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('home') }}">
-                <img src="{{ url_for('static', filename='img/logo-header.png') }}" alt="TecnoHub" style="width: 350px; height: 100px; border-radius: 20px;" class="img-fluid">
-            </a>
-
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse flex-column mx-0 mx-md-5" id="navbarNav">
-                <form class="form-inline my-1 my-lg-3 w-100 d-flex" action="{{ url_for('buscar') }}" method="get">
-                    <input class="form-control w-85 me-2" type="search" name="q" placeholder="🔍︎ Buscar" aria-label="Search">
-                    <button class="btn w-15 shadow" type="submit" id="boton-buscar">Buscar</button>
-                </form>
-
-                <div class="d-flex flex-column">
-                    <div class="d-flex flex-row justify-content-between align-items-center">
-                        <a class="nav-link px-2" href="{{ url_for('home') }}" style="border-radius: 10%">
-                            <p class="font-header">
-                                <i class="fa-solid fa-house"></i> Inicio
-                            </p>
-                        </a>
-                        <a class="nav-link px-1" href="#" style="border-radius: 10%">
-                            <select id="categorySelect" class="form-select" aria-label="Default select example" onchange="window.location.href=this.value;">
-                                <option selected>Categorías</option>
-                                {% for categoria in categorias %}
-                                <option value="{{ url_for('categoria', id=categoria.id) }}">{{ categoria.nombre }}</option>
-                                {% endfor %}
-                            </select>
-                        </a>
-                        <a class="nav-link px-2 frequent-animation" href="{{ url_for('arma_tu_kit') }}" style="border-radius: 10%">
-                            <p class="font-header">
-                                <i class="fa-solid fa-box-open"></i> Arma tu Kit
-                            </p>
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="collapse navbar-collapse flex-column align-items-end mx-3" id="navbarNav">
-                <div class="d-flex flex-column">
-                    <div class="d-flex flex-row justify-content-between align-items-center mb-4">
-                        {% if session.get('usuario_id') %}
-                        <div class="dropdown">
-                            <a class="btn btn-secondary dropdown-toggle" style="background: #4374A9; margin-right: 10px; border:1px solid #bfcfdd;" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                {{ session.get('usuario_nombre') }}
+    <header class="fixed top-0 left-0 right-0 z-50 bg-gray-800 bg-opacity-90 backdrop-blur-md">
+        <nav class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <a href="{{ url_for('home') }}" class="text-2xl font-bold text-blue-500">
+                    TecnoHub
+                </a>
+                <div class="hidden md:flex items-center space-x-6">
+                    <form action="{{ url_for('buscar') }}" method="get" class="relative">
+                        <input type="search" name="q" placeholder="Buscar productos"
+                            class="bg-gray-700 text-white rounded-full py-2 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button type="submit" class="absolute left-1.5 top-2.5 text-gray-400">
+                            <i class='bx bx-search'></i>
+                        </button>
+                    </form>
+                    <div class="relative group">
+                        <button class="flex items-center space-x-1 hover:text-blue-500 transition-colors">
+                            <span>Categorías</span>
+                            <i class='bx bx-chevron-down'></i>
+                        </button>
+                        <div
+                            class="absolute top-full left-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg hidden group-hover:block">
+                            {% if categorias %}
+                            {% for categoria in categorias %}
+                            <a href="{{ url_for('categorias', id=categoria.id) }}" class="group">
+                                {{ categoria.nombre }}
                             </a>
-                            <img src="{{ url_for('static', filename='img/user.png') }}" alt="">
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ url_for('mis_pedidos') }}">Mis compras</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('ayuda') }}">Ayuda</a></li>
-                                <div class="dropdown-divider"></div>
-                                <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">Cerrar sesión</a></li>
-                            </ul>
+                            {% endfor %}
+                            {% else %}
+                            <p class="px-4 py-2 text-gray-400">No hay categorías disponibles</p>
+                            {% endif %}
                         </div>
-                        {% else %}
-                        <a class="nav-link" href="{{ url_for('login') }}" id="login" style="margin-right: 10px;">
-                            <p class="font-header" id="personal1">Iniciar Sesión</p>
-                        </a>
-                        <a class="nav-link" href="{{ url_for('registro') }}" id="registro" style="margin-right: 10px;">
-                            <p class="font-header" id="personal2">Registrarse</p>
-                        </a>
-                        {% endif %}
-                        <a class="nav-link" href="{{ url_for('carrito') }}" id="carrito" style="margin-left: 10px;">
-                            <p class="font-header" id="personal1">
-                                <img src="{{ url_for('static', filename='img/cart.png') }}" alt="">
-                            </p>
-                        </a>
                     </div>
-                </div>
-                <div class="d-flex flex-column">
-                    <div class="d-flex flex-row justify-content-between align-items-center">
-                        {% if session.get('usuario_id') %}
-                        <a class="nav-link px-2" href="{{ url_for('mi_cuenta') }}" style="border-radius: 10%">
-                            <p class="font-header">
+                    <a href="{{ url_for('arma_tu_kit') }}" class="hover:text-blue-500 transition-colors">
+                        Arma tu Kit
+                    </a>
+                    {% if session.get('usuario_id') %}
+                    <div class="relative group">
+                        <button class="flex items-center space-x-1 hover:text-blue-500 transition-colors">
+                            <i class='bx bx-user'></i>
+                            <span>{{ session.get('usuario_nombre', 'Invitado') }}</span>
+                            <span>{{ session.get('usuario_apellido', '') }}</span>
+                        </button>
+                        <div
+                            class="absolute top-full right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg hidden group-hover:block">
+                            <a href="{{ url_for('mi_cuenta') }}"
+                                class="block px-4 py-2 hover:bg-gray-700 transition-colors">
                                 Mi cuenta
-                            </p>
-                        </a>
-                        <a class="nav-link px-2" href="{{ url_for('mis_favoritos') }}" style="border-radius: 10%" data-anijs="if: mouseover, do: pulse animated">
-                            <p class="font-header">
-                                <i class='bx bxs-heart'></i>
+                            </a>
+                            <a href="{{ url_for('mis_pedidos') }}"
+                                class="block px-4 py-2 hover:bg-gray-700 transition-colors">
+                                Mis compras
+                            </a>
+                            <a href="{{ url_for('mis_favoritos') }}"
+                                class="block px-4 py-2 hover:bg-gray-700 transition-colors">
                                 Mis favoritos
-                            </p>
-                        </a>
-                        {% endif %}
+                            </a>
+                            <hr class="border-gray-700 my-2">
+                            <a href="{{ url_for('logout') }}"
+                                class="block px-4 py-2 hover:bg-gray-700 transition-colors">
+                                Cerrar sesión
+                            </a>
+                        </div>
                     </div>
+                    {% else %}
+                    <a href="{{ url_for('login') }}" class="hover:text-blue-500 transition-colors">Iniciar Sesión</a>
+                    <a href="{{ url_for('registro') }}" class="hover:text-blue-500 transition-colors">Registrarse</a>
+                    {% endif %}
+                    <a href="{{ url_for('carrito') }}" class="relative hover:text-blue-500 transition-colors">
+                        <i class='bx bx-cart'></i>
+                        <span
+                            class="absolute -top-2 -right-2 bg-blue-500 text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                            {{ session.get('carrito') | length }}
+                        </span>
+                    </a>
                 </div>
+                <button class="md:hidden text-white">
+                    <i class='bx bx-menu'></i>
+                </button>
             </div>
-        </div>
-    </nav>
+        </nav>
+    </header>
 
-    <main>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        {% for category, message in messages %}
-        <div class="alert alert-{{ category }}">{{ message }}</div>
-        {% endfor %}
-        {% endif %}
-        {% endwith %}
-
+    <main class="pt-20">
         {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="pie-pagina">
-        <div class="grupo-1">
-            <div class="box d-flex flex-column align-items-center">
-                <img src="{{ url_for('static', filename='img/logo-footer.png') }}" class="img-fluid" alt="" style="width: 280px; height: 80px; border-radius: 20px;">
-                <div class="red-social mt-3">
-                    <a href="#"><p class="links-footer"><i class='bx bxl-facebook'></i></p></a>
-                    <a href="#"><p class="links-footer"><i class='bx bxl-instagram-alt'></i></p></a>
-                    <a href="#"><p class="links-footer"><i class="fa-brands fa-x-twitter"></i></p></a>
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <a href="{{ url_for('home') }}" class="text-2xl font-bold text-blue-500 mb-4 inline-block">
+                        TecnoHub
+                    </a>
+                    <p class="mb-4">Tu destino para la última tecnología y los mejores gadgets.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class='bx bxl-facebook'></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class='bx bxl-twitter'></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class='bx bxl-instagram'></i>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h5 class="font-bold mb-4">Enlaces rápidos</h5>
+                    <ul class="space-y-2">
+                        <li><a href="{{ url_for('home') }}" class="hover:text-blue-500 transition-colors">Inicio</a>
+                        </li>
+                        <li><a href="{{ url_for('arma_tu_kit') }}" class="hover:text-blue-500 transition-colors">Arma tu
+                                Kit</a></li>
+                        <li><a href="{{ url_for('ayuda') }}" class="hover:text-blue-500 transition-colors">Ayuda</a>
+                        </li>
+                        <li><a href="#" class="hover:text-blue-500 transition-colors">Sobre nosotros</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="font-bold mb-4">Contáctanos</h5>
+                    <ul class="space-y-2">
+                        <li class="flex items-center"><i class='bx bx-map mr-2'></i> Av. Balta 123, Chiclayo</li>
+                        <li class="flex items-center"><i class='bx bx-phone mr-2'></i> 976 123 456</li>
+                        <li class="flex items-center"><i class='bx bx-envelope mr-2'></i> info@tecnohub.com</li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="font-bold mb-4">Suscríbete</h5>
+                    <form class="flex flex-col space-y-2">
+                        <input type="email" placeholder="Tu email"
+                            class="bg-gray-700 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button type="submit"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors duration-300">
+                            Suscribirse
+                        </button>
+                    </form>
                 </div>
             </div>
-
-            <div class="box p-light">
-                <h2>Información de contacto</h2>
-                <hr class="hr-footer">
-                <p>Av. Balta 123, Chiclayo</p>
-                <p>976123456</p>
-                <p>70405517@usat.pe</p>
-            </div>
-
-            <div class="box">
-                <h2>Boletín</h2>
-                <hr class="hr-footer">
-                <input class="form-control mr-sm-2 mb-2" type="email" placeholder="Ingresa tu email" aria-label="Email" style="margin-right: 10px;">
-                <button class="btn my-2 my-sm-0" type="submit" id="boton-suscribirse">Suscribirse</button>
-            </div>
-        </div>
-
-        <hr id="hr-1">
-
-        <div class="grupo-2">
-            <div class="mas_info">
-                <a href="{{ url_for('acerca_de') }}">Acerca de</a>
-                <a href="{{ url_for('contactanos') }}">Contáctanos</a>
-                <a href="{{ url_for('faqs') }}">FAQs</a>
-            </div>
-        
-            <br>
-        
-            <div class="d-flex flex-column flex-sm-row justify-content-between">
-                <small class="order-2 order-sm-1">Creación: <i>lun 25 mayo 2024</i></small>
-                <small class="order-1 order-sm-2">© 2023-2024, Tecnohub SAC - By ohMyCode PE</small>
-                <small class="order-3 order-sm-3">Modificación: <i>jue 4 julio 2024</i></small>
+            <hr class="border-gray-700 my-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <p>&copy; 2023-2024, TecnoHub SAC - By ohMyCode PE</p>
+                <p class="text-sm text-gray-400 mt-2 md:mt-0">Creación: <span class="italic">lun 25 mayo 2024</span> |
+                    Modificación: <span class="italic">jue 4 julio 2024</span></p>
             </div>
         </div>
     </footer>
 
-    <script src="{{ url_for('static', filename='js/anijs-min.js') }}"></script>
+    <!-- JavaScript de Bootstrap y personalizado -->
     <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
     {% block extra_js %}{% endblock %}
 </body>
 

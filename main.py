@@ -1,8 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from functools import wraps
+from werkzeug.utils import secure_filename
+import os
 from werkzeug.security import generate_password_hash, check_password_hash
+from bd import obtener_conexion
 import controlador_usuario
-import controlador_categoria
+import controlador_categorias
 import controlador_producto
 import controlador_pedido
 import controlador_kit
@@ -13,6 +16,10 @@ import controlador_opinion
 
 app = Flask(__name__)
 app.secret_key = 'tu_clave_secreta'  # Cambia esto por una clave secreta real
+UPLOAD_FOLDER = 'static/img'  # Directorio donde se guardarán las imágenes
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Decorador login_required
 def login_required(f):
@@ -36,8 +43,8 @@ def admin_required(f):
 
 @app.route('/')
 def home():
-    productos_destacados = controlador_categoria.obtener_productos_destacados()
-    categorias = controlador_categoria.obtener_todas_categorias()
+    productos_destacados = controlador_producto.obtener_productos_destacados()
+    categorias = controlador_categorias.obtener_todas_categorias()
     return render_template('home.html', productos=productos_destacados, categorias=categorias)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -49,11 +56,19 @@ def login():
         if usuario and check_password_hash(usuario.contraseña, contrasena):
             session['usuario_id'] = usuario.id
             session['usuario_tipo'] = usuario.tipo
+
+            primer_nombre = usuario.nombre.split()[0] if usuario.nombre else ""
+            primer_apellido = usuario.apellido.split()[0] if usuario.apellido else ""
+            
+            session['usuario_nombre'] = primer_nombre
+            session['usuario_apellido'] = primer_apellido
+            
             flash('Inicio de sesión exitoso', 'success')
             return redirect(url_for('home'))
         else:
             flash('Credenciales inválidas', 'error')
     return render_template('login.html')
+
 
 @app.route('/registro', methods=['GET', 'POST'])
 def registro():
@@ -74,11 +89,22 @@ def logout():
     flash('Has cerrado sesión', 'info')
     return redirect(url_for('home'))
 
-@app.route('/categoria/<int:id>')
-def categoria(id):
-    productos = controlador_categoria.obtener_productos_por_categoria(id)
-    categoria = controlador_producto.obtener_categoria_por_id(id)
-    return render_template('categoria.html', productos=productos, categoria=categoria)
+@app.route('/categorias/<int:id>')
+def categorias(id):
+    categorias = controlador_categorias.obtener_categorias_por_id(id)
+    if not categorias:
+        flash('Categoría no encontrada', 'error')
+        return redirect(url_for('home'))
+
+    productos = controlador_producto.obtener_productos_por_categorias(id)
+
+    return render_template('categorias.html', categorias=categorias, productos=productos)
+
+@app.route('/categorias')
+def todas_categorias():
+    categorias = controlador_categorias.obtener_todas_categorias()
+    return render_template('categorias.html', categorias=categorias)
+
 
 @app.route('/arma-tu-kit', methods=['GET', 'POST'])
 def arma_tu_kit():
@@ -96,9 +122,9 @@ def arma_tu_kit():
             flash('Debes iniciar sesión para crear un kit', 'error')
             return redirect(url_for('login'))
 
-    celulares = controlador_producto.obtener_productos_por_categoria(1)  # Asumiendo que 1 es la categoría de celulares
-    fundas = controlador_producto.obtener_productos_por_categoria(2)     # Asumiendo que 2 es la categoría de fundas
-    audifonos = controlador_producto.obtener_productos_por_categoria(3)  # Asumiendo que 3 es la categoría de audífonos
+    celulares = controlador_producto.obtener_productos_por_categorias(1)  # Asumiendo que 1 es la categoría de celulares
+    fundas = controlador_producto.obtener_productos_por_categorias(2)     # Asumiendo que 2 es la categoría de fundas
+    audifonos = controlador_producto.obtener_productos_por_categorias(3)  # Asumiendo que 3 es la categoría de audífonos
 
     return render_template('arma_tu_kit.html', celulares=celulares, fundas=fundas, audifonos=audifonos)
 
@@ -143,12 +169,16 @@ def mis_direcciones():
 @app.route('/producto/<int:id>')
 def producto(id):
     producto = controlador_producto.obtener_producto_por_id(id)
-    usuario_id = session.get('usuario_id')
-    if usuario_id:
-        controlador_producto_visitado.registrar_visita(usuario_id, id)
-    opiniones = controlador_opinion.obtener_opiniones_producto(id)
+    opiniones = controlador_producto.obtener_opinioness(id)
     productos_relacionados = controlador_producto.obtener_productos_relacionados(id)
-    return render_template('producto.html', producto=producto, opiniones=opiniones, productos_relacionados=productos_relacionados)
+    promedio_calificacion = controlador_opinion.calcular_calificacion_promedio(id)
+    return render_template(
+        'producto.html', 
+        producto=producto, 
+        opiniones=opiniones, 
+        productos_relacionados=productos_relacionados,
+        promedio_calificacion=promedio_calificacion 
+    )
 
 @app.route('/buscar')
 def buscar():
@@ -297,43 +327,97 @@ def admin_productos():
     productos = controlador_producto.obtener_todos_productos()
     return render_template('admin/productos.html', productos=productos)
 
-@app.route('/admin/producto/nuevo', methods=['GET', 'POST'])
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/admin/nuevo_producto', methods=['GET', 'POST'])
 @admin_required
 def admin_nuevo_producto():
-    categorias = controlador_categoria.obtener_todas_categorias()
-
     if request.method == 'POST':
         nombre = request.form['nombre']
         descripcion = request.form['descripcion']
-        precio = float(request.form['precio'])
-        stock = int(request.form['stock'])
-        categoria_id = int(request.form['categoria_id'])
-        imagen = request.files['imagen']
+        categorias_id = request.form['categorias_id']
+        precio = request.form['precio']
+        stock = request.form['stock']
+        destacado = 1 if 'destacado' in request.form else 0
 
-        controlador_producto.insertar_producto(nombre, descripcion, precio, stock, categoria_id, imagen)
-        flash('Producto creado con éxito', 'success')
+        # Procesar la imagen
+        imagen = request.files['imagen']
+        imagen_filename = None
+        
+        if imagen and allowed_file(imagen.filename):
+            try:
+                imagen_filename = secure_filename(imagen.filename)
+                imagen.save(os.path.join(UPLOAD_FOLDER, imagen_filename))
+            except Exception as e:
+                flash('Error al cargar la imagen: ' + str(e), 'error')
+                return redirect(url_for('admin_nuevo_producto'))
+        else:
+            flash('El formato de la imagen no es válido. Debe ser .png, .jpg, .jpeg o .gif', 'error')
+            return redirect(url_for('admin_nuevo_producto'))
+
+        # Guarda el producto en la base de datos
+        try:
+            controlador_producto.insertar_producto(
+                nombre=nombre,
+                descripcion=descripcion,
+                categorias_id=categorias_id,
+                precio=precio,
+                stock=stock,
+                destacado=destacado,
+                imagen=imagen_filename
+            )
+            flash('Producto agregado con éxito', 'success')
+        except Exception as e:
+            flash('Error al agregar el producto: ' + str(e), 'error')
         return redirect(url_for('admin_productos'))
 
+    categorias = controlador_categorias.obtener_todas_categorias()
     return render_template('admin/nuevo_producto.html', categorias=categorias)
 
-@app.route('/admin/producto/<int:id>', methods=['GET', 'POST'])
+@app.route('/admin/editar_producto/<int:id>', methods=['GET', 'POST'])
 @admin_required
 def admin_editar_producto(id):
     producto = controlador_producto.obtener_producto_por_id(id)
-    categorias = controlador_categoria.obtener_todas_categorias()
-
+    
     if request.method == 'POST':
-        nombre = request.form.get('nombre')
-        descripcion = request.form.get('descripcion')
-        precio = float(request.form.get('precio'))
-        stock = int(request.form.get('stock'))
-        categoria_id = int(request.form.get('categoria_id'))
-        imagen = request.form.get('imagen')
+        nombre = request.form['nombre']
+        descripcion = request.form['descripcion']
+        categorias_id = request.form['categorias_id']
+        precio = request.form['precio']
+        stock = request.form['stock']
+        destacado = 1 if 'destacado' in request.form else 0
 
-        controlador_producto.actualizar_producto(id, nombre, descripcion, precio, stock, categoria_id, imagen)
-        flash('Producto actualizado con éxito', 'success')
+        # Procesar la imagen
+        imagen = request.files['imagen']
+        imagen_filename = producto.imagen  # Mantener la imagen existente si no se carga una nueva
+        
+        if imagen and allowed_file(imagen.filename):
+            try:
+                imagen_filename = secure_filename(imagen.filename)
+                imagen.save(os.path.join(UPLOAD_FOLDER, imagen_filename))
+            except Exception as e:
+                flash('Error al cargar la imagen: ' + str(e), 'error')
+                return redirect(url_for('admin_editar_producto', id=id))
+        
+        # Actualiza el producto en la base de datos
+        try:
+            controlador_producto.actualizar_producto(
+                id=id,
+                nombre=nombre,
+                descripcion=descripcion,
+                precio=precio,
+                stock=stock,
+                categorias_id=categorias_id,
+                imagen=imagen_filename
+            )
+            flash('Producto actualizado con éxito', 'success')
+        except Exception as e:
+            flash('Error al actualizar el producto: ' + str(e), 'error')
+
         return redirect(url_for('admin_productos'))
 
+    categorias = controlador_categorias.obtener_todas_categorias()
     return render_template('admin/editar_producto.html', producto=producto, categorias=categorias)
 
 @app.route('/admin/producto/eliminar/<int:id>', methods=['POST'])
@@ -366,34 +450,34 @@ def admin_actualizar_estado_pedido(id):
 @app.route('/admin/categorias')
 @admin_required
 def admin_categorias():
-    categorias = controlador_categoria.obtener_todas_categorias()
+    categorias = controlador_categorias.obtener_todas_categorias()
     return render_template('admin/categorias.html', categorias=categorias)
 
-@app.route('/admin/categoria/nueva', methods=['GET', 'POST'])
+@app.route('/admin/categorias/nueva', methods=['GET', 'POST'])
 @admin_required
-def admin_nueva_categoria():
+def admin_nueva_categorias():
     if request.method == 'POST':
         nombre = request.form['nombre']
-        controlador_categoria.insertar_categoria(nombre)
+        controlador_categorias.insertar_categorias(nombre)
         flash('Categoría creada con éxito', 'success')
         return redirect(url_for('admin_categorias'))
-    return render_template('admin/editar_categoria.html')
+    return render_template('admin/editar_categorias.html')
 
-@app.route('/admin/categoria/editar/<int:id>', methods=['GET', 'POST'])
+@app.route('/admin/categorias/editar/<int:id>', methods=['GET', 'POST'])
 @admin_required
-def admin_editar_categoria(id):
-    categoria = controlador_categoria.obtener_categoria_por_id(id)
+def admin_editar_categorias(id):
+    categorias = controlador_categorias.obtener_categorias_por_id(id)
     if request.method == 'POST':
         nombre = request.form['nombre']
-        controlador_categoria.actualizar_categoria(id, nombre)
+        controlador_categorias.actualizar_categorias(id, nombre)
         flash('Categoría actualizada con éxito', 'success')
         return redirect(url_for('admin_categorias'))
-    return render_template('admin/editar_categoria.html', categoria=categoria)
+    return render_template('admin/editar_categorias.html', categorias=categorias)
 
-@app.route('/admin/categoria/eliminar/<int:id>', methods=['POST'])
+@app.route('/admin/categorias/eliminar/<int:id>', methods=['POST'])
 @admin_required
-def admin_eliminar_categoria(id):
-    controlador_categoria.eliminar_categoria(id)
+def admin_eliminar_categorias(id):
+    controlador_categorias.eliminar_categorias(id)
     flash('Categoría eliminada con éxito', 'success')
     return redirect(url_for('admin_categorias'))
 
@@ -409,14 +493,14 @@ def admin_detalle_usuario(id):
     usuario = controlador_usuario.obtener_usuario_por_id(id)
     return render_template('admin/detalle_usuario.html', usuario=usuario)
 
-@app.route('/producto/<int:id>/resena', methods=['POST'])
+@app.route('/producto/<int:id>/opiniones', methods=['POST'])
 @login_required
-def agregar_resena(id):
+def agregar_opiniones(id):
     calificacion = int(request.form.get('calificacion'))
     comentario = request.form.get('comentario')
     usuario_id = session['usuario_id']
 
-    controlador_producto.agregar_resena(id, usuario_id, calificacion, comentario)
+    controlador_producto.agregar_opiniones(id, usuario_id, calificacion, comentario)
     flash('Reseña agregada con éxito', 'success')
     return redirect(url_for('producto', id=id))
 
@@ -424,8 +508,8 @@ def agregar_resena(id):
 @login_required
 def mi_cuenta():
     usuario_id = session.get('usuario_id')
-    usuario = usuario_controlador.obtener_usuario_por_id(usuario_id)
-    return render_template('mi-cuenta.html', usuario=usuario)
+    usuario = controlador_usuario.obtener_usuario_por_id(usuario_id)
+    return render_template('mi_cuenta.html', usuario=usuario)
 
 @app.route('/actualizar-cuenta', methods=['POST'])
 @login_required
@@ -434,32 +518,37 @@ def actualizar_cuenta():
     nombre = request.form.get('nombre')
     apellido = request.form.get('apellido')
     email = request.form.get('email')
-    password = request.form.get('password')
 
-    usuario_controlador.actualizar_usuario(usuario_id, nombre, apellido, email)
-    if password:
-        usuario_controlador.actualizar_password(usuario_id, generate_password_hash(password))
+    usuario = controlador_usuario.obtener_usuario_por_id(usuario_id)
+    tipo = usuario.tipo
+
+    foto = request.files.get('foto')
+    if foto:
+        foto_filename = secure_filename(foto.filename)
+        foto.save(os.path.join(UPLOAD_FOLDER, foto_filename))
+    else:
+        foto_filename = usuario.foto
+
+    controlador_usuario.actualizar_usuario(usuario_id, nombre, apellido, email, tipo, foto_filename)
 
     flash('Tu cuenta ha sido actualizada exitosamente', 'success')
     return redirect(url_for('mi_cuenta'))
 
+
 @app.route('/acerca-de')
 def acerca_de():
-    return render_template('acerca-de.html')
+    return render_template('acerca_de.html')
 
 @app.route('/contactanos')
 def contactanos():
     return render_template('contactanos.html')
 
-@app.route('/enviar-contacto', methods=['POST'])
+@app.route('/enviar_contacto', methods=['POST'])
 def enviar_contacto():
     nombre = request.form.get('nombre')
     email = request.form.get('email')
     asunto = request.form.get('asunto')
     mensaje = request.form.get('mensaje')
-
-    # Aquí iría la lógica para enviar el correo electrónico
-    # Por ahora, solo mostraremos un mensaje de éxito
     flash('Tu mensaje ha sido enviado exitosamente. Te contactaremos pronto.', 'success')
     return redirect(url_for('contactanos'))
 
@@ -470,6 +559,28 @@ def faqs():
 @app.route('/ayuda')
 def ayuda():
     return render_template('ayuda.html')
+
+@app.route('/cambiar-contrasena', methods=['GET', 'POST'])
+@login_required
+def cambiar_contrasena():
+    if request.method == 'POST':
+        contrasena_actual = request.form['contrasena_actual']
+        nueva_contrasena = request.form['nueva_contrasena']
+        confirmar_contrasena = request.form['confirmar_contrasena']
+        
+        usuario = controlador_usuario.obtener_usuario_por_id(session['usuario_id'])
+        if check_password_hash(usuario.contrasena, contrasena_actual):
+            if nueva_contrasena == confirmar_contrasena:
+                hashed_password = generate_password_hash(nueva_contrasena)
+                controlador_usuario.actualizar_contrasena(session['usuario_id'], hashed_password)
+                flash('Contraseña actualizada correctamente', 'success')
+                return redirect(url_for('mi_cuenta'))
+            else:
+                flash('Las contraseñas nuevas no coinciden', 'error')
+        else:
+            flash('La contraseña actual es incorrecta', 'error')
+    
+    return render_template('cambiar_contrasena.html')
 
 # Iniciar el servidor
 if __name__ == "__main__":

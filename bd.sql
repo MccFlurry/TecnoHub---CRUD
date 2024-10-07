@@ -27,9 +27,9 @@ CREATE TABLE productos (
     descripcion TEXT,
     precio DECIMAL(10, 2) NOT NULL,
     stock INT NOT NULL,
-    categoria_id INT,
+    categorias_id INT,
     imagen VARCHAR(255),
-    FOREIGN KEY (categoria_id) REFERENCES categorias(id)
+    FOREIGN KEY (categorias_id) REFERENCES categorias(id)
 );
 
 -- Tabla de opiniones

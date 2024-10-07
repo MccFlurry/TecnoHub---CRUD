@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú Móvil</title>
+
+    <link rel="icon" href="{{ url_for('static', filename='img/icono.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+    <!-- CSS de Bootstrap y personalizado -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+
+<body class="bg-gray-900 text-white">
+    <!-- Mobile Menu -->
+    <div class="fixed inset-0 z-40 bg-gray-900 bg-opacity-90 backdrop-blur-md">
+        <div class="flex flex-col items-center justify-center h-full space-y-8">
+            <a href="{{ url_for('home') }}" class="text-2xl font-bold">Inicio</a>
+            <a href="{{ url_for('todas_categorias') }}" class="text-xl">Categorías</a>
+            <a href="{{ url_for('arma_tu_kit') }}" class="text-xl">Arma tu Kit</a>
+            <a href="{{ url_for('mi_cuenta') }}" class="text-xl">Mi Cuenta</a>
+            <a href="{{ url_for('carrito') }}" class="text-xl">Carrito</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('click', function (event) {
+            // Cierra el menú cuando el usuario hace clic fuera de él
+            const mobileMenu = document.querySelector('.fixed');
+            if (!mobileMenu.contains(event.target)) {
+                window.location.href = "{{ url_for('home') }}";
+            }
+        });
+    </script>
+</body>
+
+</html>
