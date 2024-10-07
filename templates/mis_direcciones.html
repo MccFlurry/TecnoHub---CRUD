@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Mis Direcciones - TecnoHub{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-center mb-8">Mis Direcciones</h1>
+    
+    <div class="max-w-3xl mx-auto">
+        {% if direcciones %}
+            {% for direccion in direcciones %}
+                <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-4 flex justify-between items-center">
+                    <div>
+                        <p class="text-lg font-semibold mb-2">{{ direccion.direccion }}</p>
+                        <p class="text-sm text-gray-400">
+                            {{ direccion.ciudad }}, {{ direccion.estado }}, {{ direccion.pais }}
+                        </p>
+                        <p class="text-sm text-gray-400">CP: {{ direccion.codigo_postal }}</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <a href="{{ url_for('editar_direccion', direccion_id=direccion.id) }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">
+                            Editar
+                        </a>
+                        <form action="{{ url_for('eliminar_direccion', direccion_id=direccion.id) }}" method="post" onsubmit="return confirm('¿Estás seguro de que quieres eliminar esta dirección?');">
+                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">
+                                Eliminar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-center text-gray-400 mb-8">No tienes direcciones registradas.</p>
+        {% endif %}
+        
+        <div class="text-center mt-8">
+            <a href="{{ url_for('agregar_direccion') }}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full transition-colors duration-300 inline-block">
+                Agregar Nueva Dirección
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

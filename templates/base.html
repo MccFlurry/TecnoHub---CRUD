@@ -14,7 +14,7 @@
     <!-- CSS de Bootstrap y personalizado -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
 
     {% block extra_css %}{% endblock %}
 </head>
@@ -36,16 +36,18 @@
                         </button>
                     </form>
                     <div class="relative group">
-                        <button class="flex items-center space-x-1 hover:text-blue-500 transition-colors">
+                        <button data-menu="categorias"
+                            class="flex items-center space-x-1 hover:text-blue-500 transition-colors">
                             <span>Categorías</span>
                             <i class='bx bx-chevron-down'></i>
                         </button>
-                        <div
-                            class="absolute top-full left-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg hidden group-hover:block">
+                        <div data-menu-content="categorias"
+                            class="absolute top-full left-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg hidden">
                             {% if categorias %}
                             {% for categoria in categorias %}
-                            <a href="{{ url_for('categorias', id=categoria.id) }}" class="group">
-                                {{ categoria.nombre }}
+                            <a href="{{ url_for('categorias', id=categoria['id']) }}"
+                                class="block px-4 py-2 hover:bg-gray-700 transition-colors">
+                                {{ categoria['nombre'] }}
                             </a>
                             {% endfor %}
                             {% else %}
@@ -57,14 +59,15 @@
                         Arma tu Kit
                     </a>
                     {% if session.get('usuario_id') %}
-                    <div class="relative group">
-                        <button class="flex items-center space-x-1 hover:text-blue-500 transition-colors">
+                    <div class="relative">
+                        <button data-menu="user"
+                            class="flex items-center space-x-1 hover:text-blue-500 transition-colors">
                             <i class='bx bx-user'></i>
                             <span>{{ session.get('usuario_nombre', 'Invitado') }}</span>
                             <span>{{ session.get('usuario_apellido', '') }}</span>
                         </button>
-                        <div
-                            class="absolute top-full right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg hidden group-hover:block">
+                        <div data-menu-content="user"
+                            class="absolute top-full right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg hidden">
                             <a href="{{ url_for('mi_cuenta') }}"
                                 class="block px-4 py-2 hover:bg-gray-700 transition-colors">
                                 Mi cuenta
@@ -92,7 +95,7 @@
                         <i class='bx bx-cart'></i>
                         <span
                             class="absolute -top-2 -right-2 bg-blue-500 text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                            {{ session.get('carrito') | length }}
+                            {{ session.get('carrito', []) | length }}
                         </span>
                     </a>
                 </div>
@@ -102,6 +105,35 @@
             </div>
         </nav>
     </header>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="fixed inset-0 z-40 bg-gray-900 bg-opacity-90 backdrop-blur-md md:hidden hidden">
+        <div class="flex flex-col items-center justify-center h-full space-y-8">
+            <a href="{{ url_for('home') }}" class="text-2xl font-bold">Inicio</a>
+            <div class="relative group">
+                <button class="flex items-center space-x-1 hover:text-blue-500 transition-colors">
+                    <span>Categorías</span>
+                    <i class='bx bx-chevron-down'></i>
+                </button>
+                <div
+                    class="absolute top-full left-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg hidden group-hover:block">
+                    {% if categorias %}
+                    {% for categoria in categorias %}
+                    <a href="{{ url_for('categorias', id=categoria.id) }}"
+                        class="block px-4 py-2 hover:bg-gray-700 transition-colors">
+                        {{ categoria.nombre }}
+                    </a>
+                    {% endfor %}
+                    {% else %}
+                    <p class="px-4 py-2 text-gray-400">No hay categorías disponibles</p>
+                    {% endif %}
+                </div>
+            </div>
+            <a href="{{ url_for('arma_tu_kit') }}" class="text-xl">Arma tu Kit</a>
+            <a href="{{ url_for('mi_cuenta') }}" class="text-xl">Mi Cuenta</a>
+            <a href="{{ url_for('carrito') }}" class="text-xl">Carrito</a>
+        </div>
+    </div>
 
     <main class="pt-20">
         {% block content %}{% endblock %}

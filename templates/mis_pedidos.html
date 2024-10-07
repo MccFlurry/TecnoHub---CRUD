@@ -6,25 +6,28 @@
 <div class="container mx-auto px-4 py-8">
     <h2 class="text-3xl font-bold text-center mb-8">Mis Pedidos</h2>
     {% if pedidos %}
-        <div class="space-y-8">
-            {% for pedido in pedidos %}
-                <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
-                    <h3 class="text-xl font-semibold mb-4">Pedido #{{ pedido.id }}</h3>
-                    <p class="mb-2">Fecha: {{ pedido.fecha_pedido.strftime('%d/%m/%Y') }}</p>
-                    <p class="mb-2">Estado: <span class="text-blue-500">{{ pedido.estado }}</span></p>
-                    <p class="mb-4">Total: <span class="font-bold">${{ pedido.total }}</span></p>
-                    <h4 class="text-lg font-semibold mb-2">Productos:</h4>
-                    <ul class="list-disc list-inside mb-4">
-                        {% for detalle in pedido.detalles %}
-                            <li>{{ detalle.producto.nombre }} (x{{ detalle.cantidad }}) - ${{ detalle.precio_unitario * detalle.cantidad }}</li>
-                        {% endfor %}
-                    </ul>
-                    <a href="{{ url_for('detalle_pedido', id=pedido.id) }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 inline-block">Ver Detalles</a>
-                </div>
-            {% endfor %}
+    <div class="space-y-8">
+        {% for pedido in pedidos %}
+        <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+            <h3 class="text-xl font-semibold mb-4">Pedido #{{ pedido.id }}</h3>
+            <p class="mb-2">Fecha: {{ pedido.fecha_pedido.strftime('%d/%m/%Y') }}</p>
+            <p class="mb-2">Estado: <span class="text-blue-500">{{ pedido.estado }}</span></p>
+            <p class="mb-4">Total: <span class="font-bold">${{ pedido.total }}</span></p>
+            <h4 class="text-lg font-semibold mb-2">Productos:</h4>
+            <ul class="list-disc list-inside mb-4">
+                {% for detalle in pedido.detalles %}
+                <li>{{ detalle.producto.nombre }} (x{{ detalle.cantidad }}) - ${{ detalle.precio_unitario *
+                    detalle.cantidad }}</li>
+                {% endfor %}
+            </ul>
+            <a href="{{ url_for('detalle_pedido', pedido_id=pedido.id) }}"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 inline-block">Ver
+                Detalles</a>
         </div>
+        {% endfor %}
+    </div>
     {% else %}
-        <p class="text-center text-gray-300">No tienes pedidos aún.</p>
+    <p class="text-center text-gray-300">No tienes pedidos aún.</p>
     {% endif %}
 </div>
 {% endblock %}

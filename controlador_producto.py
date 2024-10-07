@@ -3,51 +3,42 @@ from clase.clase_producto import Producto
 from pymysql.cursors import DictCursor
 
 # Inserta un nuevo producto en la base de datos
-def insertar_producto(nombre, descripcion, categorias_id, precio, stock, destacado, imagen):
+def insertar_producto(nombre, descripcion, categoria_id, precio, stock, destacado, imagen):
     conexion = obtener_conexion()
     with conexion.cursor() as cursor:
         sql = """
-        INSERT INTO productos (nombre, descripcion, categorias_id, precio, stock, destacado, imagen)
+        INSERT INTO productos (nombre, descripcion, categoria_id, precio, stock, destacado, imagen)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
-        cursor.execute(sql, (nombre, descripcion, categorias_id, precio, stock, destacado, imagen))
+        cursor.execute(sql, (nombre, descripcion, categoria_id, precio, stock, destacado, imagen))
     conexion.commit()
     conexion.close()
 
-# Obtiene un producto por su ID
 def obtener_producto_por_id(id):
     conexion = obtener_conexion()
-    producto = None
-    with conexion.cursor(DictCursor) as cursor:
-        sql = """
-        SELECT p.id, p.nombre, p.descripcion, p.precio, p.stock, p.imagen, p.categorias_id, c.nombre as categorias
-        FROM productos p
-        JOIN categorias c ON p.categorias_id = c.id
-        WHERE p.id = %s
-        """
-        cursor.execute(sql, (id,))
-        row = cursor.fetchone()
-        if row:
-            producto = Producto(
-                id=row['id'],
-                nombre=row['nombre'],
-                descripcion=row['descripcion'],
-                precio=row['precio'],
-                stock=row['stock'],
-                imagen=row['imagen'],
-                categorias_id=row['categorias_id'],
-                categorias=row['categorias']  # Nombre de la categoría
-            )
+    with conexion.cursor() as cursor:
+        cursor.execute("SELECT id, nombre, descripcion, precio, stock, imagen, categoria_id FROM productos WHERE id = %s", (id,))
+        producto = cursor.fetchone()
     conexion.close()
-    return producto
 
-# Obtiene los productos que pertenecen a una categoría específica
-def obtener_productos_por_categorias(categorias_id):
+    if producto:
+        return Producto(
+            id=producto[0],
+            nombre=producto[1],
+            descripcion=producto[2],
+            precio=producto[3],
+            stock=producto[4],
+            imagen=producto[5],
+            categoria_id=producto[6]
+        )
+    return None
+
+def obtener_productos_por_categorias(categoria_id):
     conexion = obtener_conexion()
     productos = []
     with conexion.cursor(DictCursor) as cursor:
-        sql = "SELECT id, nombre, descripcion, precio, stock, categorias_id, imagen FROM productos WHERE categorias_id = %s"
-        cursor.execute(sql, (categorias_id,))
+        sql = "SELECT id, nombre, descripcion, precio, stock, categoria_id, imagen FROM productos WHERE categoria_id = %s"
+        cursor.execute(sql, (categoria_id,))
         rows = cursor.fetchall()
         for row in rows:
             productos.append(Producto(**row))  # Cada fila es un diccionario
@@ -55,15 +46,15 @@ def obtener_productos_por_categorias(categorias_id):
     return productos
 
 # Actualiza los detalles de un producto en la base de datos
-def actualizar_producto(id, nombre, descripcion, precio, stock, categorias_id, imagen):
+def actualizar_producto(id, nombre, descripcion, precio, stock, categoria_id, imagen):
     conexion = obtener_conexion()
     with conexion.cursor() as cursor:
         sql = """
         UPDATE productos 
-        SET nombre = %s, descripcion = %s, precio = %s, stock = %s, categorias_id = %s, imagen = %s 
+        SET nombre = %s, descripcion = %s, precio = %s, stock = %s, categoria_id = %s, imagen = %s 
         WHERE id = %s
         """
-        cursor.execute(sql, (nombre, descripcion, precio, stock, categorias_id, imagen, id))
+        cursor.execute(sql, (nombre, descripcion, precio, stock, categoria_id, imagen, id))
     conexion.commit()
     conexion.close()
 
@@ -82,7 +73,7 @@ def buscar_productos(query):
     productos = []
     with conexion.cursor(DictCursor) as cursor:
         sql = """
-        SELECT id, nombre, descripcion, precio, stock, categorias_id, imagen 
+        SELECT id, nombre, descripcion, precio, stock, categoria_id, imagen 
         FROM productos 
         WHERE nombre LIKE %s OR descripcion LIKE %s
         """
@@ -99,9 +90,9 @@ def obtener_productos_relacionados(producto_id, limite=4):
     productos = []
     with conexion.cursor(DictCursor) as cursor:
         sql = """
-        SELECT p.id, p.nombre, p.descripcion, p.precio, p.stock, p.categorias_id, p.imagen 
+        SELECT p.id, p.nombre, p.descripcion, p.precio, p.stock, p.categoria_id, p.imagen 
         FROM productos p
-        JOIN productos original ON p.categorias_id = original.categorias_id
+        JOIN productos original ON p.categoria_id = original.categoria_id
         WHERE original.id = %s AND p.id != %s
         ORDER BY RAND()
         LIMIT %s
@@ -119,9 +110,9 @@ def obtener_todos_productos():
     productos = []
     with conexion.cursor(DictCursor) as cursor:
         sql = """
-        SELECT p.id, p.nombre, p.descripcion, p.precio, p.stock, p.imagen, p.categorias_id, c.nombre AS categorias_nombre
+        SELECT p.id, p.nombre, p.descripcion, p.precio, p.stock, p.imagen, p.categoria_id, c.nombre AS categoria_nombre
         FROM productos p
-        JOIN categorias c ON p.categorias_id = c.id
+        JOIN categorias c ON p.categoria_id = c.id
         """
         cursor.execute(sql)
         rows = cursor.fetchall()
@@ -133,20 +124,21 @@ def obtener_todos_productos():
                 precio=row['precio'],
                 stock=row['stock'],
                 imagen=row['imagen'],
-                categorias_id=row['categorias_id'],
-                categorias=row['categorias_nombre']  # Aquí estás asignando el nombre de la categoría
+                categoria_id=row['categoria_id']  # Sigues usando `categoria_id`
             )
+            producto.categoria_nombre = row['categoria_nombre']
             productos.append(producto)
     conexion.close()
     return productos
 
+
 # Realiza una búsqueda avanzada con múltiples filtros
-def busqueda_avanzada(query=None, categorias_id=None, precio_min=None, precio_max=None):
+def busqueda_avanzada(query=None, categoria_id=None, precio_min=None, precio_max=None):
     conexion = obtener_conexion()
     productos = []
     with conexion.cursor(DictCursor) as cursor:
         sql = """
-        SELECT p.id, p.nombre, p.descripcion, p.precio, p.stock, p.categorias_id, p.imagen
+        SELECT p.id, p.nombre, p.descripcion, p.precio, p.stock, p.categoria_id, p.imagen
         FROM productos p
         WHERE 1=1
         """
@@ -156,9 +148,9 @@ def busqueda_avanzada(query=None, categorias_id=None, precio_min=None, precio_ma
             sql += " AND (p.nombre LIKE %s OR p.descripcion LIKE %s)"
             params.extend(['%' + query + '%', '%' + query + '%'])
         
-        if categorias_id:
-            sql += " AND p.categorias_id = %s"
-            params.append(categorias_id)
+        if categoria_id:
+            sql += " AND p.categoria_id = %s"
+            params.append(categoria_id)
         
         if precio_min:
             sql += " AND p.precio >= %s"
@@ -180,9 +172,9 @@ def obtener_productos_recomendados(producto_id, limite=4):
     productos = []
     with conexion.cursor(DictCursor) as cursor:
         cursor.execute("""
-        SELECT p.id, p.nombre, p.descripcion, p.precio, p.stock, p.categorias_id, p.imagen
+        SELECT p.id, p.nombre, p.descripcion, p.precio, p.stock, p.categoria_id, p.imagen
         FROM productos p
-        JOIN productos original ON p.categorias_id = original.categorias_id
+        JOIN productos original ON p.categoria_id = original.categoria_id
         WHERE original.id = %s AND p.id != %s
         ORDER BY RAND()
         LIMIT %s
@@ -246,3 +238,32 @@ def obtener_productos_destacados():
             productos_destacados.append(producto)
     conexion.close()
     return productos_destacados
+
+def actualizar_stock(producto_id, cantidad):
+    conexion = obtener_conexion()
+    try:
+        with conexion.cursor() as cursor:
+            sql_select = "SELECT stock FROM productos WHERE id = %s"
+            cursor.execute(sql_select, (producto_id,))
+            resultado = cursor.fetchone()
+            
+            if resultado is None:
+                raise ValueError(f"No se encontró el producto con ID {producto_id}")
+            
+            stock_actual = resultado[0]
+            nuevo_stock = stock_actual + cantidad
+            
+            if nuevo_stock < 0:
+                raise ValueError(f"Stock insuficiente para el producto con ID {producto_id}")
+            
+            sql_update = "UPDATE productos SET stock = %s WHERE id = %s"
+            cursor.execute(sql_update, (nuevo_stock, producto_id))
+        
+        conexion.commit()
+        print(f"Stock actualizado para el producto {producto_id}. Nuevo stock: {nuevo_stock}")
+    except Exception as e:
+        conexion.rollback()
+        print(f"Error al actualizar el stock: {str(e)}")
+        raise e
+    finally:
+        conexion.close()

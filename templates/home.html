@@ -6,14 +6,16 @@
 <!-- Hero Section -->
 <section class="relative h-screen flex items-center justify-center overflow-hidden">
     <div class="absolute inset-0 z-0">
-        <img src="{{ url_for('static', filename='img/hero-bg.jpg') }}" alt="Hero Background" class="w-full h-full object-cover opacity-50">
+        <img src="{{ url_for('static', filename='img/hero-bg.jpg') }}" alt="Hero Background"
+            class="w-full h-full object-cover opacity-50">
     </div>
     <div class="container mx-auto px-4 z-10 text-center">
         <h1 class="text-5xl md:text-7xl font-bold mb-6 animate-pulse">
             Bienvenido al Futuro de la Tecnología
         </h1>
         <p class="text-xl md:text-2xl mb-8">Descubre las últimas innovaciones en TecnoHub</p>
-        <a href="#categorias" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition-colors duration-300 inline-block">
+        <a href="#categorias"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition-colors duration-300 inline-block">
             Explora Ahora
         </a>
     </div>
@@ -24,13 +26,15 @@
     <div class="container mx-auto px-4">
         <h2 class="text-3xl font-bold text-center mb-12">Explora Nuestras Categorías</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {% for categorias in categorias %}
-            <a href="{{ url_for('categorias', id=categorias.id) }}" class="group">
-                <div class="bg-gray-700 rounded-lg overflow-hidden transform transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg">
-                    <img src="{{ url_for('static', filename='img/' + categorias.nombre|lower + '.jpg') }}" alt="{{ categorias.nombre }}" class="w-full h-48 object-cover">
+            {% for categoria in categorias %}
+            <a href="{{ url_for('categorias', id=categoria.id) }}" class="group">
+                <div
+                    class="bg-gray-700 rounded-lg overflow-hidden transform transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg">
+                    <img src="{{ url_for('static', filename='img/' + categoria.nombre|lower + '.jpg') }}"
+                        alt="{{ categoria.nombre }}" class="w-full h-48 object-cover">
                     <div class="p-4">
                         <h3 class="text-xl font-semibold group-hover:text-blue-500 transition-colors">
-                            {{ categorias.nombre }}
+                            {{ categoria.nombre }}
                         </h3>
                     </div>
                 </div>
@@ -47,12 +51,15 @@
         <h2 class="text-3xl font-bold text-center mb-12">Recomendado para Ti</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {% for producto in productos_recientes %}
-            <div class="bg-gray-800 rounded-lg overflow-hidden shadow-lg transform transition-all duration-300 hover:scale-105">
-                <img src="{{ url_for('static', filename='img/' + producto.nombre|lower + '.jpg') }}" alt="{{ producto.nombre }}" class="w-full h-48 object-cover">
+            <div
+                class="bg-gray-800 rounded-lg overflow-hidden shadow-lg transform transition-all duration-300 hover:scale-105">
+                <img src="{{ url_for('static', filename='img/' + producto.nombre|lower + '.jpg') }}"
+                    alt="{{ producto.nombre }}" class="w-full h-48 object-cover">
                 <div class="p-4">
                     <h3 class="text-xl font-semibold mb-2">{{ producto.nombre }}</h3>
                     <p class="text-blue-500 font-bold text-lg mb-4">${{ producto.precio }}</p>
-                    <a href="{{ url_for('producto_detalle', id=producto.id) }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 inline-block w-full text-center">
+                    <a href="{{ url_for('producto_detalle', id=producto.id) }}"
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 inline-block w-full text-center">
                         Ver Detalles
                     </a>
                 </div>
@@ -71,7 +78,8 @@
             {% for i in range(1, 4) %}
             <div class="bg-gray-700 rounded-lg p-6 shadow-lg">
                 <div class="flex items-center mb-4">
-                    <img src="{{ url_for('static', filename='img/cliente' + i|string + '.jpg') }}" alt="Cliente {{ i }}" class="w-16 h-16 rounded-full mr-4">
+                    <img src="{{ url_for('static', filename='img/cliente' + i|string + '.jpg') }}" alt="Cliente {{ i }}"
+                        class="w-16 h-16 rounded-full mr-4">
                     <div>
                         <h5 class="font-semibold">Cliente {{ i }}</h5>
                         <div class="flex text-yellow-500">
@@ -91,7 +99,7 @@
 </section>
 
 <script>
-    document.querySelector('a[href^="#categorias"]').addEventListener('click', function(e) {
+    document.querySelector('a[href^="#categorias"]').addEventListener('click', function (e) {
         e.preventDefault();
         document.querySelector(this.getAttribute('href')).scrollIntoView({
             behavior: 'smooth'

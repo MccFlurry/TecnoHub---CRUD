@@ -5,45 +5,68 @@
 {% block header %}Gestión de Pedidos{% endblock %}
 
 {% block content %}
-    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-        <div class="px-4 py-5 sm:px-6">
-            <h2 class="text-lg leading-6 font-medium text-gray-900">Pedidos</h2>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    {% for pedido in pedidos %}
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ pedido.id }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ pedido.usuario.nombre }} {{ pedido.usuario.apellido }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ pedido.fecha_pedido.strftime('%d/%m/%Y %H:%M') }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${{ pedido.total }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ pedido.estado }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="{{ url_for('admin_detalle_pedido', id=pedido.id) }}" class="text-blue-600 hover:text-blue-900">Ver Detalles</a>
-                                <a href="{{ url_for('admin_editar_pedido', id=pedido.id) }}" class="text-indigo-600 hover:text-indigo-900 ml-4">Editar</a>
-                                <a href="{{ url_for('admin_eliminar_pedido', id=pedido.id) }}" class="text-red-600 hover:text-red-900 ml-4" onclick="return confirm('¿Estás seguro de que deseas eliminar este pedido?');">Eliminar</a>
-                            </td>
-                        </tr>
-                    {% else %}
-                        <tr>
-                            <td colspan="6" class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
-                                No hay pedidos registrados.
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+        <h2 class="text-lg leading-6 font-medium text-gray-900">Pedidos</h2>
     </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for pedido in pedidos %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ pedido.id }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {{ pedido.nombre }} {{ pedido.apellido }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{
+                        pedido.fecha_pedido.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${{ pedido.total }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ pedido.estado }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <a href="{{ url_for('admin_detalle_pedido', id=pedido.id) }}"
+                            class="text-blue-600 hover:text-blue-900">Ver Detalles</a>
+                        <form action="{{ url_for('admin_editar_pedido', id=pedido.id) }}" method="POST"
+                            style="display: inline;">
+                            <button type="submit" class="text-blue-600 hover:text-blue-900 ml-4"
+                                onclick="return confirm('¿Estás seguro de que deseas editar este pedido?');">Editar</button>
+                        </form>
+                        <form action="{{ url_for('admin_eliminar_pedido', id=pedido.id) }}" method="POST"
+                            style="display: inline;">
+                            <button type="submit" class="text-red-600 hover:text-red-900 ml-4"
+                                onclick="return confirm('¿Estás seguro de que deseas eliminar este pedido?');">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                        No hay pedidos registrados.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}

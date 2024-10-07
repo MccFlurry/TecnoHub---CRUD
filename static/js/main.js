@@ -167,16 +167,6 @@ function mostrarNotificacion(mensaje, tipo) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    const carouselElement = document.querySelector('#main_carousel');
-    if (carouselElement) {
-        const carousel = new bootstrap.Carousel(carouselElement, {
-            interval: 6000, // 6 seconds
-            ride: 'carousel'
-        });
-    }
-});
-
-document.addEventListener('DOMContentLoaded', function () {
     // Inicializar los tooltips de Bootstrap
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -230,58 +220,89 @@ document.addEventListener('DOMContentLoaded', function () {
     const mobileMenuButton = document.getElementById('mobile-menu-button');
     const mobileMenu = document.getElementById('mobile-menu');
 
-    mobileMenuButton.addEventListener('click', function () {
-        mobileMenu.classList.toggle('hidden');
-    });
-
-    // Close mobile menu when clicking outside
-    document.addEventListener('click', function (event) {
-        if (!mobileMenu.contains(event.target) && !mobileMenuButton.contains(event.target)) {
-            mobileMenu.classList.add('hidden');
-        }
-    });
-
-    // Smooth scroll for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            document.querySelector(this.getAttribute('href')).scrollIntoView({
-                behavior: 'smooth'
-            });
-        });
-    });
-
-    // Add parallax effect to hero section
-    const heroSection = document.querySelector('#hero');
-    if (heroSection) {
-        window.addEventListener('scroll', function () {
-            const scrollPosition = window.pageYOffset;
-            heroSection.style.backgroundPositionY = scrollPosition * 0.7 + 'px';
-        });
-    }
-});
-
-document.addEventListener('DOMContentLoaded', function () {
-    const mobileMenuButton = document.getElementById('mobile-menu-button');
-    const mobileMenu = document.getElementById('mobile-menu');
-
-    // Verificar si existe el botón de menú móvil para evitar errores
-    if (mobileMenuButton && mobileMenu) {
+    if (mobileMenuButton && mobileMenu) { 
         mobileMenuButton.addEventListener('click', function () {
-            // Alternar la clase 'hidden' en el menú móvil para mostrar/ocultar
             mobileMenu.classList.toggle('hidden');
         });
 
-        // Cerrar el menú si el usuario hace clic fuera del menú
         document.addEventListener('click', function (event) {
-            const isClickInsideMenu = mobileMenu.contains(event.target);
-            const isClickOnButton = mobileMenuButton.contains(event.target);
-
-            if (!isClickInsideMenu && !isClickOnButton) {
-                // Asegurar que el menú esté oculto si se hace clic fuera
+            if (!mobileMenu.contains(event.target) && !mobileMenuButton.contains(event.target)) {
                 mobileMenu.classList.add('hidden');
+            }
+        });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const userButton = document.querySelector('[data-menu="user"]');
+    const userMenu = document.querySelector('[data-menu-content="user"]');
+
+    if (userButton && userMenu) {
+        userButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            userMenu.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', function(event) {
+            if (!userButton.contains(event.target) && !userMenu.contains(event.target)) {
+                userMenu.classList.add('hidden');
             }
         });
     }
 });
 
+document.addEventListener('DOMContentLoaded', function() {
+    // Función para encontrar el botón de categorías
+    function findCategoriasButton() {
+        const buttons = document.querySelectorAll('button');
+        for (let button of buttons) {
+            if (button.textContent.trim().toLowerCase().includes('categorías')) {
+                return button;
+            }
+        }
+        return document.querySelector('[data-menu="categorias"]');
+    }
+
+    // Función para encontrar el menú de categorías
+    function findCategoriasMenu(button) {
+        if (button) {
+            const parent = button.closest('.relative, .group');
+            return parent ? parent.querySelector('.absolute, [data-menu-content="categorias"]') : null;
+        }
+        return document.querySelector('[data-menu-content="categorias"]');
+    }
+
+    const categoriasButton = findCategoriasButton();
+    const categoriasMenu = findCategoriasMenu(categoriasButton);
+
+    if (categoriasButton && categoriasMenu) {
+        categoriasButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            categoriasMenu.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', function(event) {
+            if (!categoriasButton.contains(event.target) && !categoriasMenu.contains(event.target)) {
+                categoriasMenu.classList.add('hidden');
+            }
+        });
+    } else {
+        console.warn('No se encontró el botón de categorías o el menú de categorías');
+        console.log('Botón de categorías:', categoriasButton);
+        console.log('Menú de categorías:', categoriasMenu);
+    }
+});

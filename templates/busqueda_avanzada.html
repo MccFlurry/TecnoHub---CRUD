@@ -17,7 +17,7 @@
                 <select id="categorias" name="categorias" class="mt-1 block w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Todas las categorías</option>
                     {% for categorias in categorias %}
-                        <option value="{{ categorias.id }}" {% if categorias_id|int == categorias.id %}selected{% endif %}>
+                        <option value="{{ categorias.id }}" {% if categoria_id|int == categorias.id %}selected{% endif %}>
                             {{ categorias.nombre }}
                         </option>
                     {% endfor %}
