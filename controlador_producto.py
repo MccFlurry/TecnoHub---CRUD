@@ -68,6 +68,7 @@ def eliminar_producto(id):
     conexion.close()
 
 # Busca productos que coincidan con una consulta en nombre o descripción
+# Ejemplo de la función buscar_productos
 def buscar_productos(query):
     conexion = obtener_conexion()
     productos = []
@@ -80,7 +81,7 @@ def buscar_productos(query):
         cursor.execute(sql, (f'%{query}%', f'%{query}%'))
         rows = cursor.fetchall()
         for row in rows:
-            productos.append(Producto(**row))  # Cada fila es un diccionario
+            productos.append(Producto(**row))
     conexion.close()
     return productos
 
@@ -195,9 +196,9 @@ def agregar_opiniones(producto_id, usuario_id, calificacion, comentario):
     conexion.close()
 
 # Obtiene reseñas de un producto
-def obtener_opinioness(producto_id):
+def obtener_opiniones(producto_id):
     conexion = obtener_conexion()
-    opinioness = []
+    opiniones = []
     with conexion.cursor(DictCursor) as cursor:
         cursor.execute("""
         SELECT o.id, o.calificacion, o.comentario, o.fecha, u.nombre, u.apellido
@@ -206,9 +207,9 @@ def obtener_opinioness(producto_id):
         WHERE o.producto_id = %s
         ORDER BY o.fecha DESC
         """, (producto_id,))
-        opinioness = cursor.fetchall()
+        opiniones = cursor.fetchall()
     conexion.close()
-    return opinioness
+    return opiniones
 
 # Cuenta el total de productos en la base de datos
 def contar_productos():
@@ -221,23 +222,30 @@ def contar_productos():
     conexion.close()
     return total_productos
 
-# Obtiene productos destacados
-def obtener_productos_destacados():
+def obtener_productos_visitados_recientes(usuario_id, limite=6):
     conexion = obtener_conexion()
-    productos_destacados = []
-    with conexion.cursor(DictCursor) as cursor:
-        sql = "SELECT id, nombre, precio FROM productos WHERE destacado = 1"
-        cursor.execute(sql)
-        rows = cursor.fetchall()
-        for row in rows:
-            producto = {
-                "id": row['id'],
-                "nombre": row['nombre'],
-                "precio": row['precio']
-            }
-            productos_destacados.append(producto)
+    productos_visitados = []
+    with conexion.cursor() as cursor:
+        sql = """
+        SELECT id, nombre, precio 
+        FROM productos
+        WHERE id IN (
+            SELECT producto_id 
+            FROM productos_visitados 
+            WHERE usuario_id = %s
+        )
+        ORDER BY fecha_visita DESC
+        LIMIT %s
+        """
+        cursor.execute(sql, (usuario_id, limite))
+        productos_visitados = cursor.fetchall()
     conexion.close()
-    return productos_destacados
+    # Devolver como una lista de diccionarios
+    return [
+        {'id': row[0], 'nombre': row[1], 'precio': row[2]}
+        for row in productos_visitados
+    ]
+
 
 def actualizar_stock(producto_id, cantidad):
     conexion = obtener_conexion()
@@ -267,3 +275,54 @@ def actualizar_stock(producto_id, cantidad):
         raise e
     finally:
         conexion.close()
+
+def obtener_rango_precios():
+    conexion = obtener_conexion()
+    try:
+        with conexion.cursor() as cursor:
+            sql = """
+            SELECT MIN(precio) as precio_min, MAX(precio) as precio_max
+            FROM productos
+            WHERE precio > 0
+            """
+            cursor.execute(sql)
+            resultado = cursor.fetchone()
+            
+            if resultado:
+                precio_min = float(resultado['precio_min']) if resultado['precio_min'] is not None else 0
+                precio_max = float(resultado['precio_max']) if resultado['precio_max'] is not None else 0
+                return precio_min, precio_max
+            else:
+                return 0, 0
+    finally:
+        conexion.close()
+
+def obtener_productos_destacados(limite=4):
+    conexion = obtener_conexion()
+    productos = []  # Inicializamos como una lista
+    with conexion.cursor(DictCursor) as cursor:
+        # Intentamos obtener productos que estén marcados como destacados
+        sql = """
+        SELECT id, nombre, descripcion, precio, stock, categoria_id, imagen
+        FROM productos
+        WHERE destacado = 1
+        LIMIT %s
+        """
+        cursor.execute(sql, (limite,))
+        productos = list(cursor.fetchall())  # Nos aseguramos de que 'productos' sea una lista
+
+        # Si no hay suficientes productos destacados, obtenemos productos aleatorios
+        if len(productos) < limite:
+            sql = """
+            SELECT id, nombre, descripcion, precio, stock, categoria_id, imagen
+            FROM productos
+            ORDER BY RAND()
+            LIMIT %s
+            """
+            cursor.execute(sql, (limite - len(productos),))
+            productos_aleatorios = list(cursor.fetchall())  # Aseguramos que 'productos_aleatorios' sea una lista
+            productos.extend(productos_aleatorios)  # Extendemos la lista de productos con productos aleatorios
+    
+    conexion.close()
+    return productos
+

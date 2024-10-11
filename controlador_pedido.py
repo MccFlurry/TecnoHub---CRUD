@@ -2,15 +2,16 @@ from bd import obtener_conexion
 from clase.clase_pedido import Pedido
 from clase.clase_detalle_pedido import DetallePedido
 from datetime import datetime, timedelta
-import MySQLdb
+import pymysql as MySQLdb
 from pymysql.cursors import DictCursor
 
 def crear_pedido(usuario_id, direccion_id):
     conexion = obtener_conexion()
+    fecha_pedido = datetime.now()
     try:
         with conexion.cursor() as cursor:
-            sql = "INSERT INTO pedidos (usuario_id, direccion_id, estado) VALUES (%s, %s, 'pendiente')"
-            cursor.execute(sql, (usuario_id, direccion_id))
+            sql = "INSERT INTO pedidos (usuario_id, direccion_id, fecha_pedido, estado) VALUES (%s, %s, %s, 'pendiente')"
+            cursor.execute(sql, (usuario_id, direccion_id, fecha_pedido))
             pedido_id = cursor.lastrowid
         conexion.commit()
         return pedido_id
@@ -40,24 +41,24 @@ def obtener_pedidos_por_usuario(usuario_id):
     pedidos = []
     with conexion.cursor(DictCursor) as cursor:
         sql = """
-        SELECT p.id, p.usuario_id, u.email, u.nombre, u.apellido, p.fecha_pedido, p.estado, d.direccion, d.ciudad, d.estado AS direccion_estado, d.pais, 
+        SELECT p.id, p.usuario_id, u.email, u.nombre, u.apellido, p.fecha_pedido, p.estado, d.direccion, d.ciudad, d.estado AS direccion_estado, d.pais, d.codigo_postal,
                SUM(dp.precio_unitario * dp.cantidad) AS total
         FROM pedidos p
         JOIN direcciones d ON p.direccion_id = d.id
         JOIN detalles_pedido dp ON dp.pedido_id = p.id
         JOIN usuarios u ON p.usuario_id = u.id
         WHERE p.usuario_id = %s
-        GROUP BY p.id, p.usuario_id, p.fecha_pedido, p.estado, d.direccion, d.ciudad, d.estado, d.pais, u.email, u.nombre, u.apellido
+        GROUP BY p.id, p.usuario_id, p.fecha_pedido, p.estado, d.direccion, d.ciudad, d.estado, d.pais, d.codigo_postal, u.email, u.nombre, u.apellido
         """
         cursor.execute(sql, (usuario_id,))
         rows = cursor.fetchall()
         for row in rows:
-            row['total'] = row['total']
             row['direccion'] = {
                 'direccion': row['direccion'],
                 'ciudad': row['ciudad'],
                 'estado': row['direccion_estado'],
-                'pais': row['pais']
+                'pais': row['pais'],
+                'codigo_postal': row['codigo_postal']  # Incluimos el código postal
             }
             pedidos.append(row)
     conexion.close()
@@ -116,7 +117,7 @@ def obtener_pedido_por_id(id):
     try:
         with conexion.cursor(DictCursor) as cursor:
             cursor.execute("""
-                SELECT p.id, p.usuario_id, p.fecha_pedido, p.estado, u.nombre, u.apellido, u.email, d.direccion, d.ciudad, d.estado AS direccion_estado, d.pais
+                SELECT p.id, p.usuario_id, p.fecha_pedido, p.estado, u.nombre, u.apellido, u.email, d.direccion, d.ciudad, d.estado AS direccion_estado, d.pais, d.codigo_postal
                 FROM pedidos p
                 JOIN usuarios u ON p.usuario_id = u.id
                 JOIN direcciones d ON p.direccion_id = d.id

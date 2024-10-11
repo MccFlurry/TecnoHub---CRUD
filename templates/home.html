@@ -45,21 +45,20 @@
 </section>
 
 <!-- Productos Recientes Section -->
-{% if session.get('usuario_id') %}
-<section id="productos-recientes" class="py-20 bg-gray-900">
+{% if productos %}
+<section id="productos-destacados" class="py-20 bg-gray-900">
     <div class="container mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-12">Recomendado para Ti</h2>
+        <h2 class="text-3xl font-bold text-center mb-12">Productos Destacados</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {% for producto in productos_recientes %}
-            <div
-                class="bg-gray-800 rounded-lg overflow-hidden shadow-lg transform transition-all duration-300 hover:scale-105">
-                <img src="{{ url_for('static', filename='img/' + producto.nombre|lower + '.jpg') }}"
-                    alt="{{ producto.nombre }}" class="w-full h-48 object-cover">
+            {% for producto in productos %}
+            <div class="bg-gray-800 rounded-lg overflow-hidden shadow-lg transform transition-all duration-300 hover:scale-105">
+                <img src="{{ url_for('static', filename='img/' + producto.imagen) }}" alt="{{ producto.nombre }}"
+                class="w-full h-auto object-cover">
                 <div class="p-4">
                     <h3 class="text-xl font-semibold mb-2">{{ producto.nombre }}</h3>
                     <p class="text-blue-500 font-bold text-lg mb-4">${{ producto.precio }}</p>
-                    <a href="{{ url_for('producto_detalle', id=producto.id) }}"
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 inline-block w-full text-center">
+                    <a href="{{ url_for('producto', id=producto.id) }}"
+                       class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 inline-block w-full text-center">
                         Ver Detalles
                     </a>
                 </div>
@@ -69,6 +68,7 @@
     </div>
 </section>
 {% endif %}
+
 
 <!-- Testimonios Section -->
 <section id="testimonios" class="py-20 bg-gray-800">

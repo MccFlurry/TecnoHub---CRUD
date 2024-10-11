@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Dirección - TecnoHub{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">Editar Dirección</h1>
+
+    <form action="{{ url_for('editar_direccion', direccion_id=direccion.id) }}" method="POST">
+        <div class="mb-4">
+            <label for="direccion" class="block text-sm font-medium text-gray-300 mb-2">Dirección:</label>
+            <input type="text" name="direccion" id="direccion" value="{{ direccion.direccion }}" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div class="mb-4">
+            <label for="ciudad" class="block text-sm font-medium text-gray-300 mb-2">Ciudad:</label>
+            <input type="text" name="ciudad" id="ciudad" value="{{ direccion.ciudad }}" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div class="mb-4">
+            <label for="estado" class="block text-sm font-medium text-gray-300 mb-2">Estado/Provincia:</label>
+            <input type="text" name="estado" id="estado" value="{{ direccion.estado }}" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div class="mb-4">
+            <label for="pais" class="block text-sm font-medium text-gray-300 mb-2">País:</label>
+            <input type="text" name="pais" id="pais" value="{{ direccion.pais }}" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div class="mb-4">
+            <label for="codigo_postal" class="block text-sm font-medium text-gray-300 mb-2">Código Postal:</label>
+            <input type="text" name="codigo_postal" id="codigo_postal" value="{{ direccion.codigo_postal }}" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div class="flex justify-end">
+            <a href="{{ url_for('mis_direcciones') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 mr-2">Cancelar</a>
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">Guardar Cambios</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

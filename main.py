@@ -1,9 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, request, make_response
 from functools import wraps
 from werkzeug.utils import secure_filename
 import os
-from werkzeug.security import generate_password_hash, check_password_hash
 from bd import obtener_conexion
+from werkzeug.security import generate_password_hash, check_password_hash
 import controlador_usuario
 import controlador_categorias
 import controlador_producto
@@ -15,8 +15,8 @@ import controlador_producto_visitado
 import controlador_opinion
 
 app = Flask(__name__)
-app.secret_key = 'tu_clave_secreta'  # Cambia esto por una clave secreta real
-UPLOAD_FOLDER = 'static/img'  # Directorio donde se guardarán las imágenes
+app.secret_key = 'tu_clave_secreta'
+UPLOAD_FOLDER = 'static/img'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -44,27 +44,38 @@ def admin_required(f):
 @app.route('/')
 def home():
     productos_destacados = controlador_producto.obtener_productos_destacados()
+
     categorias = controlador_categorias.obtener_todas_categorias()
-    return render_template('home.html', productos=productos_destacados, categorias=categorias)
+
+    productos_visitados = request.cookies.get('productos_visitados', '')
+    productos_recientes = []
+
+    if productos_visitados:
+        productos_ids = productos_visitados.split(',')
+        
+        productos_recientes = controlador_producto.obtener_producto_por_id(productos_ids)
+
+    return render_template('home.html', 
+                           productos=productos_destacados, 
+                           categorias=categorias, 
+                           productos_recientes=productos_recientes)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form['email']
-        contrasena = request.form['contrasena']
+        email = request.form['email'].strip().lower()
+        contraseña = request.form['contraseña']
+        
         usuario = controlador_usuario.obtener_usuario_por_email(email)
         
-        if usuario and check_password_hash(usuario.contraseña, contrasena):
+        if usuario and controlador_usuario.check_password(usuario.contraseña, contraseña):
             session['usuario_id'] = usuario.id
             session['usuario_tipo'] = usuario.tipo
-
-            primer_nombre = usuario.nombre.split()[0] if usuario.nombre else ""
-            primer_apellido = usuario.apellido.split()[0] if usuario.apellido else ""
-            session['usuario_nombre'] = primer_nombre
-            session['usuario_apellido'] = primer_apellido
-            
+            session['usuario_nombre'] = usuario.nombre.split()[0] if usuario.nombre else ""
+            session['usuario_apellido'] = usuario.apellido.split()[0] if usuario.apellido else ""
             flash('Inicio de sesión exitoso', 'success')
-
+            
             if usuario.tipo == 'administrador':
                 return redirect(url_for('admin_dashboard'))
             else:
@@ -74,24 +85,25 @@ def login():
 
     return render_template('login.html')
 
-
-
 @app.route('/registro', methods=['GET', 'POST'])
 def registro():
     if request.method == 'POST':
         nombre = request.form['nombre']
         apellido = request.form['apellido']
         email = request.form['email']
-        contrasena = generate_password_hash(request.form['contrasena'])
-        controlador_usuario.insertar_usuario(nombre, apellido, email, contrasena, 'cliente', None)
-        flash('Registro exitoso. Por favor, inicia sesión.', 'success')
-        return redirect(url_for('login'))
+        contraseña = request.form['contraseña']
+        
+        if controlador_usuario.insertar_usuario(nombre, apellido, email, contraseña, 'cliente', None):
+            flash('Registro exitoso. Por favor, inicia sesión.', 'success')
+            return redirect(url_for('login'))
+        else:
+            flash('Error en el registro. Por favor, intenta de nuevo.', 'error')
+
     return render_template('registro.html')
 
 @app.route('/logout')
 def logout():
-    session.pop('usuario_id', None)
-    session.pop('usuario_tipo', None)
+    session.clear()
     flash('Has cerrado sesión', 'info')
     return redirect(url_for('home'))
 
@@ -140,9 +152,26 @@ def arma_tu_kit():
 @login_required
 def agregar_favorito(producto_id):
     usuario_id = session.get('usuario_id')
-    controlador_favorito.agregar_favorito(usuario_id, producto_id)
-    flash('Producto agregado a favoritos', 'success')
-    return redirect(url_for('producto', id=producto_id))
+    try:
+        if controlador_favorito.existe_favorito(usuario_id, producto_id):
+            return jsonify(success=False, message="El producto ya está en tus favoritos")
+        
+        controlador_favorito.agregar_favorito(usuario_id, producto_id)
+        return jsonify(success=True)
+    except Exception as e:
+        print(f"Error al agregar favorito: {e}")  # Ver más detalles en consola
+        return jsonify(success=False, message="Error interno, inténtalo nuevamente")
+
+@app.route('/eliminar-favorito/<int:producto_id>', methods=['POST'])
+@login_required
+def eliminar_favorito(producto_id):
+    usuario_id = session.get('usuario_id')
+    try:
+        controlador_favorito.eliminar_favorito(usuario_id, producto_id)
+        return render_template('mis_favoritos.html')
+    except Exception as e:
+        print(f"Error en eliminar_favorito: {e}")
+        return jsonify(success=False, message="Error interno, inténtalo nuevamente")
 
 @app.route('/mis-favoritos')
 @login_required
@@ -152,20 +181,40 @@ def mis_favoritos():
     productos_favoritos = [controlador_producto.obtener_producto_por_id(fav.producto_id) for fav in favoritos]
     return render_template('mis_favoritos.html', productos=productos_favoritos)
 
-@app.route('/agregar-direccion', methods=['POST'])
+@app.route('/agregar-direccion', methods=['GET', 'POST'])
 @login_required
 def agregar_direccion():
-    usuario_id = session['usuario_id']
-    direccion = request.form['direccion']
-    ciudad = request.form['ciudad']
-    estado = request.form['estado']
-    pais = request.form['pais']
-    codigo_postal = request.form['codigo_postal']
+    if request.method == 'POST':
+        usuario_id = session['usuario_id']
+        direccion = request.form['direccion']
+        ciudad = request.form['ciudad']
+        estado = request.form['estado']
+        pais = request.form['pais']
+        codigo_postal = request.form['codigo_postal']
+        
+        controlador_direcciones.agregar_direccion(usuario_id, direccion, ciudad, estado, pais, codigo_postal)
+        flash('Dirección agregada con éxito', 'success')
+        return redirect(url_for('mis_direcciones'))
     
-    controlador_direcciones.agregar_direccion(usuario_id, direccion, ciudad, estado, pais, codigo_postal)
-    flash('Dirección agregada con éxito', 'success')
-    return redirect(url_for('mis_direcciones'))
+    return render_template('agregar_direccion.html')
+
+@app.route('/editar-direccion/<int:direccion_id>', methods=['GET', 'POST'])
+@login_required
+def editar_direccion(direccion_id):
+    direccion = controlador_direcciones.obtener_direccion_por_id(direccion_id)
     
+    if request.method == 'POST':
+        nueva_direccion = request.form['direccion']
+        ciudad = request.form['ciudad']
+        estado = request.form['estado']
+        pais = request.form['pais']
+        codigo_postal = request.form['codigo_postal']
+
+        controlador_direcciones.actualizar_direccion(direccion_id, nueva_direccion, ciudad, estado, pais, codigo_postal)
+        flash('Dirección actualizada con éxito', 'success')
+        return redirect(url_for('mis_direcciones'))
+
+    return render_template('editar_direccion.html', direccion=direccion)
 
 @app.route('/mis-direcciones')
 @login_required
@@ -176,22 +225,46 @@ def mis_direcciones():
 @app.route('/producto/<int:id>')
 def producto(id):
     producto = controlador_producto.obtener_producto_por_id(id)
-    opiniones = controlador_producto.obtener_opinioness(id)
+    opiniones = controlador_producto.obtener_opiniones(id)
     productos_relacionados = controlador_producto.obtener_productos_relacionados(id)
     promedio_calificacion = controlador_opinion.calcular_calificacion_promedio(id)
-    return render_template(
+
+    productos_visitados = request.cookies.get('productos_visitados', '')
+
+    productos_visitados = productos_visitados.split(',') if productos_visitados else []
+
+    if str(id) not in productos_visitados:
+        productos_visitados.append(str(id))
+
+    if len(productos_visitados) > 6:
+        productos_visitados = productos_visitados[-6:]
+
+    response = make_response(render_template(
         'producto.html', 
         producto=producto, 
         opiniones=opiniones, 
         productos_relacionados=productos_relacionados,
         promedio_calificacion=promedio_calificacion 
-    )
+    ))
+
+    response.set_cookie('productos_visitados', ','.join(productos_visitados), max_age=30*24*60*60)  # 30 días
+
+    return response
 
 @app.route('/buscar')
 def buscar():
-    query = request.args.get('q', '')
+    query = request.args.get('q', '').strip()  # Capturamos el término de búsqueda y eliminamos espacios
+    categoria_id = request.args.get('categoria', '').strip()
+
+    if not query:
+        flash('Debe ingresar un término de búsqueda', 'error')
+        return redirect(url_for('home'))
+
+    categorias = controlador_categorias.obtener_todas_categorias()
     productos = controlador_producto.buscar_productos(query)
-    return render_template('resultados_busqueda.html', productos=productos, query=query)
+
+    return render_template('resultados_busqueda.html', productos=productos, query=query, categorias=categorias)
+
 
 @app.route('/mis-kits')
 @login_required
@@ -328,7 +401,7 @@ def detalle_pedido(pedido_id):
 @login_required
 def confirmacion_pedido(pedido_id):
     pedido = controlador_pedido.obtener_pedido_por_id(pedido_id)
-    if not pedido or pedido.usuario_id != session['usuario_id']:
+    if not pedido or pedido['usuario_id'] != session['usuario_id']:
         flash('Pedido no encontrado', 'error')
         return redirect(url_for('home'))
     return render_template('confirmacion_pedido.html', pedido=pedido)
@@ -521,7 +594,7 @@ def admin_nueva_categorias():
         controlador_categorias.insertar_categorias(nombre)
         flash('Categoría creada con éxito', 'success')
         return redirect(url_for('admin_categorias'))
-    return render_template('admin/editar_categorias.html')
+    return render_template('admin/nueva_categoria.html')
 
 @app.route('/admin/categorias/editar/<int:id>', methods=['GET', 'POST'])
 @admin_required
@@ -563,7 +636,7 @@ def admin_editar_usuario(id):
         apellido = request.form['apellido']
         email = request.form['email']
         tipo = request.form['tipo']
-        nueva_contrasena = request.form.get('contraseña')  # La nueva contraseña es opcional
+        nueva_contraseña = request.form.get('contraseña')  # La nueva contraseña es opcional
         
         foto = request.files.get('foto')  # Obtiene el archivo de imagen desde el formulario
         if foto and allowed_file(foto.filename):
@@ -584,7 +657,7 @@ def admin_editar_usuario(id):
             email=email,
             tipo=tipo,
             foto=filename,
-            nueva_contrasena=nueva_contrasena if nueva_contrasena else None
+            nueva_contraseña=nueva_contraseña if nueva_contraseña else None
         )
 
         flash('Usuario actualizado con éxito', 'success')
@@ -671,19 +744,19 @@ def faqs():
 def ayuda():
     return render_template('ayuda.html')
 
-@app.route('/cambiar-contrasena', methods=['GET', 'POST'])
+@app.route('/cambiar-contraseña', methods=['GET', 'POST'])
 @login_required
-def cambiar_contrasena():
+def cambiar_contraseña():
     if request.method == 'POST':
-        contrasena_actual = request.form['contrasena_actual']
-        nueva_contrasena = request.form['nueva_contrasena']
-        confirmar_contrasena = request.form['confirmar_contrasena']
+        contraseña_actual = request.form['contraseña_actual']
+        nueva_contraseña = request.form['nueva_contraseña']
+        confirmar_contraseña = request.form['confirmar_contraseña']
         
         usuario = controlador_usuario.obtener_usuario_por_id(session['usuario_id'])
-        if check_password_hash(usuario.contrasena, contrasena_actual):
-            if nueva_contrasena == confirmar_contrasena:
-                hashed_password = generate_password_hash(nueva_contrasena)
-                controlador_usuario.actualizar_contrasena(session['usuario_id'], hashed_password)
+        if check_password_hash(usuario.contraseña, contraseña_actual):
+            if nueva_contraseña == confirmar_contraseña:
+                hashed_password = generate_password_hash(nueva_contraseña)
+                controlador_usuario.actualizar_contraseña(session['usuario_id'], hashed_password)
                 flash('Contraseña actualizada correctamente', 'success')
                 return redirect(url_for('mi_cuenta'))
             else:
@@ -691,7 +764,7 @@ def cambiar_contrasena():
         else:
             flash('La contraseña actual es incorrecta', 'error')
     
-    return render_template('cambiar_contrasena.html')
+    return render_template('cambiar_contraseña.html')
 
 # Iniciar el servidor
 if __name__ == "__main__":

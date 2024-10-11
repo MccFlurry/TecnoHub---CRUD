@@ -306,3 +306,65 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Menú de categorías:', categoriasMenu);
     }
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+    const campoBusqueda = document.getElementById('busqueda'); // Cambia 'busqueda' por el id correcto del input de búsqueda
+    const formBusqueda = document.querySelector('form[action="/buscar"]'); // Asegúrate de que el form apunta a la ruta correcta
+
+    if (campoBusqueda && formBusqueda) {
+        campoBusqueda.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevenir el comportamiento por defecto
+                formBusqueda.submit(); // Enviar el formulario al servidor
+            }
+        });
+    }
+});
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    const favButton = document.getElementById('fav-button');
+    const favIcon = document.getElementById('fav-icon');
+
+    if (favButton) {
+        favButton.addEventListener('click', function () {
+            const productoId = favButton.getAttribute('data-producto-id');
+            const isFavorito = favIcon.classList.contains('text-red-500');
+            const url = isFavorito ? `/eliminar-favorito/${productoId}` : `/agregar-favorito/${productoId}`;
+
+            console.log('Enviando solicitud a:', url);  // Verifica si la URL es correcta
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ producto_id: productoId })
+            })
+            .then(response => {
+                console.log('Respuesta recibida:', response);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Datos recibidos:', data);  // Imprimir los datos recibidos
+                if (data.success) {
+                    if (isFavorito) {
+                        favIcon.classList.remove('text-red-500');
+                        favIcon.classList.add('text-gray-500');
+                        alert('Producto eliminado de tus favoritos');
+                    } else {
+                        favIcon.classList.remove('text-gray-500');
+                        favIcon.classList.add('text-red-500');
+                        alert('Producto añadido a tus favoritos');
+                    }
+                } else {
+                    alert(`Error: ${data.message || 'Hubo un error, inténtalo nuevamente.'}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al procesar la solicitud, inténtalo nuevamente.');
+            });
+        });
+    }
+});

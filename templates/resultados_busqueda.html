@@ -1,19 +1,80 @@
 {% extends "base.html" %}
 
-{% block title %}Resultados de búsqueda para "{{ query }}" - TecnoHub{% endblock %}
+{% block title %}
+Resultados de búsqueda para "{{ query }}" - TecnoHub
+{% endblock %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-center mb-8">Resultados de búsqueda para "{{ query }}"</h1>
+    <h1 class="text-3xl font-bold mb-6">Resultados para "{{ query }}"</h1>
     
-    {% if productos %}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {% for producto in productos %}
-                {% include "componentes/producto_card.html" %}
-            {% endfor %}
+    <div class="flex flex-col md:flex-row">
+        <!-- Barra lateral de filtros -->
+        <div class="w-full md:w-1/4 mr-8">
+            <h2 class="text-xl font-semibold mb-4">Filtrar por:</h2>
+
+            <!-- Filtro de categorías -->
+            <div class="mb-6">
+                <h3 class="font-medium mb-2">Categorías</h3>
+                <form action="{{ url_for('buscar') }}" method="get">
+                    <input type="hidden" name="q" value="{{ query }}">
+                    <select name="categoria" class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="this.form.submit()">
+                        <option value="">Todas las categorías</option>
+                        {% for categoria in categorias %}
+                            <option value="{{ categoria.id }}" {% if categoria_seleccionada == categoria.id %}selected{% endif %}>
+                                {{ categoria.nombre }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+
+            <!-- Filtro de precios -->
+            <div class="mb-6">
+                <h3 class="font-medium mb-2">Rango de Precio</h3>
+                <form action="{{ url_for('buscar') }}" method="get">
+                    <input type="hidden" name="q" value="{{ query }}">
+                    <input type="hidden" name="categoria" value="{{ categoria_seleccionada }}">
+                    <div class="flex items-center space-x-2">
+                        <input type="number" name="precio_min" value="{{ precio_min }}" placeholder="Mín" min="0" step="0.01" class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <span class="text-gray-400">a</span>
+                        <input type="number" name="precio_max" value="{{ precio_max }}" placeholder="Máx" min="0" step="0.01" class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <button type="submit" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors duration-300">Filtrar</button>
+                </form>
+            </div>
+
+            <!-- Espacio para futuros filtros (Marcas, etc.) -->
+            <div class="mb-6">
+                <h3 class="font-medium mb-2">Marca</h3>
+                <p class="text-gray-400 italic">Próximamente</p>
+            </div>
         </div>
-    {% else %}
-        <p class="text-center text-gray-300">No se encontraron productos que coincidan con tu búsqueda. Intenta con otros términos.</p>
-    {% endif %}
+
+        <!-- Resultados de la búsqueda -->
+        <div class="w-full md:w-3/4">
+            {% if productos %}
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {% for producto in productos %}
+                <div class="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
+                    <img src="{{ url_for('static', filename='img/' + producto.imagen) }}" alt="{{ producto.nombre }}"
+                        class="w-full h-48 object-cover">
+                    <div class="p-4">
+                        <h2 class="text-xl font-semibold mb-2">{{ producto.nombre }}</h2>
+                        <p class="text-gray-400 mb-4">{{ producto.descripcion[:100] }}...</p>
+                        <p class="text-2xl font-bold text-blue-500 mb-4">${{ producto.precio }}</p>
+                        <a href="{{ url_for('producto', id=producto.id) }}"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full block text-center transition-colors duration-300">
+                            Ver detalles
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-xl text-gray-400">No se encontraron productos que coincidan con tu búsqueda.</p>
+            {% endif %}
+        </div>
+    </div>
 </div>
 {% endblock %}

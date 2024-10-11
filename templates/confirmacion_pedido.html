@@ -11,7 +11,7 @@
         <p class="mb-6">Tu pedido #{{ pedido.id }} ha sido recibido y está siendo procesado.</p>
         
         <h3 class="text-xl font-semibold mb-2">Detalles del Pedido</h3>
-        <p>Fecha: {{ pedido.fecha_pedido.strftime('%d/%m/%Y') }}</p>
+        <p class="mb-2">Fecha: {{ pedido.fecha_pedido.strftime('%d/%m/%Y %H:%M:%S') }}</p>
         <p>Estado: {{ pedido.estado }}</p>
         
         <h3 class="text-xl font-semibold mt-6 mb-2">Productos</h3>
@@ -27,7 +27,7 @@
             <tbody>
                 {% for detalle in pedido.detalles %}
                     <tr class="border-b border-gray-700">
-                        <td class="py-2">{{ detalle.producto.nombre }}</td>
+                        <td class="py-2">{{ detalle.nombre }}</td>
                         <td class="py-2">{{ detalle.cantidad }}</td>
                         <td class="py-2">${{ detalle.precio_unitario }}</td>
                         <td class="py-2">${{ (detalle.cantidad * detalle.precio_unitario) | round(2) }}</td>
@@ -44,8 +44,8 @@
         
         <h3 class="text-xl font-semibold mb-2">Dirección de Envío</h3>
         <p class="mb-6">
-            {{ pedido.direccion.direccion }}, {{ pedido.direccion.ciudad }}, {{ pedido.direccion.estado }},
-            {{ pedido.direccion.pais }}, CP: {{ pedido.direccion.codigo_postal }}
+            {{ pedido.direccion }}, {{ pedido.ciudad }},
+            {{ pedido.pais }}, CP: {{ pedido.codigo_postal }}. {{ pedido.estado }}
         </p>
         
         <a href="{{ url_for('mis_pedidos') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 inline-block">Ver Mis Pedidos</a>

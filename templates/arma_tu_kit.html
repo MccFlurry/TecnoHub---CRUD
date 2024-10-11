@@ -18,9 +18,9 @@
             </div>
 
             <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
-                <h2 class="text-xl font-semibold mb-4 text-blue-500">Selecciona una funda</h2>
+                <h2 class="text-xl font-semibold mb-4 text-blue-500">Selecciona un Smartwatch</h2>
                 <select name="funda_id" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">Elige una funda</option>
+                    <option value="">Elige un smartwatch</option>
                     {% for funda in fundas %}
                         <option value="{{ funda.id }}">{{ funda.nombre }} - ${{ funda.precio }}</option>
                     {% endfor %}
@@ -28,9 +28,9 @@
             </div>
 
             <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
-                <h2 class="text-xl font-semibold mb-4 text-blue-500">Selecciona unos audífonos</h2>
+                <h2 class="text-xl font-semibold mb-4 text-blue-500">Selecciona un Accesorio</h2>
                 <select name="audifonos_id" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">Elige unos audífonos</option>
+                    <option value="">Elige un accesorio</option>
                     {% for audifonos in audifonos_list %}
                         <option value="{{ audifonos.id }}">{{ audifonos.nombre }} - ${{ audifonos.precio }}</option>
                     {% endfor %}

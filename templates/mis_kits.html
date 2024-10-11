@@ -14,8 +14,8 @@
                     <p class="mb-4">Fecha de creación: {{ kit.fecha_creacion.strftime('%d/%m/%Y') }}</p>
                     <ul class="space-y-2 mb-4">
                         <li>Celular: {{ kit.celular.nombre }} - ${{ kit.celular.precio }}</li>
-                        <li>Funda: {{ kit.funda.nombre }} - ${{ kit.funda.precio }}</li>
-                        <li>Audífonos: {{ kit.audifonos.nombre }} - ${{ kit.audifonos.precio }}</li>
+                        <li>Smartwatch: {{ kit.funda.nombre }} - ${{ kit.funda.precio }}</li>
+                        <li>Accesorios: {{ kit.audifonos.nombre }} - ${{ kit.audifonos.precio }}</li>
                     </ul>
                     <p class="text-lg font-bold mb-4">Total: ${{ (kit.celular.precio + kit.funda.precio + kit.audifonos.precio) | round(2) }}</p>
                     <form action="{{ url_for('eliminar_kit', kit_id=kit.id) }}" method="post" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este kit?');">
