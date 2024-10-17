@@ -22,12 +22,12 @@
                 {% for item in carrito %}
                 <tr class="border-b border-gray-700">
                     <td class="py-4">{{ item.nombre }}</td>
-                    <td class="py-4">${{ item.precio }}</td>
+                    <td class="py-4">${{ item.precio | float }}</td>
                     <td class="py-4">
                         <input type="number" name="cantidad_{{ item.producto_id }}" value="{{ item.cantidad }}" min="1"
                             class="bg-gray-700 text-white rounded-md py-1 px-2 w-20">
                     </td>
-                    <td class="py-4">${{ (item.precio * item.cantidad) | round(2) }}</td>
+                    <td class="py-4">${{ (item.precio | float * item.cantidad | int) | round(2) }}</td>
                     <td class="py-4">
                         <button type="submit" name="eliminar" value="{{ item.producto_id }}"
                             formaction="{{ url_for('eliminar_del_carrito', producto_id=item.producto_id) }}"

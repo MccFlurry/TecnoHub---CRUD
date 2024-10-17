@@ -45,6 +45,22 @@ def obtener_productos_por_categorias(categoria_id):
     conexion.close()
     return productos
 
+#Función para obtener productos por categoría para el home
+def obtener_productos_por_ids(ids):
+    conexion = obtener_conexion()
+    productos = []
+    with conexion.cursor(DictCursor) as cursor:
+        # Genera una consulta SQL para obtener múltiples productos
+        sql = "SELECT id, nombre, descripcion, precio, stock, imagen, categoria_id FROM productos WHERE id IN ({})".format(
+            ', '.join(['%s'] * len(ids))
+        )
+        cursor.execute(sql, ids)
+        rows = cursor.fetchall()
+        for row in rows:
+            productos.append(Producto(**row))
+    conexion.close()
+    return productos
+
 # Actualiza los detalles de un producto en la base de datos
 def actualizar_producto(id, nombre, descripcion, precio, stock, categoria_id, imagen):
     conexion = obtener_conexion()

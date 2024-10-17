@@ -11,7 +11,6 @@ import controlador_pedido
 import controlador_kit
 import controlador_favorito
 import controlador_direcciones
-import controlador_producto_visitado
 import controlador_opinion
 
 #PROYECTO ACTUALIZADO 10/11/2024
@@ -43,24 +42,25 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+
 @app.route('/')
 def home():
     productos_destacados = controlador_producto.obtener_productos_destacados()
-
     categorias = controlador_categorias.obtener_todas_categorias()
 
     productos_visitados = request.cookies.get('productos_visitados', '')
     productos_recientes = []
 
     if productos_visitados:
-        productos_ids = productos_visitados.split(',')
-        
-        productos_recientes = controlador_producto.obtener_producto_por_id(productos_ids)
+        productos_ids = [int(id) for id in productos_visitados.split(',') if id.isdigit()]
+        if productos_ids:
+            productos_recientes = controlador_producto.obtener_productos_por_ids(productos_ids)
 
     return render_template('home.html', 
                            productos=productos_destacados, 
                            categorias=categorias, 
                            productos_recientes=productos_recientes)
+
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -132,23 +132,55 @@ def inject_categories():
 def arma_tu_kit():
     if request.method == 'POST':
         celular_id = request.form.get('celular_id')
-        funda_id = request.form.get('funda_id')
-        audifonos_id = request.form.get('audifonos_id')
+        smartwatch_id = request.form.get('smartwatch_id')
+        accesorios_id = request.form.get('accesorios_id')
         usuario_id = session.get('usuario_id')
 
         if usuario_id:
-            controlador_kit.crear_kit(usuario_id, celular_id, funda_id, audifonos_id)
-            flash('Kit creado con éxito', 'success')
-            return redirect(url_for('mis_kits'))
+            carrito = session.get('carrito', [])
+            
+            if celular_id:
+                celular = controlador_producto.obtener_producto_por_id(int(celular_id))
+                if celular:
+                    carrito.append({
+                        'producto_id': celular.id,
+                        'nombre': celular.nombre,
+                        'precio': float(celular.precio),
+                        'cantidad': 1
+                    })
+            
+            if smartwatch_id:
+                smartwatch = controlador_producto.obtener_producto_por_id(int(smartwatch_id))
+                if smartwatch:
+                    carrito.append({
+                        'producto_id': smartwatch.id,
+                        'nombre': smartwatch.nombre,
+                        'precio': float(smartwatch.precio),
+                        'cantidad': 1
+                    })
+            
+            if accesorios_id:
+                accesorio = controlador_producto.obtener_producto_por_id(int(accesorios_id))
+                if accesorio:
+                    carrito.append({
+                        'producto_id': accesorio.id,
+                        'nombre': accesorio.nombre,
+                        'precio': float(accesorio.precio),
+                        'cantidad': 1
+                    })
+
+            session['carrito'] = carrito
+            flash('Kit agregado al carrito con éxito', 'success')
+            return redirect(url_for('carrito'))
         else:
             flash('Debes iniciar sesión para crear un kit', 'error')
             return redirect(url_for('login'))
 
     celulares = controlador_producto.obtener_productos_por_categorias(1) 
-    fundas = controlador_producto.obtener_productos_por_categorias(2)
-    audifonos = controlador_producto.obtener_productos_por_categorias(3)
+    smartwatch = controlador_producto.obtener_productos_por_categorias(2)
+    accesorios = controlador_producto.obtener_productos_por_categorias(3)
 
-    return render_template('arma_tu_kit.html', celulares=celulares, fundas=fundas, audifonos=audifonos)
+    return render_template('arma_tu_kit.html', celulares=celulares, smartwatch=smartwatch, accesorios=accesorios)
 
 @app.route('/agregar-favorito/<int:producto_id>', methods=['POST'])
 @login_required
@@ -321,7 +353,7 @@ def agregar_al_carrito(producto_id):
 @app.route('/carrito')
 @login_required
 def carrito():
-    total = sum(item['cantidad'] * item['precio'] for item in session.get('carrito', []))
+    total = sum(int(item['cantidad']) * float(item['precio']) for item in session.get('carrito', []))
     return render_template('carrito.html', carrito=session.get('carrito', []), total=total)
 
 @app.route('/eliminar-del-carrito/<int:producto_id>', methods=['POST'])
@@ -364,11 +396,10 @@ def realizar_pedido():
             pedido_id = controlador_pedido.crear_pedido(session['usuario_id'], int(direccion_id))
             
             for item in session['carrito']:
-                controlador_pedido.agregar_detalle_pedido(pedido_id, item['producto_id'], item['cantidad'], item['precio'])
+                controlador_pedido.agregar_detalle_pedido(pedido_id, item['producto_id'], int(item['cantidad']), float(item['precio']))
                 try:
-                    controlador_producto.actualizar_stock(item['producto_id'], -item['cantidad'])
+                    controlador_producto.actualizar_stock(item['producto_id'], -int(item['cantidad']))
                 except ValueError as e:
-                    # If there's not enough stock, we need to rollback the order
                     controlador_pedido.eliminar_pedido(pedido_id)
                     flash(str(e), 'error')
                     return redirect(url_for('carrito'))
@@ -381,7 +412,7 @@ def realizar_pedido():
             return redirect(url_for('realizar_pedido'))
 
     direcciones = controlador_direcciones.obtener_direcciones_usuario(session['usuario_id'])
-    total = sum(item['cantidad'] * item['precio'] for item in session['carrito'])
+    total = sum(int(item['cantidad']) * float(item['precio']) for item in session['carrito'])
     return render_template('realizar_pedido.html', direcciones=direcciones, total=total)
 
 @app.route('/pedido/<int:pedido_id>', methods=['GET'])

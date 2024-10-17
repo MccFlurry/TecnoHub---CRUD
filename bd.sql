@@ -92,13 +92,13 @@ CREATE TABLE kits (
     id INT AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT,
     celular_id INT,
-    funda_id INT,
-    audifonos_id INT,
+    smartwatch_id INT,
+    accesorios_id INT,
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
     FOREIGN KEY (celular_id) REFERENCES productos(id),
-    FOREIGN KEY (funda_id) REFERENCES productos(id),
-    FOREIGN KEY (audifonos_id) REFERENCES productos(id)
+    FOREIGN KEY (smartwatch_id) REFERENCES productos(id),
+    FOREIGN KEY (accesorios_id) REFERENCES productos(id)
 );
 
 -- Tabla para productos visitados recientemente (depende de productos y usuarios)

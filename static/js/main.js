@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const mobileMenuButton = document.getElementById('mobile-menu-button');
     const mobileMenu = document.getElementById('mobile-menu');
 
-    if (mobileMenuButton && mobileMenu) { 
+    if (mobileMenuButton && mobileMenu) {
         mobileMenuButton.addEventListener('click', function () {
             mobileMenu.classList.toggle('hidden');
         });
@@ -245,18 +245,18 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const userButton = document.querySelector('[data-menu="user"]');
     const userMenu = document.querySelector('[data-menu-content="user"]');
 
     if (userButton && userMenu) {
-        userButton.addEventListener('click', function(e) {
+        userButton.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
             userMenu.classList.toggle('hidden');
         });
 
-        document.addEventListener('click', function(event) {
+        document.addEventListener('click', function (event) {
             if (!userButton.contains(event.target) && !userMenu.contains(event.target)) {
                 userMenu.classList.add('hidden');
             }
@@ -264,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Función para encontrar el botón de categorías
     function findCategoriasButton() {
         const buttons = document.querySelectorAll('button');
@@ -289,13 +289,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const categoriasMenu = findCategoriasMenu(categoriasButton);
 
     if (categoriasButton && categoriasMenu) {
-        categoriasButton.addEventListener('click', function(e) {
+        categoriasButton.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
             categoriasMenu.classList.toggle('hidden');
         });
 
-        document.addEventListener('click', function(event) {
+        document.addEventListener('click', function (event) {
             if (!categoriasButton.contains(event.target) && !categoriasMenu.contains(event.target)) {
                 categoriasMenu.classList.add('hidden');
             }
@@ -341,30 +341,70 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 body: JSON.stringify({ producto_id: productoId })
             })
-            .then(response => {
-                console.log('Respuesta recibida:', response);
-                return response.json();
-            })
-            .then(data => {
-                console.log('Datos recibidos:', data);  // Imprimir los datos recibidos
-                if (data.success) {
-                    if (isFavorito) {
-                        favIcon.classList.remove('text-red-500');
-                        favIcon.classList.add('text-gray-500');
-                        alert('Producto eliminado de tus favoritos');
+                .then(response => {
+                    console.log('Respuesta recibida:', response);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Datos recibidos:', data);  // Imprimir los datos recibidos
+                    if (data.success) {
+                        if (isFavorito) {
+                            favIcon.classList.remove('text-red-500');
+                            favIcon.classList.add('text-gray-500');
+                            alert('Producto eliminado de tus favoritos');
+                        } else {
+                            favIcon.classList.remove('text-gray-500');
+                            favIcon.classList.add('text-red-500');
+                            alert('Producto añadido a tus favoritos');
+                        }
                     } else {
-                        favIcon.classList.remove('text-gray-500');
-                        favIcon.classList.add('text-red-500');
-                        alert('Producto añadido a tus favoritos');
+                        alert(`Error: ${data.message || 'Hubo un error, inténtalo nuevamente.'}`);
                     }
-                } else {
-                    alert(`Error: ${data.message || 'Hubo un error, inténtalo nuevamente.'}`);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error al procesar la solicitud, inténtalo nuevamente.');
-            });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al procesar la solicitud, inténtalo nuevamente.');
+                });
         });
     }
+});
+
+//Arma tu kit
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Obtener los elementos de los select y del resumen
+    const celularSelect = document.getElementById('celular-select');
+    const smartwatchSelect = document.getElementById('smartwatch-select');
+    const accesorioSelect = document.getElementById('accesorio-select');
+
+    const celularSeleccionado = document.getElementById('celular-seleccionado');
+    const smartwatchSeleccionado = document.getElementById('smartwatch-seleccionado');
+    const accesorioSeleccionado = document.getElementById('accesorio-seleccionado');
+    const totalKit = document.getElementById('total-kit');
+
+    // Función para actualizar el resumen del kit
+    function actualizarResumen() {
+        // Obtener los valores seleccionados
+        const celularOption = celularSelect.options[celularSelect.selectedIndex];
+        const smartwatchOption = smartwatchSelect.options[smartwatchSelect.selectedIndex];
+        const accesorioOption = accesorioSelect.options[accesorioSelect.selectedIndex];
+
+        // Actualizar los nombres seleccionados en el resumen
+        celularSeleccionado.textContent = celularOption.text.includes('-') ? celularOption.text.split('-')[0].trim() : 'Ninguno';
+        smartwatchSeleccionado.textContent = smartwatchOption.text.includes('-') ? smartwatchOption.text.split('-')[0].trim() : 'Ninguno';
+        accesorioSeleccionado.textContent = accesorioOption.text.includes('-') ? accesorioOption.text.split('-')[0].trim() : 'Ninguno';
+
+        // Calcular el total sumando los precios seleccionados
+        const total = parseFloat(celularOption.getAttribute('data-precio')) +
+            parseFloat(smartwatchOption.getAttribute('data-precio')) +
+            parseFloat(accesorioOption.getAttribute('data-precio'));
+
+        // Actualizar el total en el resumen
+        totalKit.textContent = total.toFixed(2);
+    }
+
+    // Añadir eventos de cambio a los selects para actualizar el resumen dinámicamente
+    celularSelect.addEventListener('change', actualizarResumen);
+    smartwatchSelect.addEventListener('change', actualizarResumen);
+    accesorioSelect.addEventListener('change', actualizarResumen);
 });

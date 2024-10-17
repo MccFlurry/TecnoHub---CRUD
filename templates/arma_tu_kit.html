@@ -9,39 +9,39 @@
         <div class="space-y-6">
             <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
                 <h2 class="text-xl font-semibold mb-4 text-blue-500">Selecciona un celular</h2>
-                <select name="celular_id" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">Elige un celular</option>
+                <select name="celular_id" id="celular-select" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="" data-precio="0">Elige un celular</option>
                     {% for celular in celulares %}
-                        <option value="{{ celular.id }}">{{ celular.nombre }} - ${{ celular.precio }}</option>
+                        <option value="{{ celular.id }}" data-precio="{{ celular.precio }}">{{ celular.nombre }} - ${{ celular.precio }}</option>
                     {% endfor %}
                 </select>
             </div>
 
             <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
                 <h2 class="text-xl font-semibold mb-4 text-blue-500">Selecciona un Smartwatch</h2>
-                <select name="funda_id" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">Elige un smartwatch</option>
-                    {% for funda in fundas %}
-                        <option value="{{ funda.id }}">{{ funda.nombre }} - ${{ funda.precio }}</option>
+                <select name="smartwatch_id" id="smartwatch-select" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="" data-precio="0">Elige un smartwatch</option>
+                    {% for smartwatch in smartwatch %}
+                        <option value="{{ smartwatch.id }}" data-precio="{{ smartwatch.precio }}">{{ smartwatch.nombre }} - ${{ smartwatch.precio }}</option>
                     {% endfor %}
                 </select>
             </div>
 
             <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
                 <h2 class="text-xl font-semibold mb-4 text-blue-500">Selecciona un Accesorio</h2>
-                <select name="audifonos_id" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">Elige un accesorio</option>
-                    {% for audifonos in audifonos_list %}
-                        <option value="{{ audifonos.id }}">{{ audifonos.nombre }} - ${{ audifonos.precio }}</option>
+                <select name="accesorios_id" id="accesorio-select" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="" data-precio="0">Elige un accesorio</option>
+                    {% for accesorio in accesorios %}
+                        <option value="{{ accesorio.id }}" data-precio="{{ accesorio.precio }}">{{ accesorio.nombre }} - ${{ accesorio.precio }}</option>
                     {% endfor %}
                 </select>
             </div>
 
             <div id="resumen-kit" class="bg-gray-800 rounded-lg p-6 shadow-lg">
                 <h2 class="text-xl font-semibold mb-4 text-blue-500">Resumen del Kit</h2>
-                <p>Celular: <span id="celular-seleccionado" class="text-blue-500"></span></p>
-                <p>Funda: <span id="funda-seleccionada" class="text-blue-500"></span></p>
-                <p>Audífonos: <span id="audifonos-seleccionados" class="text-blue-500"></span></p>
+                <p>Celular: <span id="celular-seleccionado" class="text-blue-500">Ninguno</span></p>
+                <p>Smartwatch: <span id="smartwatch-seleccionado" class="text-blue-500">Ninguno</span></p>
+                <p>Accesorio: <span id="accesorio-seleccionado" class="text-blue-500">Ninguno</span></p>
                 <p class="text-lg font-semibold mt-4">Total: $<span id="total-kit" class="text-blue-500">0.00</span></p>
             </div>
 
@@ -51,5 +51,3 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
-{% endblock %}
