@@ -29,7 +29,8 @@
                 </a>
                 <div class="hidden md:flex items-center space-x-6">
                     <form action="{{ url_for('buscar') }}" method="get" class="relative">
-                        <input type="search" id="busqueda" name="q" placeholder="Buscar productos" class="bg-gray-700 text-white rounded-full py-2 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="search" id="busqueda" name="q" placeholder="Buscar productos"
+                            class="bg-gray-700 text-white rounded-full py-2 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <button type="submit" class="absolute left-1.5 top-2.5 text-gray-400">
                             <i class='bx bx-search'></i>
                         </button>
@@ -68,22 +69,18 @@
                         <div data-menu-content="user"
                             class="absolute top-full right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg hidden">
                             <a href="{{ url_for('mi_cuenta') }}"
-                                class="block px-4 py-2 hover:bg-gray-700 transition-colors">
-                                Mi cuenta
-                            </a>
+                                class="block px-4 py-2 hover:bg-gray-700 transition-colors">Mi cuenta</a>
                             <a href="{{ url_for('mis_pedidos') }}"
-                                class="block px-4 py-2 hover:bg-gray-700 transition-colors">
-                                Mis compras
-                            </a>
+                                class="block px-4 py-2 hover:bg-gray-700 transition-colors">Mis compras</a>
                             <a href="{{ url_for('mis_favoritos') }}"
-                                class="block px-4 py-2 hover:bg-gray-700 transition-colors">
-                                Mis favoritos
-                            </a>
+                                class="block px-4 py-2 hover:bg-gray-700 transition-colors">Mis favoritos</a>
+                            {% if session.get('usuario_tipo') == 'administrador' %}
+                            <a href="{{ url_for('admin_dashboard') }}"
+                                class="block px-4 py-2 hover:bg-gray-700 transition-colors">Admin Dashboard</a>
+                            {% endif %}
                             <hr class="border-gray-700 my-2">
                             <a href="{{ url_for('logout') }}"
-                                class="block px-4 py-2 hover:bg-gray-700 transition-colors">
-                                Cerrar sesión
-                            </a>
+                                class="block px-4 py-2 hover:bg-gray-700 transition-colors">Cerrar sesión</a>
                         </div>
                     </div>
                     {% else %}

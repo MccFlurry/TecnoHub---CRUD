@@ -13,7 +13,7 @@ import controlador_favorito
 import controlador_direcciones
 import controlador_opinion
 
-#PROYECTO ACTUALIZADO 10/11/2024
+#PROYECTO ACTUALIZADO 17/11/2024 NO OLVIDAR IMPLEMENTAR PAPIS
 
 app = Flask(__name__)
 app.secret_key = 'tu_clave_secreta'
