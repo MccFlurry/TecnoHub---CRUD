@@ -5,55 +5,60 @@
 {% block header %}Gestión de Usuarios{% endblock %}
 
 {% block content %}
-<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+<div class="overflow-hidden bg-white shadow sm:rounded-lg">
     <div class="px-4 py-5 sm:px-6">
-        <h2 class="text-lg leading-6 font-medium text-gray-900">Usuarios</h2>
+        <h2 class="text-lg font-medium leading-6 text-gray-900">Usuarios</h2>
     </div>
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
                     <th scope="col"
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                        class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">ID</th>
                     <th scope="col"
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre
+                        class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Nombre
                     </th>
                     <th scope="col"
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email
+                        class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Email
                     </th>
                     <th scope="col"
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                        class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Tipo</th>
                     <th scope="col"
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha de
+                        class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Fecha de
                         registro</th>
                     <th scope="col"
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones
+                        class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Acciones
                     </th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
                 {% for usuario in usuarios %}
                 <tr>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ usuario.id }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ usuario.nombre }} {{
+                    <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{{ usuario.id }}</td>
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{{ usuario.nombre }} {{
                         usuario.apellido }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ usuario.email }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ usuario.tipo }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{
+                    <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{{ usuario.email }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{{ usuario.tipo }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{{
                         usuario.fecha_registro.strftime('%d/%m/%Y') }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
                         <a href="{{ url_for('admin_detalle_usuario', id=usuario.id) }}"
                             class="text-blue-600 hover:text-blue-900">Ver Detalles</a>
                         <a href="{{ url_for('admin_editar_usuario', id=usuario.id) }}"
-                            class="text-indigo-600 hover:text-indigo-900 ml-4">Editar</a>
-                        <a href="{{ url_for('admin_eliminar_usuario', id=usuario.id) }}"
-                            class="text-red-600 hover:text-red-900 ml-4"
-                            onclick="return confirm('¿Estás seguro de que deseas eliminar este usuario?');">Eliminar</a>
+                            class="ml-4 text-indigo-600 hover:text-indigo-900">Editar</a>
+                        <form action="{{ url_for('admin_eliminar_usuario', id=usuario.id) }}" method="post"
+                            style="display: inline;">
+                            <button type="submit" class="ml-4 text-red-600 hover:text-red-900"
+                                onclick="return confirm('¿Estás seguro de que deseas eliminar este usuario?');">
+                                Eliminar
+                            </button>
+                        </form>
+
                     </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="6" class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                    <td colspan="6" class="px-6 py-4 text-sm text-center text-gray-500 whitespace-nowrap">
                         No hay usuarios registrados.
                     </td>
                 </tr>

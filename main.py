@@ -193,7 +193,7 @@ def agregar_favorito(producto_id):
         controlador_favorito.agregar_favorito(usuario_id, producto_id)
         return jsonify(success=True)
     except Exception as e:
-        print(f"Error al agregar favorito: {e}")  # Ver más detalles en consola
+        print(f"Error al agregar favorito: {e}")
         return jsonify(success=False, message="Error interno, inténtalo nuevamente")
 
 @app.route('/eliminar-favorito/<int:producto_id>', methods=['POST'])
@@ -287,7 +287,7 @@ def producto(id):
 
 @app.route('/buscar')
 def buscar():
-    query = request.args.get('q', '').strip()  # Capturamos el término de búsqueda y eliminamos espacios
+    query = request.args.get('q', '').strip()
     categoria_id = request.args.get('categoria', '').strip()
 
     if not query:
@@ -331,7 +331,6 @@ def agregar_al_carrito(producto_id):
     if 'carrito' not in session:
         session['carrito'] = []
 
-    # Verificar si el producto ya está en el carrito
     for item in session['carrito']:
         if item['producto_id'] == producto_id:
             item['cantidad'] += cantidad
@@ -339,7 +338,6 @@ def agregar_al_carrito(producto_id):
             flash('Producto actualizado en el carrito', 'success')
             return redirect(url_for('carrito'))
 
-    # Si no está en el carrito, agregarlo
     session['carrito'].append({
         'producto_id': producto_id,
         'cantidad': cantidad,
@@ -585,7 +583,6 @@ def admin_editar_pedido(id):
     pedido = controlador_pedido.obtener_pedido_por_id(id)
     
     if request.method == 'POST':
-        # Recogemos los datos de la dirección del formulario
         calle = request.form.get('calle')
         ciudad = request.form.get('ciudad')
         estado = request.form.get('estado')
@@ -669,19 +666,19 @@ def admin_editar_usuario(id):
         apellido = request.form['apellido']
         email = request.form['email']
         tipo = request.form['tipo']
-        nueva_contraseña = request.form.get('contraseña')  # La nueva contraseña es opcional
+        nueva_contraseña = request.form.get('contraseña')
         
-        foto = request.files.get('foto')  # Obtiene el archivo de imagen desde el formulario
+        foto = request.files.get('foto')
         if foto and allowed_file(foto.filename):
             try:
-                filename = secure_filename(foto.filename)  # Nombre seguro para el archivo
+                filename = secure_filename(foto.filename)
                 foto_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                foto.save(foto_path)  # Guarda la imagen en la carpeta de subida
+                foto.save(foto_path)
             except Exception as e:
                 flash('Error al subir la imagen: ' + str(e), 'error')
                 return redirect(url_for('editar_usuario', id=id))
         else:
-            filename = usuario.foto  # Mantiene la foto actual si no se sube una nueva
+            filename = usuario.foto
 
         controlador_usuario.actualizar_usuario(
             id=id,
