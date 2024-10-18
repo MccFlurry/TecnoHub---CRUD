@@ -3,25 +3,25 @@
 {% block title %}Mis Pedidos - TecnoHub{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <h2 class="text-3xl font-bold text-center mb-8">Mis Pedidos</h2>
+<div class="container px-4 py-8 mx-auto">
+    <h2 class="mb-8 text-3xl font-bold text-center">Mis Pedidos</h2>
     {% if pedidos %}
     <div class="space-y-8">
         {% for pedido in pedidos %}
-        <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
-            <h3 class="text-xl font-semibold mb-4">Pedido #{{ pedido.id }}</h3>
+        <div class="p-6 bg-gray-800 rounded-lg shadow-lg">
+            <h3 class="mb-4 text-xl font-semibold">Pedido #{{ pedido.id }}</h3>
             <p class="mb-2">Fecha: {{ pedido.fecha_pedido.strftime('%Y/%m/%d') }}</p>
             <p class="mb-2">Estado: <span class="text-blue-500">{{ pedido.estado }}</span></p>
-            <p class="mb-4">Total: <span class="font-bold">${{ pedido.total }}</span></p>
-            <h4 class="text-lg font-semibold mb-2">Productos:</h4>
-            <ul class="list-disc list-inside mb-4">
+            <p class="mb-4">Total: <span class="font-bold">S/.{{ pedido.total }}</span></p>
+            <h4 class="mb-2 text-lg font-semibold">Productos:</h4>
+            <ul class="mb-4 list-disc list-inside">
                 {% for detalle in pedido.detalles %}
-                <li>{{ detalle.producto.nombre }} (x{{ detalle.cantidad }}) - ${{ detalle.precio_unitario *
+                <li>{{ detalle.producto.nombre }} (x{{ detalle.cantidad }}) - S/.{{ detalle.precio_unitario *
                     detalle.cantidad }}</li>
                 {% endfor %}
             </ul>
             <a href="{{ url_for('detalle_pedido', pedido_id=pedido.id) }}"
-                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 inline-block">Ver
+                class="inline-block px-4 py-2 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700">Ver
                 Detalles</a>
         </div>
         {% endfor %}

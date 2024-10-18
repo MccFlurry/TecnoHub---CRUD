@@ -4,18 +4,18 @@
 
 {% block content %}
 <!-- Hero Section -->
-<section class="relative h-screen flex items-center justify-center overflow-hidden">
+<section class="relative flex items-center justify-center h-screen overflow-hidden">
     <div class="absolute inset-0 z-0">
         <img src="{{ url_for('static', filename='img/hero-bg.jpg') }}" alt="Hero Background"
-            class="w-full h-full object-cover opacity-50">
+            class="object-cover w-full h-full opacity-50">
     </div>
-    <div class="container mx-auto px-4 z-10 text-center">
-        <h1 class="text-5xl md:text-7xl font-bold mb-6 animate-pulse">
+    <div class="container z-10 px-4 mx-auto text-center">
+        <h1 class="mb-6 text-5xl font-bold md:text-7xl animate-pulse">
             Bienvenido al Futuro de la Tecnología
         </h1>
-        <p class="text-xl md:text-2xl mb-8">Descubre las últimas innovaciones en TecnoHub</p>
+        <p class="mb-8 text-xl md:text-2xl">Descubre las últimas innovaciones en TecnoHub</p>
         <a href="#categorias"
-            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition-colors duration-300 inline-block">
+            class="inline-block px-8 py-3 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700">
             Explora Ahora
         </a>
     </div>
@@ -23,17 +23,17 @@
 
 <!-- Categorías Section -->
 <section id="categorias" class="py-20 bg-gray-800">
-    <div class="container mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-12">Explora Nuestras Categorías</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <div class="container px-4 mx-auto">
+        <h2 class="mb-12 text-3xl font-bold text-center">Explora Nuestras Categorías</h2>
+        <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
             {% for categoria in categorias %}
             <a href="{{ url_for('categorias', id=categoria.id) }}" class="group">
                 <div
-                    class="bg-gray-700 rounded-lg overflow-hidden transform transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg">
+                    class="overflow-hidden transition-all duration-300 transform bg-gray-700 rounded-lg group-hover:scale-105 group-hover:shadow-lg">
                     <img src="{{ url_for('static', filename='img/' + categoria.nombre|lower + '.jpg') }}"
-                        alt="{{ categoria.nombre }}" class="w-full h-48 object-cover">
+                        alt="{{ categoria.nombre }}" class="object-cover w-full h-48">
                     <div class="p-4">
-                        <h3 class="text-xl font-semibold group-hover:text-blue-500 transition-colors">
+                        <h3 class="text-xl font-semibold transition-colors group-hover:text-blue-500">
                             {{ categoria.nombre }}
                         </h3>
                     </div>
@@ -47,18 +47,21 @@
 <!-- Productos Recientes Section -->
 {% if productos %}
 <section id="productos-destacados" class="py-20 bg-gray-900">
-    <div class="container mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-12">Productos Destacados</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <div class="container px-4 mx-auto">
+        <h2 class="mb-12 text-3xl font-bold text-center">Productos Recientes</h2>
+        <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
             {% for producto in productos %}
-            <div class="bg-gray-800 rounded-lg overflow-hidden shadow-lg transform transition-all duration-300 hover:scale-105">
-                <img src="{{ url_for('static', filename='img/' + producto.imagen) }}" alt="{{ producto.nombre }}"
-                class="w-full h-auto object-cover">
+            <div
+                class="overflow-hidden transition-all duration-300 transform bg-gray-800 rounded-lg shadow-lg hover:scale-105">
+                <div class="flex items-center justify-center w-full h-64">
+                    <img src="{{ url_for('static', filename='img/' + producto.imagen) }}" alt="{{ producto.nombre }}"
+                        class="object-contain max-h-full">
+                </div>
                 <div class="p-4">
-                    <h3 class="text-xl font-semibold mb-2">{{ producto.nombre }}</h3>
-                    <p class="text-blue-500 font-bold text-lg mb-4">${{ producto.precio }}</p>
+                    <h3 class="mb-2 text-xl font-semibold">{{ producto.nombre }}</h3>
+                    <p class="mb-4 text-lg font-bold text-blue-500">S/.{{ producto.precio }}</p>
                     <a href="{{ url_for('producto', id=producto.id) }}"
-                       class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 inline-block w-full text-center">
+                        class="inline-block w-full px-4 py-2 font-bold text-center text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700">
                         Ver Detalles
                     </a>
                 </div>
@@ -72,14 +75,14 @@
 
 <!-- Testimonios Section -->
 <section id="testimonios" class="py-20 bg-gray-800">
-    <div class="container mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-12">Lo que Dicen Nuestros Clientes</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div class="container px-4 mx-auto">
+        <h2 class="mb-12 text-3xl font-bold text-center">Lo que Dicen Nuestros Clientes</h2>
+        <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
             {% for i in range(1, 4) %}
-            <div class="bg-gray-700 rounded-lg p-6 shadow-lg">
+            <div class="p-6 bg-gray-700 rounded-lg shadow-lg">
                 <div class="flex items-center mb-4">
                     <img src="{{ url_for('static', filename='img/cliente' + i|string + '.jpg') }}" alt="Cliente {{ i }}"
-                        class="w-16 h-16 rounded-full mr-4">
+                        class="w-16 h-16 mr-4 rounded-full">
                     <div>
                         <h5 class="font-semibold">Cliente {{ i }}</h5>
                         <div class="flex text-yellow-500">

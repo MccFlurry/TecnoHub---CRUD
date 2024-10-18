@@ -250,6 +250,13 @@ def editar_direccion(direccion_id):
 
     return render_template('editar_direccion.html', direccion=direccion)
 
+@app.route('/eliminar-direccion/<int:direccion_id>', methods=['POST'])
+@login_required
+def eliminar_direccion(direccion_id):
+    controlador_direcciones.eliminar_direccion(direccion_id)
+    return redirect(url_for('mis_direcciones'))
+
+
 @app.route('/mis-direcciones')
 @login_required
 def mis_direcciones():

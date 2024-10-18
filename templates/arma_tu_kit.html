@@ -3,49 +3,49 @@
 {% block title %}Arma tu Kit - TecnoHub{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-center mb-8">Arma tu Kit</h1>
+<div class="container px-4 py-8 mx-auto">
+    <h1 class="mb-8 text-3xl font-bold text-center">Arma tu Kit</h1>
     <form action="{{ url_for('arma_tu_kit') }}" method="post" id="arma-tu-kit-form" class="max-w-2xl mx-auto">
         <div class="space-y-6">
-            <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
-                <h2 class="text-xl font-semibold mb-4 text-blue-500">Selecciona un celular</h2>
-                <select name="celular_id" id="celular-select" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <div class="p-6 bg-gray-800 rounded-lg shadow-lg">
+                <h2 class="mb-4 text-xl font-semibold text-blue-500">Selecciona un celular</h2>
+                <select name="celular_id" id="celular-select" required class="w-full px-3 py-2 text-white bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="" data-precio="0">Elige un celular</option>
                     {% for celular in celulares %}
-                        <option value="{{ celular.id }}" data-precio="{{ celular.precio }}">{{ celular.nombre }} - ${{ celular.precio }}</option>
+                        <option value="{{ celular.id }}" data-precio="{{ celular.precio }}">{{ celular.nombre }} - S/.{{ celular.precio }}</option>
                     {% endfor %}
                 </select>
             </div>
 
-            <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
-                <h2 class="text-xl font-semibold mb-4 text-blue-500">Selecciona un Smartwatch</h2>
-                <select name="smartwatch_id" id="smartwatch-select" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <div class="p-6 bg-gray-800 rounded-lg shadow-lg">
+                <h2 class="mb-4 text-xl font-semibold text-blue-500">Selecciona un Smartwatch</h2>
+                <select name="smartwatch_id" id="smartwatch-select" required class="w-full px-3 py-2 text-white bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="" data-precio="0">Elige un smartwatch</option>
                     {% for smartwatch in smartwatch %}
-                        <option value="{{ smartwatch.id }}" data-precio="{{ smartwatch.precio }}">{{ smartwatch.nombre }} - ${{ smartwatch.precio }}</option>
+                        <option value="{{ smartwatch.id }}" data-precio="{{ smartwatch.precio }}">{{ smartwatch.nombre }} - S/.{{ smartwatch.precio }}</option>
                     {% endfor %}
                 </select>
             </div>
 
-            <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
-                <h2 class="text-xl font-semibold mb-4 text-blue-500">Selecciona un Accesorio</h2>
-                <select name="accesorios_id" id="accesorio-select" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <div class="p-6 bg-gray-800 rounded-lg shadow-lg">
+                <h2 class="mb-4 text-xl font-semibold text-blue-500">Selecciona un Accesorio</h2>
+                <select name="accesorios_id" id="accesorio-select" required class="w-full px-3 py-2 text-white bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="" data-precio="0">Elige un accesorio</option>
                     {% for accesorio in accesorios %}
-                        <option value="{{ accesorio.id }}" data-precio="{{ accesorio.precio }}">{{ accesorio.nombre }} - ${{ accesorio.precio }}</option>
+                        <option value="{{ accesorio.id }}" data-precio="{{ accesorio.precio }}">{{ accesorio.nombre }} - S/.{{ accesorio.precio }}</option>
                     {% endfor %}
                 </select>
             </div>
 
-            <div id="resumen-kit" class="bg-gray-800 rounded-lg p-6 shadow-lg">
-                <h2 class="text-xl font-semibold mb-4 text-blue-500">Resumen del Kit</h2>
+            <div id="resumen-kit" class="p-6 bg-gray-800 rounded-lg shadow-lg">
+                <h2 class="mb-4 text-xl font-semibold text-blue-500">Resumen del Kit</h2>
                 <p>Celular: <span id="celular-seleccionado" class="text-blue-500">Ninguno</span></p>
                 <p>Smartwatch: <span id="smartwatch-seleccionado" class="text-blue-500">Ninguno</span></p>
                 <p>Accesorio: <span id="accesorio-seleccionado" class="text-blue-500">Ninguno</span></p>
-                <p class="text-lg font-semibold mt-4">Total: $<span id="total-kit" class="text-blue-500">0.00</span></p>
+                <p class="mt-4 text-lg font-semibold">Total: S/.<span id="total-kit" class="text-blue-500">0.00</span></p>
             </div>
 
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md transition-colors duration-300">Agregar Kit al Carrito</button>
+            <button type="submit" class="w-full px-4 py-3 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-md hover:bg-blue-700">Agregar Kit al Carrito</button>
         </div>
     </form>
 </div>

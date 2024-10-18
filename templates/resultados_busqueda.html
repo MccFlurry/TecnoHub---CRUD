@@ -5,20 +5,20 @@ Resultados de búsqueda para "{{ query }}" - TecnoHub
 {% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-6">Resultados para "{{ query }}"</h1>
+<div class="container px-4 py-8 mx-auto">
+    <h1 class="mb-6 text-3xl font-bold">Resultados para "{{ query }}"</h1>
     
     <div class="flex flex-col md:flex-row">
         <!-- Barra lateral de filtros -->
-        <div class="w-full md:w-1/4 mr-8">
-            <h2 class="text-xl font-semibold mb-4">Filtrar por:</h2>
+        <div class="w-full mr-8 md:w-1/4">
+            <h2 class="mb-4 text-xl font-semibold">Filtrar por:</h2>
 
             <!-- Filtro de categorías -->
             <div class="mb-6">
-                <h3 class="font-medium mb-2">Categorías</h3>
+                <h3 class="mb-2 font-medium">Categorías</h3>
                 <form action="{{ url_for('buscar') }}" method="get">
                     <input type="hidden" name="q" value="{{ query }}">
-                    <select name="categoria" class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="this.form.submit()">
+                    <select name="categoria" class="w-full px-3 py-2 text-white bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="this.form.submit()">
                         <option value="">Todas las categorías</option>
                         {% for categoria in categorias %}
                             <option value="{{ categoria.id }}" {% if categoria_seleccionada == categoria.id %}selected{% endif %}>
@@ -31,40 +31,40 @@ Resultados de búsqueda para "{{ query }}" - TecnoHub
 
             <!-- Filtro de precios -->
             <div class="mb-6">
-                <h3 class="font-medium mb-2">Rango de Precio</h3>
+                <h3 class="mb-2 font-medium">Rango de Precio</h3>
                 <form action="{{ url_for('buscar') }}" method="get">
                     <input type="hidden" name="q" value="{{ query }}">
                     <input type="hidden" name="categoria" value="{{ categoria_seleccionada }}">
                     <div class="flex items-center space-x-2">
-                        <input type="number" name="precio_min" value="{{ precio_min }}" placeholder="Mín" min="0" step="0.01" class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="number" name="precio_min" value="{{ precio_min }}" placeholder="Mín" min="0" step="0.01" class="w-full px-3 py-2 text-white bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <span class="text-gray-400">a</span>
-                        <input type="number" name="precio_max" value="{{ precio_max }}" placeholder="Máx" min="0" step="0.01" class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="number" name="precio_max" value="{{ precio_max }}" placeholder="Máx" min="0" step="0.01" class="w-full px-3 py-2 text-white bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
-                    <button type="submit" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors duration-300">Filtrar</button>
+                    <button type="submit" class="w-full px-4 py-2 mt-4 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-md hover:bg-blue-700">Filtrar</button>
                 </form>
             </div>
 
             <!-- Espacio para futuros filtros (Marcas, etc.) -->
             <div class="mb-6">
-                <h3 class="font-medium mb-2">Marca</h3>
-                <p class="text-gray-400 italic">Próximamente</p>
+                <h3 class="mb-2 font-medium">Marca</h3>
+                <p class="italic text-gray-400">Próximamente</p>
             </div>
         </div>
 
         <!-- Resultados de la búsqueda -->
         <div class="w-full md:w-3/4">
             {% if productos %}
-            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-3 lg:grid-cols-4">
                 {% for producto in productos %}
-                <div class="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="overflow-hidden bg-gray-800 rounded-lg shadow-lg">
                     <img src="{{ url_for('static', filename='img/' + producto.imagen) }}" alt="{{ producto.nombre }}"
-                        class="w-full h-48 object-cover">
+                        class="object-cover w-full h-48">
                     <div class="p-4">
-                        <h2 class="text-xl font-semibold mb-2">{{ producto.nombre }}</h2>
-                        <p class="text-gray-400 mb-4">{{ producto.descripcion[:100] }}...</p>
-                        <p class="text-2xl font-bold text-blue-500 mb-4">${{ producto.precio }}</p>
+                        <h2 class="mb-2 text-xl font-semibold">{{ producto.nombre }}</h2>
+                        <p class="mb-4 text-gray-400">{{ producto.descripcion[:100] }}...</p>
+                        <p class="mb-4 text-2xl font-bold text-blue-500">S/.{{ producto.precio }}</p>
                         <a href="{{ url_for('producto', id=producto.id) }}"
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full block text-center transition-colors duration-300">
+                            class="block px-4 py-2 font-bold text-center text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700">
                             Ver detalles
                         </a>
                     </div>

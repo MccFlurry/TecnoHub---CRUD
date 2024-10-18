@@ -3,11 +3,11 @@
 {% block title %}Carrito de Compras - TecnoHub{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-center mb-8">Carrito de Compras</h1>
+<div class="container px-4 py-8 mx-auto">
+    <h1 class="mb-8 text-3xl font-bold text-center">Carrito de Compras</h1>
 
     {% if carrito %}
-    <form action="{{ url_for('actualizar_carrito') }}" method="post" class="bg-gray-800 rounded-lg p-6 shadow-lg">
+    <form action="{{ url_for('actualizar_carrito') }}" method="post" class="p-6 bg-gray-800 rounded-lg shadow-lg">
         <table class="w-full">
             <thead>
                 <tr class="text-left border-b border-gray-700">
@@ -22,12 +22,12 @@
                 {% for item in carrito %}
                 <tr class="border-b border-gray-700">
                     <td class="py-4">{{ item.nombre }}</td>
-                    <td class="py-4">${{ item.precio | float }}</td>
+                    <td class="py-4">S/.{{ item.precio | float }}</td>
                     <td class="py-4">
                         <input type="number" name="cantidad_{{ item.producto_id }}" value="{{ item.cantidad }}" min="1"
-                            class="bg-gray-700 text-white rounded-md py-1 px-2 w-20">
+                            class="w-20 px-2 py-1 text-white bg-gray-700 rounded-md">
                     </td>
-                    <td class="py-4">${{ (item.precio | float * item.cantidad | int) | round(2) }}</td>
+                    <td class="py-4">S/.{{ (item.precio | float * item.cantidad | int) | round(2) }}</td>
                     <td class="py-4">
                         <button type="submit" name="eliminar" value="{{ item.producto_id }}"
                             formaction="{{ url_for('eliminar_del_carrito', producto_id=item.producto_id) }}"
@@ -39,17 +39,17 @@
             <tfoot>
                 <tr>
                     <td colspan="3" class="py-4"><strong>Total</strong></td>
-                    <td class="py-4"><strong>${{ total | round(2) }}</strong></td>
+                    <td class="py-4"><strong>S/.{{ total | round(2) }}</strong></td>
                     <td></td>
                 </tr>
             </tfoot>
         </table>
-        <div class="mt-6 flex justify-between">
+        <div class="flex justify-between mt-6">
             <button type="submit"
-                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">Actualizar
+                class="px-4 py-2 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700">Actualizar
                 Carrito</button>
             <a href="{{ url_for('realizar_pedido') }}"
-                class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">Realizar
+                class="px-4 py-2 font-bold text-white transition-colors duration-300 bg-green-600 rounded-full hover:bg-green-700">Realizar
                 Pedido</a>
         </div>
     </form>
