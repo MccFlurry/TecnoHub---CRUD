@@ -1,40 +1,83 @@
-{% extends "base.html" %}
-
-{% block title %}Iniciar Sesión - TecnoHub{% endblock %}
-
-{% block content %}
-<div class="min-h-screen flex items-center justify-center bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8">
-        <div>
-            <h2 class="mt-6 text-center text-3xl font-extrabold text-white">
-                Iniciar Sesión
-            </h2>
-        </div>
-        <form class="mt-8 space-y-6" action="{{ url_for('login') }}" method="POST">
-            <input type="hidden" name="remember" value="true">
-            <div class="rounded-md shadow-sm -space-y-px">
-                <div>
-                    <label for="email" class="sr-only">Correo electrónico</label>
-                    <input id="email" name="email" type="email" autocomplete="email" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" placeholder="Correo electrónico">
-                </div>
-                <div>
-                    <label for="contraseña" class="sr-only">Contraseña</label>
-                    <input id="contraseña" name="contraseña" type="password" autocomplete="current-password" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" placeholder="Contraseña">
-                </div>
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-gray-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - TecnoHub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {"50":"#eff6ff","100":"#dbeafe","200":"#bfdbfe","300":"#93c5fd","400":"#60a5fa","500":"#3b82f6","600":"#2563eb","700":"#1d4ed8","800":"#1e40af","900":"#1e3a8a","950":"#172554"}
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="h-full">
+    <header class="fixed top-0 left-0 right-0 z-50 bg-gray-800 bg-opacity-90 backdrop-blur-md">
+        <nav class="container px-4 py-4 mx-auto">
+            <div class="flex items-center justify-between">
+                <a href="{{ url_for('home') }}" class="text-2xl font-bold text-blue-500">
+                    TecnoHub
+                </a>
             </div>
-
+        </nav>
+    </header>
+    <div class="flex items-center justify-center min-h-screen px-4 py-12 bg-gray-900 sm:px-6 lg:px-8">
+        <div class="w-full max-w-md p-10 space-y-8 bg-white shadow-md rounded-xl">
             <div>
-                <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <h2 class="mt-6 text-3xl font-extrabold text-center text-gray-900">
                     Iniciar Sesión
-                </button>
+                </h2>
+                <p class="mt-2 text-sm text-center text-gray-600">
+                    Ingrese sus credenciales para acceder a TecnoHub
+                </p>
             </div>
-        </form>
-        <p class="mt-2 text-center text-sm text-gray-600">
-            ¿No tienes una cuenta?
-            <a href="{{ url_for('registro') }}" class="font-medium text-blue-600 hover:text-blue-500">
-                Regístrate aquí
-            </a>
-        </p>
+            <form class="mt-8 space-y-6" action="{{ url_for('login') }}" method="POST">
+                <input type="hidden" name="remember" value="true">
+                <div class="-space-y-px rounded-md shadow-sm">
+                    <div>
+                        <label for="email" class="sr-only">Correo electrónico</label>
+                        <input id="email" name="email" type="email" autocomplete="email" required class="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-none appearance-none rounded-t-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm" placeholder="Correo electrónico">
+                    </div>
+                    <div>
+                        <label for="contraseña" class="sr-only">Contraseña</label>
+                        <input id="contraseña" name="contraseña" type="password" autocomplete="current-password" required class="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-none appearance-none rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm" placeholder="Contraseña">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input id="remember-me" name="remember-me" type="checkbox" class="w-4 h-4 border-gray-300 rounded text-primary-600 focus:ring-primary-500">
+                        <label for="remember-me" class="block ml-2 text-sm text-gray-900">
+                            Recordarme
+                        </label>
+                    </div>
+
+                    <div class="text-sm">
+                        <a href="#" class="font-medium text-primary-600 hover:text-primary-500">
+                            ¿Olvidaste tu contraseña?
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit" class="relative flex justify-center w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md group bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        Iniciar Sesión
+                    </button>
+                </div>
+            </form>
+            <p class="mt-2 text-sm text-center text-gray-600">
+                ¿No tienes una cuenta?
+                <a href="{{ url_for('registro') }}" class="font-medium text-primary-600 hover:text-primary-500">
+                    Regístrate aquí
+                </a>
+            </p>
+        </div>
     </div>
-</div>
-{% endblock %}
+</body>
+</html>
