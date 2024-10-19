@@ -219,7 +219,13 @@ def mis_favoritos():
 @login_required
 def agregar_direccion():
     if request.method == 'POST':
-        usuario_id = session['usuario_id']
+        usuario_id = session.get('usuario_id')
+        if not usuario_id:
+            flash('Error: No se pudo identificar al usuario.', 'error')
+            return redirect(url_for('agregar_direccion'))
+
+        print(f"Usuario ID: {usuario_id}")
+
         direccion = request.form['direccion']
         ciudad = request.form['ciudad']
         estado = request.form['estado']
@@ -231,6 +237,7 @@ def agregar_direccion():
         return redirect(url_for('mis_direcciones'))
     
     return render_template('agregar_direccion.html')
+
 
 @app.route('/editar-direccion/<int:direccion_id>', methods=['GET', 'POST'])
 @login_required

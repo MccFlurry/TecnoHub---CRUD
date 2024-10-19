@@ -5,26 +5,31 @@
 {% block content %}
 <div class="container px-4 py-8 mx-auto">
     <h1 class="mb-8 text-3xl font-bold text-center">Realizar Pedido</h1>
-    
+
     <form action="{{ url_for('realizar_pedido') }}" method="post" class="max-w-2xl mx-auto">
         <div class="p-6 mb-8 bg-gray-800 rounded-lg shadow-lg">
             <h2 class="mb-4 text-xl font-semibold">Selecciona una dirección de envío</h2>
-            {% if direcciones %}
+            <div class="mb-2">
+                {% if direcciones %}
                 {% for direccion in direcciones %}
-                    <div class="mb-2">
-                        <label class="inline-flex items-center">
-                            <input type="radio" name="direccion_id" value="{{ direccion.id }}" required class="text-blue-600 form-radio">
-                            <span class="ml-2">
-                                {{ direccion.direccion }}, {{ direccion.ciudad }}, {{ direccion.estado }}, {{ direccion.pais }}, CP: {{ direccion.codigo_postal }}
-                            </span>
-                        </label>
-                    </div>
+                <label class="inline-flex items-center">
+                    <input type="radio" name="direccion_id" value="{{ direccion.id }}" required
+                        class="text-blue-600 form-radio">
+                    <span class="ml-2">
+                        {{ direccion.direccion }}, {{ direccion.ciudad }}, {{ direccion.estado }}, {{ direccion.pais }},
+                        CP: {{ direccion.codigo_postal }}
+                    </span>
+                </label>
                 {% endfor %}
+            </div>
+            <p class="text-center text-gray-300">Tienes una direccion nueva? <a href="{{ url_for('agregar_direccion') }}"
+                    class="text-blue-500 hover:underline">Agregar una dirección</a></p>
             {% else %}
-                <p class="text-gray-300">No tienes direcciones registradas. <a href="{{ url_for('agregar_direccion') }}" class="text-blue-500 hover:underline">Agregar una dirección</a></p>
+            <p class="text-gray-300">No tienes direcciones registradas. <a href="{{ url_for('agregar_direccion') }}"
+                    class="text-blue-500 hover:underline">Agregar una dirección</a></p>
             {% endif %}
         </div>
-        
+
         <div class="p-6 mb-8 bg-gray-800 rounded-lg shadow-lg">
             <h2 class="mb-4 text-xl font-semibold">Resumen del Pedido</h2>
             <table class="w-full mb-4">
@@ -38,12 +43,12 @@
                 </thead>
                 <tbody>
                     {% for item in session['carrito'] %}
-                        <tr class="border-b border-gray-700">
-                            <td class="py-2">{{ item.nombre }}</td>
-                            <td class="py-2">{{ item.cantidad | int }}</td>
-                            <td class="py-2">S/.{{ item.precio | float }}</td>
-                            <td class="py-2">S/.{{ (item.cantidad | int * item.precio | float) | round(2) }}</td>
-                        </tr>
+                    <tr class="border-b border-gray-700">
+                        <td class="py-2">{{ item.nombre }}</td>
+                        <td class="py-2">{{ item.cantidad | int }}</td>
+                        <td class="py-2">S/.{{ item.precio | float }}</td>
+                        <td class="py-2">S/.{{ (item.cantidad | int * item.precio | float) | round(2) }}</td>
+                    </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
@@ -54,8 +59,10 @@
                 </tfoot>
             </table>
         </div>
-        
-        <button type="submit" class="w-full px-4 py-2 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700" {% if not direcciones %}disabled{% endif %}>
+
+        <button type="submit"
+            class="w-full px-4 py-2 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700"
+            {% if not direcciones %}disabled{% endif %}>
             Confirmar Pedido
         </button>
     </form>

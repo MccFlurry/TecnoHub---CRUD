@@ -3,11 +3,28 @@ from clase.clase_direcciones import Direcciones
 
 def agregar_direccion(usuario_id, direccion, ciudad, estado, pais, codigo_postal):
     conexion = obtener_conexion()
-    with conexion.cursor() as cursor:
-        sql = "INSERT INTO direcciones (usuario_id, direccion, ciudad, estado, pais, codigo_postal) VALUES (%s, %s, %s, %s, %s, %s)"
-        cursor.execute(sql, (usuario_id, direccion, ciudad, estado, pais, codigo_postal))
-    conexion.commit()
-    conexion.close()
+    try:
+        with conexion.cursor() as cursor:
+            print(f"Inserting address for usuario_id: {usuario_id}, address: {direccion}, ciudad: {ciudad}")
+
+            validation_sql = "SELECT 1 FROM usuarios WHERE id = %s"
+            cursor.execute(validation_sql, (usuario_id,))
+            if not cursor.fetchone():
+                raise ValueError(f"Usuario con ID {usuario_id} no existe.")
+
+            sql = """
+            INSERT INTO direcciones (usuario_id, direccion, ciudad, estado, pais, codigo_postal)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            """
+            cursor.execute(sql, (usuario_id, direccion, ciudad, estado, pais, codigo_postal))
+        
+        conexion.commit()
+        print("Dirección agregada con éxito.")
+    except Exception as e:
+        print(f"Error al agregar dirección: {e}")
+    finally:
+        conexion.close()
+
 
 def obtener_direcciones_usuario(usuario_id):
     conexion = obtener_conexion()

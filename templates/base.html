@@ -19,34 +19,34 @@
     {% block extra_css %}{% endblock %}
 </head>
 
-<body class="bg-gray-900 text-white">
+<body class="text-white bg-gray-900">
     <!-- Header -->
     <header class="fixed top-0 left-0 right-0 z-50 bg-gray-800 bg-opacity-90 backdrop-blur-md">
-        <nav class="container mx-auto px-4 py-4">
+        <nav class="container px-4 py-4 mx-auto">
             <div class="flex items-center justify-between">
                 <a href="{{ url_for('home') }}" class="text-2xl font-bold text-blue-500">
                     TecnoHub
                 </a>
-                <div class="hidden md:flex items-center space-x-6">
+                <div class="items-center hidden space-x-6 md:flex">
                     <form action="{{ url_for('buscar') }}" method="get" class="relative">
                         <input type="search" id="busqueda" name="q" placeholder="Buscar productos"
-                            class="bg-gray-700 text-white rounded-full py-2 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="px-4 py-2 pl-10 text-white bg-gray-700 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <button type="submit" class="absolute left-1.5 top-2.5 text-gray-400">
                             <i class='bx bx-search'></i>
                         </button>
                     </form>
                     <div class="relative group">
                         <button data-menu="categorias"
-                            class="flex items-center space-x-1 hover:text-blue-500 transition-colors">
+                            class="flex items-center space-x-1 transition-colors hover:text-blue-500">
                             <span>Categorías</span>
                             <i class='bx bx-chevron-down'></i>
                         </button>
                         <div data-menu-content="categorias"
-                            class="absolute top-full left-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg hidden">
+                            class="absolute left-0 hidden w-48 mt-2 bg-gray-800 rounded-md shadow-lg top-full">
                             {% if categorias %}
                             {% for categoria in categorias %}
                             <a href="{{ url_for('categorias', id=categoria['id']) }}"
-                                class="block px-4 py-2 hover:bg-gray-700 transition-colors">
+                                class="block px-4 py-2 transition-colors hover:bg-gray-700">
                                 {{ categoria['nombre'] }}
                             </a>
                             {% endfor %}
@@ -55,47 +55,49 @@
                             {% endif %}
                         </div>
                     </div>
-                    <a href="{{ url_for('arma_tu_kit') }}" class="hover:text-blue-500 transition-colors">
+                    <a href="{{ url_for('arma_tu_kit') }}" class="transition-colors hover:text-blue-500">
                         Arma tu Kit
                     </a>
                     {% if session.get('usuario_id') %}
                     <div class="relative">
                         <button data-menu="user"
-                            class="flex items-center space-x-1 hover:text-blue-500 transition-colors">
+                            class="flex items-center space-x-1 transition-colors hover:text-blue-500">
                             <i class='bx bx-user'></i>
                             <span>{{ session.get('usuario_nombre', 'Invitado') }}</span>
                             <span>{{ session.get('usuario_apellido', '') }}</span>
                         </button>
                         <div data-menu-content="user"
-                            class="absolute top-full right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg hidden">
+                            class="absolute right-0 hidden w-48 mt-2 bg-gray-800 rounded-md shadow-lg top-full">
                             <a href="{{ url_for('mi_cuenta') }}"
-                                class="block px-4 py-2 hover:bg-gray-700 transition-colors">Mi cuenta</a>
+                                class="block px-4 py-2 transition-colors hover:bg-gray-700">Mi cuenta</a>
                             <a href="{{ url_for('mis_pedidos') }}"
-                                class="block px-4 py-2 hover:bg-gray-700 transition-colors">Mis compras</a>
+                                class="block px-4 py-2 transition-colors hover:bg-gray-700">Mis compras</a>
                             <a href="{{ url_for('mis_favoritos') }}"
-                                class="block px-4 py-2 hover:bg-gray-700 transition-colors">Mis favoritos</a>
+                                class="block px-4 py-2 transition-colors hover:bg-gray-700">Mis favoritos</a>
+                            <a href="{{ url_for('mis_direcciones') }}"
+                                class="block px-4 py-2 transition-colors hover:bg-gray-700">Mis direcciones</a>
                             {% if session.get('usuario_tipo') == 'administrador' %}
                             <a href="{{ url_for('admin_dashboard') }}"
-                                class="block px-4 py-2 hover:bg-gray-700 transition-colors">Admin Dashboard</a>
+                                class="block px-4 py-2 transition-colors hover:bg-gray-700">Admin Dashboard</a>
                             {% endif %}
-                            <hr class="border-gray-700 my-2">
+                            <hr class="my-2 border-gray-700">
                             <a href="{{ url_for('logout') }}"
-                                class="block px-4 py-2 hover:bg-gray-700 transition-colors">Cerrar sesión</a>
+                                class="block px-4 py-2 transition-colors hover:bg-gray-700">Cerrar sesión</a>
                         </div>
                     </div>
                     {% else %}
-                    <a href="{{ url_for('login') }}" class="hover:text-blue-500 transition-colors">Iniciar Sesión</a>
-                    <a href="{{ url_for('registro') }}" class="hover:text-blue-500 transition-colors">Registrarse</a>
+                    <a href="{{ url_for('login') }}" class="transition-colors hover:text-blue-500">Iniciar Sesión</a>
+                    <a href="{{ url_for('registro') }}" class="transition-colors hover:text-blue-500">Registrarse</a>
                     {% endif %}
-                    <a href="{{ url_for('carrito') }}" class="relative hover:text-blue-500 transition-colors">
+                    <a href="{{ url_for('carrito') }}" class="relative transition-colors hover:text-blue-500">
                         <i class='bx bx-cart'></i>
                         <span
-                            class="absolute -top-2 -right-2 bg-blue-500 text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                            class="absolute flex items-center justify-center w-4 h-4 text-xs bg-blue-500 rounded-full -top-2 -right-2">
                             {{ session.get('carrito', []) | length }}
                         </span>
                     </a>
                 </div>
-                <button class="md:hidden text-white">
+                <button class="text-white md:hidden">
                     <i class='bx bx-menu'></i>
                 </button>
             </div>
@@ -103,20 +105,20 @@
     </header>
 
     <!-- Mobile Menu -->
-    <div id="mobile-menu" class="fixed inset-0 z-40 bg-gray-900 bg-opacity-90 backdrop-blur-md md:hidden hidden">
+    <div id="mobile-menu" class="fixed inset-0 z-40 hidden bg-gray-900 bg-opacity-90 backdrop-blur-md md:hidden">
         <div class="flex flex-col items-center justify-center h-full space-y-8">
             <a href="{{ url_for('home') }}" class="text-2xl font-bold">Inicio</a>
             <div class="relative group">
-                <button class="flex items-center space-x-1 hover:text-blue-500 transition-colors">
+                <button class="flex items-center space-x-1 transition-colors hover:text-blue-500">
                     <span>Categorías</span>
                     <i class='bx bx-chevron-down'></i>
                 </button>
                 <div
-                    class="absolute top-full left-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg hidden group-hover:block">
+                    class="absolute left-0 hidden w-48 mt-2 bg-gray-800 rounded-md shadow-lg top-full group-hover:block">
                     {% if categorias %}
                     {% for categoria in categorias %}
                     <a href="{{ url_for('categorias', id=categoria.id) }}"
-                        class="block px-4 py-2 hover:bg-gray-700 transition-colors">
+                        class="block px-4 py-2 transition-colors hover:bg-gray-700">
                         {{ categoria.nombre }}
                     </a>
                     {% endfor %}
@@ -136,62 +138,62 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-12">
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer class="py-12 text-white bg-gray-800">
+        <div class="container px-4 mx-auto">
+            <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
                 <div>
-                    <a href="{{ url_for('home') }}" class="text-2xl font-bold text-blue-500 mb-4 inline-block">
+                    <a href="{{ url_for('home') }}" class="inline-block mb-4 text-2xl font-bold text-blue-500">
                         TecnoHub
                     </a>
                     <p class="mb-4">Tu destino para la última tecnología y los mejores gadgets.</p>
                     <div class="flex space-x-4">
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <a href="#" class="text-gray-400 transition-colors hover:text-white">
                             <i class='bx bxl-facebook'></i>
                         </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <a href="#" class="text-gray-400 transition-colors hover:text-white">
                             <i class='bx bxl-twitter'></i>
                         </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <a href="#" class="text-gray-400 transition-colors hover:text-white">
                             <i class='bx bxl-instagram'></i>
                         </a>
                     </div>
                 </div>
                 <div>
-                    <h5 class="font-bold mb-4">Enlaces rápidos</h5>
+                    <h5 class="mb-4 font-bold">Enlaces rápidos</h5>
                     <ul class="space-y-2">
-                        <li><a href="{{ url_for('home') }}" class="hover:text-blue-500 transition-colors">Inicio</a>
+                        <li><a href="{{ url_for('home') }}" class="transition-colors hover:text-blue-500">Inicio</a>
                         </li>
-                        <li><a href="{{ url_for('arma_tu_kit') }}" class="hover:text-blue-500 transition-colors">Arma tu
+                        <li><a href="{{ url_for('arma_tu_kit') }}" class="transition-colors hover:text-blue-500">Arma tu
                                 Kit</a></li>
-                        <li><a href="{{ url_for('ayuda') }}" class="hover:text-blue-500 transition-colors">Ayuda</a>
+                        <li><a href="{{ url_for('ayuda') }}" class="transition-colors hover:text-blue-500">Ayuda</a>
                         </li>
-                        <li><a href="#" class="hover:text-blue-500 transition-colors">Sobre nosotros</a></li>
+                        <li><a href="#" class="transition-colors hover:text-blue-500">Sobre nosotros</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h5 class="font-bold mb-4">Contáctanos</h5>
+                    <h5 class="mb-4 font-bold">Contáctanos</h5>
                     <ul class="space-y-2">
-                        <li class="flex items-center"><i class='bx bx-map mr-2'></i> Av. Balta 123, Chiclayo</li>
-                        <li class="flex items-center"><i class='bx bx-phone mr-2'></i> 976 123 456</li>
-                        <li class="flex items-center"><i class='bx bx-envelope mr-2'></i> info@tecnohub.com</li>
+                        <li class="flex items-center"><i class='mr-2 bx bx-map'></i> Av. Balta 123, Chiclayo</li>
+                        <li class="flex items-center"><i class='mr-2 bx bx-phone'></i> 976 123 456</li>
+                        <li class="flex items-center"><i class='mr-2 bx bx-envelope'></i> info@tecnohub.com</li>
                     </ul>
                 </div>
                 <div>
-                    <h5 class="font-bold mb-4">Suscríbete</h5>
+                    <h5 class="mb-4 font-bold">Suscríbete</h5>
                     <form class="flex flex-col space-y-2">
                         <input type="email" placeholder="Tu email"
-                            class="bg-gray-700 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <button type="submit"
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors duration-300">
+                            class="px-4 py-2 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-md hover:bg-blue-700">
                             Suscribirse
                         </button>
                     </form>
                 </div>
             </div>
-            <hr class="border-gray-700 my-8">
-            <div class="flex flex-col md:flex-row justify-between items-center">
+            <hr class="my-8 border-gray-700">
+            <div class="flex flex-col items-center justify-between md:flex-row">
                 <p>&copy; 2023-2024, TecnoHub SAC - By ohMyCode PE</p>
-                <p class="text-sm text-gray-400 mt-2 md:mt-0">Creación: <span class="italic">lun 25 mayo 2024</span> |
+                <p class="mt-2 text-sm text-gray-400 md:mt-0">Creación: <span class="italic">lun 25 mayo 2024</span> |
                     Modificación: <span class="italic">jue 4 julio 2024</span></p>
             </div>
         </div>
