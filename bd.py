@@ -6,4 +6,5 @@ def obtener_conexion():
         user="root",
         passwd="",
         db="py_paginaweb",
+        #SI NO FUNCIONA COLOCAR PORT="numero_port"
     )
