@@ -6,6 +6,17 @@ body {
     font-family: 'Inter', sans-serif;
 }
 
+.notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #4caf50;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+
 .alert {
     @apply p-4 mb-4 rounded-md;
 }

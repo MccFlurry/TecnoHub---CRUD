@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, request, make_response
+from flask_socketio import SocketIO, emit
 from functools import wraps
 from werkzeug.utils import secure_filename
 import os
@@ -12,11 +13,13 @@ import controlador_kit
 import controlador_favorito
 import controlador_direcciones
 import controlador_opinion
+import controlador_notificaciones
 
 #PROYECTO ACTUALIZADO 17/11/2024 NO OLVIDAR IMPLEMENTAR PAPIS
 
 app = Flask(__name__)
 app.secret_key = 'tu_clave_secreta'
+socketio = SocketIO(app)
 UPLOAD_FOLDER = 'static/img'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 def allowed_file(filename):
@@ -391,41 +394,39 @@ def actualizar_carrito():
         flash('Carrito actualizado', 'success')
     return redirect(url_for('carrito'))
 
-@app.route('/realizar-pedido', methods=['GET', 'POST'])
+@app.route('/realizar-pedido', methods=['POST'])
 @login_required
 def realizar_pedido():
     if 'carrito' not in session or not session['carrito']:
         flash('Tu carrito está vacío', 'error')
         return redirect(url_for('carrito'))
 
-    if request.method == 'POST':
-        direccion_id = request.form.get('direccion_id')
-        if not direccion_id:
-            flash('Debes seleccionar una dirección de envío', 'error')
-            return redirect(url_for('realizar_pedido'))
+    direccion_id = request.form.get('direccion_id')
+    if not direccion_id:
+        flash('Debes seleccionar una dirección de envío', 'error')
+        return redirect(url_for('realizar_pedido'))
 
-        try:
-            pedido_id = controlador_pedido.crear_pedido(session['usuario_id'], int(direccion_id))
-            
-            for item in session['carrito']:
-                controlador_pedido.agregar_detalle_pedido(pedido_id, item['producto_id'], int(item['cantidad']), float(item['precio']))
-                try:
-                    controlador_producto.actualizar_stock(item['producto_id'], -int(item['cantidad']))
-                except ValueError as e:
-                    controlador_pedido.eliminar_pedido(pedido_id)
-                    flash(str(e), 'error')
-                    return redirect(url_for('carrito'))
+    try:
+        pedido_id = controlador_pedido.crear_pedido(session['usuario_id'], int(direccion_id))
+        total = 0
+        for item in session['carrito']:
+            controlador_pedido.agregar_detalle_pedido(pedido_id, item['producto_id'], int(item['cantidad']), float(item['precio']))
+            total += int(item['cantidad']) * float(item['precio'])
+            controlador_producto.actualizar_stock(item['producto_id'], -int(item['cantidad']))
 
-            session.pop('carrito', None)
-            flash('Pedido realizado con éxito', 'success')
-            return redirect(url_for('confirmacion_pedido', pedido_id=pedido_id))
-        except Exception as e:
-            flash(f'Error al crear el pedido: {str(e)}', 'error')
-            return redirect(url_for('realizar_pedido'))
+        session.pop('carrito', None)
+        flash('Pedido realizado con éxito', 'success')
 
-    direcciones = controlador_direcciones.obtener_direcciones_usuario(session['usuario_id'])
-    total = sum(int(item['cantidad']) * float(item['precio']) for item in session['carrito'])
-    return render_template('realizar_pedido.html', direcciones=direcciones, total=total)
+        # Enviar notificación en tiempo real al administrador
+        usuario_nombre = session.get('usuario_nombre', 'Un usuario')
+        mensaje = f'El usuario "{usuario_nombre}" acaba de realizar una compra por S/. {total:.2f}'
+        controlador_notificaciones.agregar_notificacion(session['usuario_id'], mensaje)
+        socketio.emit('nueva_compra', {'mensaje': mensaje}, namespace='/notificaciones')
+
+        return redirect(url_for('confirmacion_pedido', pedido_id=pedido_id))
+    except Exception as e:
+        flash(f'Error al crear el pedido: {str(e)}', 'error')
+        return redirect(url_for('realizar_pedido'))
 
 @app.route('/pedido/<int:pedido_id>', methods=['GET'])
 @login_required
@@ -809,6 +810,11 @@ def cambiar_contraseña():
             flash('La contraseña actual es incorrecta', 'error')
     
     return render_template('cambiar_contraseña.html')
+
+#Notificaciones PUSH
+@socketio.on('connect', namespace='/notificaciones')
+def handle_connect():
+    print('Administrador conectado para recibir notificaciones')
 
 # Iniciar el servidor
 if __name__ == "__main__":
