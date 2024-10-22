@@ -1,13 +1,7 @@
 from bd import obtener_conexion
 import pymysql.cursors
+from clase.clase_notificaciones import Notificaciones
 
-class Notificacion:
-    def __init__(self, id, usuario_id, mensaje, fecha_creacion, visto):
-        self.id = id
-        self.usuario_id = usuario_id
-        self.mensaje = mensaje
-        self.fecha_creacion = fecha_creacion
-        self.visto = visto
 
 def agregar_notificacion(usuario_id, mensaje):
     conexion = obtener_conexion()
@@ -33,7 +27,7 @@ def obtener_notificaciones_usuario(usuario_id):
         cursor.execute(sql, (usuario_id,))
         rows = cursor.fetchall()
         for row in rows:
-            notificaciones.append(Notificacion(**row))
+            notificaciones.append(Notificaciones(**row))
     conexion.close()
     return notificaciones
 
@@ -45,7 +39,7 @@ def obtener_notificaciones_no_vistas():
         cursor.execute(sql)
         rows = cursor.fetchall()
         for row in rows:
-            notificaciones.append(Notificacion(**row))
+            notificaciones.append(Notificaciones(**row))
     conexion.close()
     return notificaciones
 

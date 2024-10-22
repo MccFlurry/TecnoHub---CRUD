@@ -127,6 +127,7 @@
 <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
 {% endblock %}
 
+{% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     const socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + '/notificaciones');
@@ -141,3 +142,4 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 </script>
+{% endblock %}

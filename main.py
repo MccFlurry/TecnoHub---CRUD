@@ -394,39 +394,51 @@ def actualizar_carrito():
         flash('Carrito actualizado', 'success')
     return redirect(url_for('carrito'))
 
-@app.route('/realizar-pedido', methods=['POST'])
+
+@app.route('/realizar-pedido', methods=['GET', 'POST'])
 @login_required
 def realizar_pedido():
-    if 'carrito' not in session or not session['carrito']:
-        flash('Tu carrito está vacío', 'error')
-        return redirect(url_for('carrito'))
+    if request.method == 'POST':
+        if 'carrito' not in session or not session['carrito']:
+            flash('Tu carrito está vacío', 'error')
+            return redirect(url_for('carrito'))
 
-    direccion_id = request.form.get('direccion_id')
-    if not direccion_id:
-        flash('Debes seleccionar una dirección de envío', 'error')
-        return redirect(url_for('realizar_pedido'))
+        direccion_id = request.form.get('direccion_id')
+        if not direccion_id:
+            flash('Debes seleccionar una dirección de envío', 'error')
+            return redirect(url_for('realizar_pedido'))
 
-    try:
-        pedido_id = controlador_pedido.crear_pedido(session['usuario_id'], int(direccion_id))
-        total = 0
-        for item in session['carrito']:
-            controlador_pedido.agregar_detalle_pedido(pedido_id, item['producto_id'], int(item['cantidad']), float(item['precio']))
-            total += int(item['cantidad']) * float(item['precio'])
-            controlador_producto.actualizar_stock(item['producto_id'], -int(item['cantidad']))
+        try:
+            # Crear el pedido y agregar detalles
+            pedido_id = controlador_pedido.crear_pedido(session['usuario_id'], int(direccion_id))
+            total = 0
+            for item in session['carrito']:
+                controlador_pedido.agregar_detalle_pedido(pedido_id, item['producto_id'], int(item['cantidad']), float(item['precio']))
+                total += int(item['cantidad']) * float(item['precio'])
+                controlador_producto.actualizar_stock(item['producto_id'], -int(item['cantidad']))
 
-        session.pop('carrito', None)
-        flash('Pedido realizado con éxito', 'success')
+            # Limpiar carrito
+            session.pop('carrito', None)
+            flash('Pedido realizado con éxito', 'success')
 
-        # Enviar notificación en tiempo real al administrador
-        usuario_nombre = session.get('usuario_nombre', 'Un usuario')
-        mensaje = f'El usuario "{usuario_nombre}" acaba de realizar una compra por S/. {total:.2f}'
-        controlador_notificaciones.agregar_notificacion(session['usuario_id'], mensaje)
-        socketio.emit('nueva_compra', {'mensaje': mensaje}, namespace='/notificaciones')
+            # Enviar notificación al administrador
+            usuario_nombre = session.get('usuario_nombre', 'Un usuario')
+            mensaje = f'El usuario "{usuario_nombre}" acaba de realizar una compra por S/. {total:.2f}'
+            controlador_notificaciones.agregar_notificacion(session['usuario_id'], mensaje)
+            socketio.emit('nueva_compra', {'mensaje': mensaje}, namespace='/notificaciones')
 
-        return redirect(url_for('confirmacion_pedido', pedido_id=pedido_id))
-    except Exception as e:
-        flash(f'Error al crear el pedido: {str(e)}', 'error')
-        return redirect(url_for('realizar_pedido'))
+            return redirect(url_for('confirmacion_pedido', pedido_id=pedido_id))
+
+        except Exception as e:
+            # Agregar el error al log para inspección
+            app.logger.error(f'Error al crear el pedido: {str(e)}')
+            flash(f'Error al crear el pedido: {str(e)}', 'error')
+            return redirect(url_for('realizar_pedido'))
+
+    # Renderizar la página para GET request
+    direcciones = controlador_direcciones.obtener_direcciones_usuario(session['usuario_id'])
+    return render_template('realizar_pedido.html', direcciones=direcciones)
+
 
 @app.route('/pedido/<int:pedido_id>', methods=['GET'])
 @login_required
