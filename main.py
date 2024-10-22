@@ -638,7 +638,7 @@ def admin_nueva_categorias():
         controlador_categorias.insertar_categorias(nombre)
         flash('Categoría creada con éxito', 'success')
         return redirect(url_for('admin_categorias'))
-    return render_template('admin/nueva_categoria.html')
+    return render_template('admin/editar_nueva_categorias.html', categorias=None)
 
 @app.route('/admin/categorias/editar/<int:id>', methods=['GET', 'POST'])
 @admin_required
@@ -649,7 +649,7 @@ def admin_editar_categorias(id):
         controlador_categorias.actualizar_categorias(id, nombre)
         flash('Categoría actualizada con éxito', 'success')
         return redirect(url_for('admin_categorias'))
-    return render_template('admin/editar_categorias.html', categorias=categorias)
+    return render_template('admin/editar_nueva_categorias.html', categorias=categorias)
 
 @app.route('/admin/categorias/eliminar/<int:id>', methods=['POST'])
 @admin_required
