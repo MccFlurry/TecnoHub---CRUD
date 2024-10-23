@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, request, make_response
-from flask_socketio import SocketIO, emit
 from functools import wraps
 from werkzeug.utils import secure_filename
 import os
@@ -19,7 +18,6 @@ import controlador_notificaciones
 
 app = Flask(__name__)
 app.secret_key = 'tu_clave_secreta'
-socketio = SocketIO(app)
 UPLOAD_FOLDER = 'static/img'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 def allowed_file(filename):
@@ -445,7 +443,7 @@ def realizar_pedido():
             usuario_nombre = session.get('usuario_nombre', 'Un usuario')
             mensaje = f'El usuario "{usuario_nombre}" acaba de realizar una compra por S/. {total:.2f}'
             controlador_notificaciones.agregar_notificacion(usuario_id, mensaje)
-            socketio.emit('nueva_compra', {'mensaje': mensaje}, namespace='/notificaciones')
+            #socketio.emit('nueva_compra', {'mensaje': mensaje}, namespace='/notificaciones')
 
             # Redirigir a la página de confirmación del pedido
             return redirect(url_for('confirmacion_pedido', pedido_id=pedido_id))
@@ -862,9 +860,6 @@ def cambiar_contraseña():
     return render_template('cambiar_contraseña.html')
 
 #Notificaciones PUSH
-@socketio.on('connect', namespace='/notificaciones')
-def handle_connect():
-    print('Administrador conectado para recibir notificaciones')
 
 # Iniciar el servidor
 if __name__ == "__main__":
