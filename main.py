@@ -606,7 +606,7 @@ def admin_editar_producto(id):
         except Exception as e:
             flash(f'Error al actualizar el producto: {str(e)}', 'error')
 
-        return redirect(url_for('admin_editar_producto', id=id))
+        return redirect(url_for('admin_productos', id=id))
 
     return render_template('admin/editar_nuevo_producto.html', producto=producto, categorias=categorias)
 

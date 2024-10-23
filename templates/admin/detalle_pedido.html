@@ -5,81 +5,99 @@
 {% block header %}Detalle de Pedido #{{ pedido.id }}{% endblock %}
 
 {% block content %}
-    <div class="overflow-hidden bg-white shadow sm:rounded-lg">
-        <div class="px-4 py-5 sm:px-6">
-            <h3 class="text-lg font-medium leading-6 text-gray-900">Información del Pedido</h3>
-        </div>
-        <div class="px-4 py-5 border-t border-gray-200 sm:p-0">
-            <dl class="sm:divide-y sm:divide-gray-200">
-                <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt class="text-sm font-medium text-gray-500">Usuario</dt>
-                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ pedido['nombre'] }} {{ pedido['apellido'] }}</dd>
-                </div>
-                <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt class="text-sm font-medium text-gray-500">Fecha</dt>
-                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ pedido.fecha_pedido.strftime('%d/%m/%Y %H:%M') }}</dd>
-                </div>
-                <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt class="text-sm font-medium text-gray-500">Estado</dt>
-                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ pedido.estado }}</dd>
-                </div>
-                <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt class="text-sm font-medium text-gray-500">Total</dt>
-                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">S/.{{ pedido.total }}</dd>
-                </div>
-            </dl>
-        </div>
+<div class="overflow-hidden bg-white shadow sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg font-medium leading-6 text-gray-900">Información del Pedido</h3>
     </div>
-
-    <div class="mt-8 overflow-hidden bg-white shadow sm:rounded-lg">
-        <div class="px-4 py-5 sm:px-6">
-            <h3 class="text-lg font-medium leading-6 text-gray-900">Productos</h3>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Producto</th>
-                        <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Cantidad</th>
-                        <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Precio Unitario</th>
-                        <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Subtotal</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    {% for detalle in pedido.detalles %}
-                        <tr>
-                            <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{{ detalle['nombre'] }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{{ detalle['cantidad'] }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">S/.{{ detalle['precio_unitario'] }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">S/.{{ detalle['cantidad'] * detalle['precio_unitario'] }}</td>
-                        </tr>
-                    {% endfor %}
-                    <tr>
-                        <td colspan="3" class="px-6 py-4 text-sm font-medium text-right text-gray-900">Total</td>
-                        <td class="px-6 py-4 text-sm font-medium text-gray-900">S/.{{ pedido['total'] }}</td>
-                    </tr>
-                </tbody>                               
-            </table>
-        </div>
-    </div>
-
-    <div class="mt-8 bg-white shadow sm:rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
-            <h3 class="text-lg font-medium leading-6 text-gray-900">Actualizar Estado</h3>
-            <div class="mt-5">
-                <form action="{{ url_for('admin_actualizar_estado_pedido', id=pedido.id) }}" method="post">
-                    <div class="w-full max-w-xs">
-                        <select name="nuevo_estado" required class="block w-full py-2 pl-3 pr-10 mt-1 text-base border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                            <option value="pendiente" {% if pedido.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
-                            <option value="enviado" {% if pedido.estado == 'enviado' %}selected{% endif %}>Enviado</option>
-                            <option value="entregado" {% if pedido.estado == 'entregado' %}selected{% endif %}>Entregado</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="inline-flex items-center px-4 py-2 mt-3 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Actualizar Estado
-                    </button>
-                </form>
+    <div class="px-4 py-5 border-t border-gray-200 sm:p-0">
+        <dl class="sm:divide-y sm:divide-gray-200">
+            <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Usuario</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ pedido['nombre'] }} {{
+                    pedido['apellido'] }}</dd>
             </div>
+            <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Fecha</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ pedido.fecha_pedido.strftime('%d/%m/%Y
+                    %H:%M') }}</dd>
+            </div>
+            <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Estado</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ pedido.estado }}</dd>
+            </div>
+            <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Total</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">S/.{{ pedido.total }}</dd>
+            </div>
+        </dl>
+    </div>
+</div>
+
+<div class="mt-8 overflow-hidden bg-white shadow sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg font-medium leading-6 text-gray-900">Productos</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col"
+                        class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Producto
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Cantidad
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Precio
+                        Unitario</th>
+                    <th scope="col"
+                        class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Subtotal
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for detalle in pedido.detalles %}
+                <tr>
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{{ detalle['nombre'] }}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{{ detalle['cantidad'] }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">S/.{{ detalle['precio_unitario'] }}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">S/.{{ detalle['cantidad'] *
+                        detalle['precio_unitario'] }}</td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td colspan="3" class="px-6 py-4 text-sm font-medium text-right text-gray-900">Total</td>
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900">S/.{{ pedido['total'] }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mt-8 bg-white shadow sm:rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+        <h3 class="text-lg font-medium leading-6 text-gray-900">Actualizar Estado</h3>
+        <div class="mt-5">
+            <form id="actualizar-estado-form" action="{{ url_for('admin_actualizar_estado_pedido', id=pedido.id) }}"
+                method="post">
+                <div class="w-full max-w-xs">
+                    <select name="nuevo_estado" required
+                        class="block w-full py-2 pl-3 pr-10 mt-1 text-base border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        <option value="pendiente" {% if pedido.estado=='pendiente' %}selected{% endif %}>Pendiente
+                        </option>
+                        <option value="enviado" {% if pedido.estado=='enviado' %}selected{% endif %}>Enviado</option>
+                        <option value="entregado" {% if pedido.estado=='entregado' %}selected{% endif %}>Entregado
+                        </option>
+                    </select>
+                </div>
+                <button id="btn-actualizar-estado" type="button"
+                    class="inline-flex items-center px-4 py-2 mt-3 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Actualizar Estado
+                </button>
+            </form>
         </div>
     </div>
+</div>
 {% endblock %}

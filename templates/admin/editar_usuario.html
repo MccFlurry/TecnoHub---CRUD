@@ -3,63 +3,70 @@
 {% block title %}Editar Usuario - TecnoHub{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-center mb-8">Editar Usuario</h1>
-    
-    <form action="{{ url_for('admin_editar_usuario', id=usuario.id) }}" method="post" enctype="multipart/form-data" class="max-w-xl mx-auto">
-        <div class="bg-white-800 rounded-lg p-6 shadow-lg mb-8">
+<div class="container px-4 py-8 mx-auto">
+    <h1 class="mb-8 text-3xl font-bold text-center">Editar Usuario</h1>
+
+    <form action="{{ url_for('admin_editar_usuario', id=usuario.id) }}" method="post" enctype="multipart/form-data"
+        class="max-w-xl mx-auto">
+        <div class="p-6 mb-8 rounded-lg shadow-lg bg-white-800">
             <div class="mb-4">
-                <label for="id" class="block text-sm font-medium mb-2">ID de Usuario</label>
-                <input type="text" id="id" name="id" value="{{ usuario.id }}" readonly class="w-full px-3 py-2 bg-white-700 border border-white-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <label for="id" class="block mb-2 text-sm font-medium">ID de Usuario</label>
+                <input type="text" id="id" name="id" value="{{ usuario.id }}" readonly
+                    class="w-full px-3 py-2 border rounded-md bg-white-700 border-white-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
-            
+
             <div class="mb-4">
-                <label for="nombre" class="block text-sm font-medium mb-2">Nombre</label>
-                <input type="text" id="nombre" name="nombre" value="{{ usuario.nombre }}" required class="w-full px-3 py-2 bg-white-700 border border-white-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <label for="nombre" class="block mb-2 text-sm font-medium">Nombre</label>
+                <input type="text" id="nombre" name="nombre" value="{{ usuario.nombre }}" required
+                    class="w-full px-3 py-2 border rounded-md bg-white-700 border-white-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
-            
+
             <div class="mb-4">
-                <label for="apellido" class="block text-sm font-medium mb-2">Apellido</label>
-                <input type="text" id="apellido" name="apellido" value="{{ usuario.apellido }}" required class="w-full px-3 py-2 bg-white-700 border border-white-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <label for="apellido" class="block mb-2 text-sm font-medium">Apellido</label>
+                <input type="text" id="apellido" name="apellido" value="{{ usuario.apellido }}" required
+                    class="w-full px-3 py-2 border rounded-md bg-white-700 border-white-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
-            
+
             <div class="mb-4">
-                <label for="email" class="block text-sm font-medium mb-2">Email</label>
-                <input type="email" id="email" name="email" value="{{ usuario.email }}" required class="w-full px-3 py-2 bg-white-700 border border-white-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <label for="email" class="block mb-2 text-sm font-medium">Email</label>
+                <input type="email" id="email" name="email" value="{{ usuario.email }}" required
+                    class="w-full px-3 py-2 border rounded-md bg-white-700 border-white-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
-            
+
             <div class="mb-4">
-                <label for="tipo" class="block text-sm font-medium mb-2">Tipo de Usuario</label>
-                <select id="tipo" name="tipo" required class="w-full px-3 py-2 bg-white-700 border border-white-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="cliente" {% if usuario.tipo == 'cliente' %}selected{% endif %}>Cliente</option>
-                    <option value="administrador" {% if usuario.tipo == 'administrador' %}selected{% endif %}>Administrador</option>
+                <label for="tipo" class="block mb-2 text-sm font-medium">Tipo de Usuario</label>
+                <select id="tipo" name="tipo" required
+                    class="w-full px-3 py-2 border rounded-md bg-white-700 border-white-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="cliente" {% if usuario.tipo=='cliente' %}selected{% endif %}>Cliente</option>
+                    <option value="administrador" {% if usuario.tipo=='administrador' %}selected{% endif %}>
+                        Administrador</option>
                 </select>
             </div>
-            
+
             <div class="mb-4">
-                <label for="foto" class="block text-sm font-medium mb-2">Foto de Perfil</label>
-                <input type="file" id="foto" name="foto" accept="image/*" class="w-full px-3 py-2 bg-white-700 border border-white-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <label for="foto" class="block mb-2 text-sm font-medium">Foto de Perfil</label>
+                <input type="file" id="foto" name="foto" accept="image/*"
+                    class="w-full px-3 py-2 border rounded-md bg-white-700 border-white-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 {% if usuario.foto %}
-                    <img src="{{ url_for('static', filename='img/' + usuario.foto) }}" alt="Foto de perfil actual" class="mt-2 w-32 h-32 object-cover rounded-full">
+                <img src="{{ url_for('static', filename='img/' + usuario.foto) }}" alt="Foto de perfil actual"
+                    class="object-cover w-32 h-32 mt-2 rounded-full">
                 {% endif %}
             </div>
-            
+
             <div class="mb-4">
-                <label for="fecha_registro" class="block text-sm font-medium mb-2">Fecha de Registro</label>
-                <input type="date" id="fecha_registro" name="fecha_registro" value="{{ usuario.fecha_registro.strftime('%Y-%m-%d') }}" readonly class="w-full px-3 py-2 bg-white-700 border border-white-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            
-            <div class="mb-4">
-                <label for="contraseña" class="block text-sm font-medium mb-2">Nueva Contraseña (dejar en blanco para no cambiar)</label>
-                <input type="password" id="contraseña" name="contraseña" class="w-full px-3 py-2 bg-white-700 border border-white-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <label for="fecha_registro" class="block mb-2 text-sm font-medium">Fecha de Registro</label>
+                <input type="date" id="fecha_registro" name="fecha_registro"
+                    value="{{ usuario.fecha_registro.strftime('%Y-%m-%d') }}" readonly
+                    class="w-full px-3 py-2 border rounded-md bg-white-700 border-white-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
         </div>
-        
         <div class="flex justify-between">
-            <a href="{{ url_for('admin_usuarios') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">
+            <a href="{{ url_for('admin_usuarios') }}"
+                class="px-4 py-2 font-bold text-white transition-colors duration-300 bg-gray-600 rounded-full hover:bg-gray-700">
                 Cancelar
             </a>
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">
+            <button id="btn-guardar-usuario" type="button"
+                class="px-4 py-2 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700">
                 Guardar Cambios
             </button>
         </div>

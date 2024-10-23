@@ -45,22 +45,18 @@
                         <a href="{{ url_for('admin_detalle_usuario', id=usuario.id) }}"
                             class="text-blue-600 hover:text-blue-900">Ver Detalles</a>
                         <a href="{{ url_for('admin_editar_usuario', id=usuario.id) }}"
-                            class="ml-4 text-indigo-600 hover:text-indigo-900">Editar</a>
+                            class="ml-4 text-indigo-600 hover:text-indigo-900 editar-usuario-btn">Editar</a>
                         <form action="{{ url_for('admin_eliminar_usuario', id=usuario.id) }}" method="post"
-                            style="display: inline;">
-                            <button type="submit" class="ml-4 text-red-600 hover:text-red-900"
-                                onclick="return confirm('¿Estás seguro de que deseas eliminar este usuario?');">
-                                Eliminar
-                            </button>
+                            class="inline eliminar-usuario-form">
+                            <button type="button"
+                                class="ml-4 text-red-600 hover:text-red-900 eliminar-usuario-btn">Eliminar</button>
                         </form>
-
                     </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="6" class="px-6 py-4 text-sm text-center text-gray-500 whitespace-nowrap">
-                        No hay usuarios registrados.
-                    </td>
+                    <td colspan="6" class="px-6 py-4 text-sm text-center text-gray-500 whitespace-nowrap">No hay
+                        usuarios registrados.</td>
                 </tr>
                 {% endfor %}
             </tbody>

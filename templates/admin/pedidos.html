@@ -39,22 +39,27 @@
                     <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
                         {{ pedido.nombre }} {{ pedido.apellido }}
                     </td>
-                    <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{{
-                        pedido.fecha_pedido.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                        {{ pedido.fecha_pedido.strftime('%d/%m/%Y %H:%M') }}
+                    </td>
                     <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">S/.{{ pedido.total }}</td>
                     <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{{ pedido.estado }}</td>
                     <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
                         <a href="{{ url_for('admin_detalle_pedido', id=pedido.id) }}"
                             class="text-blue-600 hover:text-blue-900">Ver Detalles</a>
+
                         <form action="{{ url_for('admin_editar_pedido', id=pedido.id) }}" method="POST"
-                            style="display: inline;">
-                            <button type="submit" class="ml-4 text-blue-600 hover:text-blue-900"
-                                onclick="return confirm('¿Estás seguro de que deseas editar este pedido?');">Editar</button>
+                            class="inline editar-pedido-form">
+                            <button type="button" class="ml-4 text-blue-600 hover:text-blue-900 editar-pedido-btn">
+                                Editar
+                            </button>
                         </form>
+
                         <form action="{{ url_for('admin_eliminar_pedido', id=pedido.id) }}" method="POST"
-                            style="display: inline;">
-                            <button type="submit" class="ml-4 text-red-600 hover:text-red-900"
-                                onclick="return confirm('¿Estás seguro de que deseas eliminar este pedido?');">Eliminar</button>
+                            class="inline eliminar-pedido-form">
+                            <button type="button" class="ml-4 text-red-600 hover:text-red-900 eliminar-pedido-btn">
+                                Eliminar
+                            </button>
                         </form>
                     </td>
                 </tr>
