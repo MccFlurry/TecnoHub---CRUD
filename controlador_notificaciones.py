@@ -1,6 +1,10 @@
 from bd import obtener_conexion
 import pymysql.cursors
 from clase.clase_notificaciones import Notificaciones
+from flask_socketio import SocketIO, emit
+
+# Initialize SocketIO
+socketio = SocketIO()
 
 
 def agregar_notificacion(usuario_id, mensaje):
@@ -50,3 +54,7 @@ def marcar_notificacion_como_vista(notificacion_id):
         cursor.execute(sql, (notificacion_id,))
     conexion.commit()
     conexion.close()
+
+def enviar_notificacion(usuario_id, mensaje):
+    agregar_notificacion(usuario_id, mensaje)
+    socketio.emit('nueva_notificacion', {'mensaje': mensaje}, namespace='/notificaciones')
