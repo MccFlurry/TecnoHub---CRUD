@@ -6,8 +6,9 @@
 <div class="container px-4 py-8 mx-auto">
     <h1 class="mb-8 text-3xl font-bold text-center">Editar Usuario</h1>
 
-    <form action="{{ url_for('admin_editar_usuario', id=usuario.id) }}" method="post" enctype="multipart/form-data"
-        class="max-w-xl mx-auto">
+    <form action="{{ url_for('admin.admin_editar_usuario', id=usuario.id) }}" method="post"
+        enctype="multipart/form-data" class="max-w-xl mx-auto">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="p-6 mb-8 rounded-lg shadow-lg bg-white-800">
             <div class="mb-4">
                 <label for="id" class="block mb-2 text-sm font-medium">ID de Usuario</label>
@@ -61,11 +62,11 @@
             </div>
         </div>
         <div class="flex justify-between">
-            <a href="{{ url_for('admin_usuarios') }}"
+            <a href="{{ url_for('admin.admin_usuarios') }}"
                 class="px-4 py-2 font-bold text-white transition-colors duration-300 bg-gray-600 rounded-full hover:bg-gray-700">
                 Cancelar
             </a>
-            <button id="btn-guardar-usuario" type="button"
+            <button id="btn-guardar-usuario" type="submit"
                 class="px-4 py-2 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700">
                 Guardar Cambios
             </button>

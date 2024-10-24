@@ -1,8 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, request, make_response
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, make_response, Blueprint, current_app
 from functools import wraps
 from werkzeug.utils import secure_filename
+from flask_wtf.csrf import generate_csrf
 import os
 from bd import obtener_conexion
+from pymysql.err import IntegrityError
+from flask_wtf import CSRFProtect
 from werkzeug.security import generate_password_hash, check_password_hash
 import controlador_usuario
 import controlador_categorias
@@ -14,12 +17,19 @@ import controlador_direcciones
 import controlador_opinion
 import controlador_notificaciones
 
-#PROYECTO ACTUALIZADO 17/11/2024 NO OLVIDAR IMPLEMENTAR PAPIS
+# PROYECTO ACTUALIZADO 17/11/2024 NO OLVIDAR IMPLEMENTAR PAPIS
 
 app = Flask(__name__)
+csrf = CSRFProtect()
 app.secret_key = 'tu_clave_secreta'
 UPLOAD_FOLDER = 'static/img'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+# Agregar la configuración de CSRF para evitar el KeyError
+app.config['WTF_CSRF_METHODS'] = ['POST', 'PUT', 'PATCH', 'DELETE']
+app.config['WTF_CSRF_FIELD_NAME'] = 'csrf_token'
+
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -43,7 +53,25 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# Crear el Blueprint de administración
+admin_bp = Blueprint('admin', __name__, url_prefix='/admin', template_folder='templates/admin', static_folder='static')
 
+
+# Aplicar la protección CSRF al Blueprint de administración
+@admin_bp.before_request
+def admin_csrf_protect():
+    if request.method == "POST":
+        if 'WTF_CSRF_METHODS' in current_app.config:
+            csrf.protect()
+        else:
+            print("Advertencia: WTF_CSRF_METHODS no está configurado.")
+
+
+@admin_bp.app_context_processor
+def inject_csrf_token():
+    return dict(csrf_token=generate_csrf)
+
+# Rutas fuera del Blueprint (no tendrán protección CSRF)
 @app.route('/')
 def home():
     productos_destacados = controlador_producto.obtener_productos_destacados()
@@ -62,8 +90,6 @@ def home():
                            categorias=categorias, 
                            productos_recientes=productos_recientes)
 
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -80,7 +106,7 @@ def login():
             flash('Inicio de sesión exitoso', 'success')
             
             if usuario.tipo == 'administrador':
-                return redirect(url_for('admin_dashboard'))
+                return redirect(url_for('admin.admin_dashboard'))
             else:
                 return redirect(url_for('home'))
         else:
@@ -203,7 +229,7 @@ def eliminar_favorito(producto_id):
     usuario_id = session.get('usuario_id')
     try:
         controlador_favorito.eliminar_favorito(usuario_id, producto_id)
-        return render_template('mis_favoritos.html')
+        return redirect(url_for('mis_favoritos'))
     except Exception as e:
         print(f"Error en eliminar_favorito: {e}")
         return jsonify(success=False, message="Error interno, inténtalo nuevamente")
@@ -239,7 +265,6 @@ def agregar_direccion():
     
     return render_template('agregar_direccion.html')
 
-
 @app.route('/editar-direccion/<int:direccion_id>', methods=['GET', 'POST'])
 @login_required
 def editar_direccion(direccion_id):
@@ -261,9 +286,17 @@ def editar_direccion(direccion_id):
 @app.route('/eliminar-direccion/<int:direccion_id>', methods=['POST'])
 @login_required
 def eliminar_direccion(direccion_id):
-    controlador_direcciones.eliminar_direccion(direccion_id)
-    return redirect(url_for('mis_direcciones'))
-
+    usuario_id = session.get('usuario_id')
+    try:
+        controlador_direcciones.eliminar_direccion(usuario_id, direccion_id)
+        return jsonify(success=True)
+    except Exception as e:
+        if isinstance(e, IntegrityError) and e.args[0] == 1451:
+            return jsonify(success=False, message="No se puede eliminar la dirección porque está asociada a un pedido existente")
+        elif str(e) == "La dirección no existe o no te pertenece.":
+            return jsonify(success=False, message=str(e))
+        else:
+            return jsonify(success=False, message="Error interno, inténtalo nuevamente")
 
 @app.route('/mis-direcciones')
 @login_required
@@ -313,7 +346,6 @@ def buscar():
     productos = controlador_producto.buscar_productos(query)
 
     return render_template('resultados_busqueda.html', productos=productos, query=query, categorias=categorias)
-
 
 @app.route('/mis-kits')
 @login_required
@@ -392,7 +424,6 @@ def actualizar_carrito():
         flash('Carrito actualizado', 'success')
     return redirect(url_for('carrito'))
 
-
 @app.route('/realizar-pedido', methods=['GET', 'POST'])
 @login_required
 def realizar_pedido():
@@ -439,11 +470,10 @@ def realizar_pedido():
             session.pop('carrito', None)
             flash('Pedido realizado con éxito', 'success')
 
-            # Enviar notificación en tiempo real al administrador
+            # Enviar notificación al administrador
             usuario_nombre = session.get('usuario_nombre', 'Un usuario')
             mensaje = f'El usuario "{usuario_nombre}" acaba de realizar una compra por S/. {total:.2f}'
             controlador_notificaciones.agregar_notificacion(usuario_id, mensaje)
-            #socketio.emit('nueva_compra', {'mensaje': mensaje}, namespace='/notificaciones')
 
             # Redirigir a la página de confirmación del pedido
             return redirect(url_for('confirmacion_pedido', pedido_id=pedido_id))
@@ -475,7 +505,6 @@ def realizar_pedido():
 
     return render_template('realizar_pedido.html', direcciones=direcciones, total=total)
 
-
 @app.route('/pedido/<int:pedido_id>', methods=['GET'])
 @login_required
 def detalle_pedido(pedido_id):
@@ -505,270 +534,6 @@ def confirmacion_pedido(pedido_id):
 def mis_pedidos():
     pedidos = controlador_pedido.obtener_pedidos_por_usuario(session['usuario_id'])
     return render_template('mis_pedidos.html', pedidos=pedidos)
-
-@app.route('/admin')
-@admin_required
-def admin_dashboard():
-    total_productos = controlador_producto.contar_productos()
-    pedidos_pendientes = controlador_pedido.contar_pedidos_pendientes()
-    total_usuarios = controlador_usuario.contar_usuarios()
-    ingresos_mes = controlador_pedido.calcular_ingresos_mes()
-    return render_template('admin/dashboard.html', 
-                           total_productos=total_productos,
-                           pedidos_pendientes=pedidos_pendientes,
-                           total_usuarios=total_usuarios,
-                           ingresos_mes=ingresos_mes)
-
-@app.route('/admin/productos')
-@admin_required
-def admin_productos():
-    productos = controlador_producto.obtener_todos_productos()
-    return render_template('admin/productos.html', productos=productos)
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-@app.route('/admin/nuevo_producto', methods=['GET', 'POST'])
-def admin_nuevo_producto():
-    categorias = controlador_categorias.obtener_todas_categorias()
-
-    if request.method == 'POST':
-        nombre = request.form['nombre']
-        descripcion = request.form['descripcion']
-        categoria_id = request.form['categoria_id']
-        precio = request.form['precio']
-        stock = request.form['stock']
-        destacado = 1 if 'destacado' in request.form else 0
-
-        imagen = request.files['imagen']
-        imagen_filename = None
-        if imagen and allowed_file(imagen.filename):
-            try:
-                imagen_filename = secure_filename(imagen.filename)
-                imagen.save(os.path.join(UPLOAD_FOLDER, imagen_filename))
-            except Exception as e:
-                flash(f'Error al cargar la imagen: {str(e)}', 'error')
-                return redirect(url_for('admin_nuevo_producto'))
-
-        try:
-            controlador_producto.insertar_producto(
-                nombre=nombre,
-                descripcion=descripcion,
-                categoria_id=categoria_id,
-                precio=precio,
-                stock=stock,
-                destacado=destacado,
-                imagen=imagen_filename
-            )
-            flash('Producto creado con éxito', 'success')
-        except Exception as e:
-            flash(f'Error al crear el producto: {str(e)}', 'error')
-
-        return redirect(url_for('admin_productos'))
-
-    return render_template('admin/editar_nuevo_producto.html', producto=None, categorias=categorias)
-
-@app.route('/admin/editar_producto/<int:id>', methods=['GET', 'POST'])
-def admin_editar_producto(id):
-    producto = controlador_producto.obtener_producto_por_id(id)
-    categorias = controlador_categorias.obtener_todas_categorias()
-    
-    if request.method == 'POST':
-        nombre = request.form['nombre']
-        descripcion = request.form['descripcion']
-        categoria_id = request.form['categoria_id']
-        precio = request.form['precio']
-        stock = request.form['stock']
-        destacado = 1 if 'destacado' in request.form else 0
-
-        imagen = request.files['imagen']
-        imagen_filename = producto.imagen
-        
-        if imagen and allowed_file(imagen.filename):
-            try:
-                imagen_filename = secure_filename(imagen.filename)
-                imagen.save(os.path.join(UPLOAD_FOLDER, imagen_filename))
-            except Exception as e:
-                flash(f'Error al cargar la imagen: {str(e)}', 'error')
-                return redirect(url_for('admin_productos', id=id))
-
-        try:
-            controlador_producto.actualizar_producto(
-                id=id,
-                nombre=nombre,
-                descripcion=descripcion,
-                precio=precio,
-                stock=stock,
-                categoria_id=categoria_id,
-                imagen=imagen_filename
-            )
-            flash('Producto actualizado con éxito', 'success')
-        except Exception as e:
-            flash(f'Error al actualizar el producto: {str(e)}', 'error')
-
-        return redirect(url_for('admin_productos', id=id))
-
-    return render_template('admin/editar_nuevo_producto.html', producto=producto, categorias=categorias)
-
-@app.route('/admin/producto/eliminar/<int:id>', methods=['POST'])
-@admin_required
-def admin_eliminar_producto(id):
-    controlador_producto.eliminar_producto(id)
-    flash('Producto eliminado con éxito', 'success')
-    return redirect(url_for('admin_productos'))
-
-@app.route('/admin/pedidos')
-@login_required
-def admin_pedidos():
-    pedidos = controlador_pedido.obtener_todos_pedidos()
-    return render_template('admin/pedidos.html', pedidos=pedidos)
-
-@app.route('/admin/pedido/<int:id>', methods=['GET'])
-@admin_required
-def admin_detalle_pedido(id):
-    pedido = controlador_pedido.obtener_pedido_por_id(id)
-    if not pedido:
-        flash('Pedido no encontrado', 'error')
-        return redirect(url_for('admin_pedidos'))
-    return render_template('admin/detalle_pedido.html', pedido=pedido)
-
-@app.route('/admin/pedido/actualizar-estado/<int:id>', methods=['POST'])
-@admin_required
-def admin_actualizar_estado_pedido(id):
-    nuevo_estado = request.form.get('nuevo_estado')
-    controlador_pedido.actualizar_estado_pedido(id, nuevo_estado)
-    flash('Estado del pedido actualizado con éxito', 'success')
-    return redirect(url_for('admin_pedidos', id=id))
-
-@app.route('/admin/pedido/<int:id>/editar', methods=['GET', 'POST'])
-@admin_required
-def admin_editar_pedido(id):
-    pedido = controlador_pedido.obtener_pedido_por_id(id)
-    
-    if request.method == 'POST':
-        calle = request.form.get('calle')
-        ciudad = request.form.get('ciudad')
-        estado = request.form.get('estado')
-        pais = request.form.get('pais')
-        fecha_pedido = request.form.get('fecha_pedido')
-        estado_pedido = request.form.get('estado')
-
-        if calle and ciudad and estado and pais and fecha_pedido and estado_pedido:
-            try:
-                controlador_pedido.editar_pedido(id, calle, ciudad, estado, pais, fecha_pedido, estado_pedido)
-                flash('Pedido actualizado con éxito', 'success')
-                return redirect(url_for('admin_pedidos', id=id))
-            except Exception as e:
-                flash(f'Error al actualizar el pedido: {str(e)}', 'error')
-        else:
-            flash('Faltan campos por completar', 'error')
-    
-    return render_template('admin/editar_pedido.html', pedido=pedido)
-
-
-@app.route('/admin/pedido/<int:id>/eliminar', methods=['POST'])
-@admin_required
-def admin_eliminar_pedido(id):
-    controlador_pedido.eliminar_pedido(id)
-    flash('Pedido eliminado con éxito', 'success')
-    return redirect(url_for('admin_pedidos'))   
-
-@app.route('/admin/categorias')
-@admin_required
-def admin_categorias():
-    categorias = controlador_categorias.obtener_todas_categorias()
-    return render_template('admin/categorias.html', categorias=categorias)
-
-@app.route('/admin/categorias/nueva', methods=['GET', 'POST'])
-@admin_required
-def admin_nueva_categorias():
-    if request.method == 'POST':
-        nombre = request.form['nombre']
-        controlador_categorias.insertar_categorias(nombre)
-        flash('Categoría creada con éxito', 'success')
-        return redirect(url_for('admin_categorias'))
-    return render_template('admin/editar_nueva_categorias.html', categorias=None)
-
-@app.route('/admin/categorias/editar/<int:id>', methods=['GET', 'POST'])
-@admin_required
-def admin_editar_categorias(id):
-    categorias = controlador_categorias.obtener_categorias_por_id(id)
-    if request.method == 'POST':
-        nombre = request.form['nombre']
-        controlador_categorias.actualizar_categorias(id, nombre)
-        flash('Categoría actualizada con éxito', 'success')
-        return redirect(url_for('admin_categorias'))
-    return render_template('admin/editar_nueva_categorias.html', categorias=categorias)
-
-@app.route('/admin/categorias/eliminar/<int:id>', methods=['POST'])
-@admin_required
-def admin_eliminar_categorias(id):
-    controlador_categorias.eliminar_categorias(id)
-    flash('Categoría eliminada con éxito', 'success')
-    return redirect(url_for('admin_categorias'))
-
-@app.route('/admin/usuarios')
-@admin_required
-def admin_usuarios():
-    usuarios = controlador_usuario.obtener_todos_usuarios()
-    return render_template('admin/usuarios.html', usuarios=usuarios)
-
-@app.route('/admin/usuario/<int:id>/detalle', methods=['GET'])
-@admin_required
-def admin_detalle_usuario(id):
-    usuario = controlador_usuario.obtener_usuario_por_id(id)
-    return render_template('admin/detalle_usuario.html', usuario=usuario)
-
-@app.route('/admin/usuario/<int:id>/editar', methods=['GET', 'POST'])
-@admin_required
-def admin_editar_usuario(id):
-    usuario = controlador_usuario.obtener_usuario_por_id(id)
-
-    if request.method == 'POST':
-        nombre = request.form['nombre']
-        apellido = request.form['apellido']
-        email = request.form['email']
-        tipo = request.form['tipo']
-        nueva_contraseña = request.form.get('contraseña')
-        
-        foto = request.files.get('foto')
-        if foto and allowed_file(foto.filename):
-            try:
-                filename = secure_filename(foto.filename)
-                foto_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                foto.save(foto_path)
-            except Exception as e:
-                flash('Error al subir la imagen: ' + str(e), 'error')
-                return redirect(url_for('editar_usuario', id=id))
-        else:
-            filename = usuario.foto
-
-        controlador_usuario.actualizar_usuario(
-            id=id,
-            nombre=nombre,
-            apellido=apellido,
-            email=email,
-            tipo=tipo,
-            foto=filename,
-            nueva_contraseña=nueva_contraseña if nueva_contraseña else None
-        )
-
-        flash('Usuario actualizado con éxito', 'success')
-        return redirect(url_for('admin_usuarios'))
-
-    return render_template('admin/editar_usuario.html', usuario=usuario)
-
-
-@app.route('/admin/usuario/<int:id>/eliminar', methods=['POST'])
-@admin_required
-def admin_eliminar_usuario(id):
-    try:
-        controlador_usuario.eliminar_usuario(id)
-        flash('Usuario eliminado con éxito', 'success')
-    except Exception as e:
-        flash(f'Error al eliminar el usuario: {str(e)}', 'error')
-    return redirect(url_for('admin_usuarios'))
-
 
 @app.route('/producto/<int:id>/opiniones', methods=['POST'])
 @login_required
@@ -810,7 +575,6 @@ def actualizar_cuenta():
 
     flash('Tu cuenta ha sido actualizada exitosamente', 'success')
     return redirect(url_for('mi_cuenta'))
-
 
 @app.route('/acerca-de')
 def acerca_de():
@@ -859,7 +623,309 @@ def cambiar_contraseña():
     
     return render_template('cambiar_contraseña.html')
 
-#Notificaciones PUSH
+# Rutas del Blueprint de administración
+@admin_bp.route('/')
+@admin_required
+def admin_dashboard():
+    total_productos = controlador_producto.contar_productos()
+    pedidos_pendientes = controlador_pedido.contar_pedidos_pendientes()
+    total_usuarios = controlador_usuario.contar_usuarios()
+    ingresos_mes = controlador_pedido.calcular_ingresos_mes()
+    return render_template('admin/dashboard.html', 
+                           total_productos=total_productos,
+                           pedidos_pendientes=pedidos_pendientes,
+                           total_usuarios=total_usuarios,
+                           ingresos_mes=ingresos_mes)
+
+@admin_bp.route('/productos')
+@admin_required
+def admin_productos():
+    productos = controlador_producto.obtener_todos_productos()
+    return render_template('admin/productos.html', productos=productos)
+
+@admin_bp.route('/nuevo_producto', methods=['GET', 'POST'])
+@admin_required
+def admin_nuevo_producto():
+    categorias = controlador_categorias.obtener_todas_categorias()
+
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        descripcion = request.form['descripcion']
+        categoria_id = request.form['categoria_id']
+        precio = request.form['precio']
+        stock = request.form['stock']
+        destacado = 1 if 'destacado' in request.form else 0
+
+        imagen = request.files['imagen']
+        imagen_filename = None
+        if imagen and allowed_file(imagen.filename):
+            try:
+                imagen_filename = secure_filename(imagen.filename)
+                imagen.save(os.path.join(UPLOAD_FOLDER, imagen_filename))
+            except Exception as e:
+                flash(f'Error al cargar la imagen: {str(e)}', 'error')
+                return redirect(url_for('admin.admin_nuevo_producto'))
+
+        try:
+            controlador_producto.insertar_producto(
+                nombre=nombre,
+                descripcion=descripcion,
+                categoria_id=categoria_id,
+                precio=precio,
+                stock=stock,
+                destacado=destacado,
+                imagen=imagen_filename
+            )
+            flash('Producto creado con éxito', 'success')
+        except Exception as e:
+            flash(f'Error al crear el producto: {str(e)}', 'error')
+
+        return redirect(url_for('admin.admin_productos'))
+
+    return render_template('admin/editar_nuevo_producto.html', producto=None, categorias=categorias)
+
+@admin_bp.route('/editar_producto/<int:id>', methods=['GET', 'POST'])
+@admin_required
+def admin_editar_producto(id):
+    producto = controlador_producto.obtener_producto_por_id(id)
+    categorias = controlador_categorias.obtener_todas_categorias()
+    
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        descripcion = request.form['descripcion']
+        categoria_id = request.form['categoria_id']
+        precio = request.form['precio']
+        stock = request.form['stock']
+        destacado = 1 if 'destacado' in request.form else 0
+
+        imagen = request.files['imagen']
+        imagen_filename = producto.imagen
+        
+        if imagen and allowed_file(imagen.filename):
+            try:
+                imagen_filename = secure_filename(imagen.filename)
+                imagen.save(os.path.join(UPLOAD_FOLDER, imagen_filename))
+            except Exception as e:
+                flash(f'Error al cargar la imagen: {str(e)}', 'error')
+                return redirect(url_for('admin.admin_editar_producto', id=id))
+
+        try:
+            controlador_producto.actualizar_producto(
+                id=id,
+                nombre=nombre,
+                descripcion=descripcion,
+                precio=precio,
+                stock=stock,
+                categoria_id=categoria_id,
+                imagen=imagen_filename
+            )
+            flash('Producto actualizado con éxito', 'success')
+        except Exception as e:
+            flash(f'Error al actualizar el producto: {str(e)}', 'error')
+
+        return redirect(url_for('admin.admin_productos'))
+
+    return render_template('admin/editar_nuevo_producto.html', producto=producto, categorias=categorias)
+
+@admin_bp.route('/producto/eliminar/<int:id>', methods=['POST'])
+@admin_required
+def admin_eliminar_producto(id):
+    try:
+        controlador_producto.eliminar_producto(id)
+        flash('Producto eliminado con éxito', 'success')
+    except IntegrityError as e:
+        if e.args[0] == 1451:
+            flash('No se puede eliminar el producto porque está relacionado con un pedido.', 'error')
+        else:
+            flash(f'Ocurrió un error al eliminar el producto: {str(e)}', 'error')
+    except Exception as e:
+        flash(f'Ocurrió un error inesperado: {str(e)}', 'error')
+    return redirect(url_for('admin.admin_productos'))
+
+@admin_bp.route('/pedidos')
+@admin_required
+def admin_pedidos():
+    pedidos = controlador_pedido.obtener_todos_pedidos()
+    return render_template('admin/pedidos.html', pedidos=pedidos)
+
+@admin_bp.route('/pedido/<int:id>', methods=['GET'])
+@admin_required
+def admin_detalle_pedido(id):
+    pedido = controlador_pedido.obtener_pedido_por_id(id)
+    if not pedido:
+        flash('Pedido no encontrado', 'error')
+        return redirect(url_for('admin.admin_pedidos'))
+    return render_template('admin/detalle_pedido.html', pedido=pedido)
+
+@admin_bp.route('/pedido/actualizar-estado/<int:id>', methods=['POST'])
+@admin_required
+def admin_actualizar_estado_pedido(id):
+    nuevo_estado = request.form.get('nuevo_estado')
+    controlador_pedido.actualizar_estado_pedido(id, nuevo_estado)
+    flash('Estado del pedido actualizado con éxito', 'success')
+    return redirect(url_for('admin.admin_pedidos'))
+
+@admin_bp.route('/pedido/<int:id>/editar', methods=['GET', 'POST'])
+@admin_required
+def admin_editar_pedido(id):
+    pedido = controlador_pedido.obtener_pedido_por_id(id)
+    
+    if request.method == 'POST':
+        calle = request.form.get('calle')
+        ciudad = request.form.get('ciudad')
+        estado = request.form.get('estado')
+        pais = request.form.get('pais')
+        fecha_pedido = request.form.get('fecha_pedido')
+        estado_pedido = request.form.get('estado')
+
+        if calle and ciudad and estado and pais and fecha_pedido and estado_pedido:
+            try:
+                controlador_pedido.editar_pedido(id, calle, ciudad, estado, pais, fecha_pedido, estado_pedido)
+                flash('Pedido actualizado con éxito', 'success')
+                return redirect(url_for('admin.admin_pedidos'))
+            except Exception as e:
+                flash(f'Error al actualizar el pedido: {str(e)}', 'error')
+        else:
+            flash('Faltan campos por completar', 'error')
+    
+    return render_template('admin/editar_pedido.html', pedido=pedido)
+
+@admin_bp.route('/pedido/<int:id>/eliminar', methods=['POST'])
+@admin_required
+def admin_eliminar_pedido(id):
+    try:
+        controlador_pedido.eliminar_pedido(id)
+        flash('Pedido eliminado con éxito', 'success')
+    except IntegrityError as e:
+        if e.args[0] == 1451:
+            flash('No se puede eliminar el pedido porque está relacionado con otros registros.', 'error')
+        else:
+            flash(f'Ocurrió un error al eliminar el pedido: {str(e)}', 'error')
+    except Exception as e:
+        flash(f'Ocurrió un error inesperado: {str(e)}', 'error')
+    
+    return redirect(url_for('admin.admin_pedidos'))
+
+@admin_bp.route('/categorias')
+@admin_required
+def admin_categorias():
+    categorias = controlador_categorias.obtener_todas_categorias()
+    return render_template('admin/categorias.html', categorias=categorias)
+
+@admin_bp.route('/categorias/nueva', methods=['GET', 'POST'])
+@admin_required
+def admin_nueva_categorias():
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        controlador_categorias.insertar_categorias(nombre)
+        flash('Categoría creada con éxito', 'success')
+        return redirect(url_for('admin.admin_categorias'))
+    return render_template('admin/editar_nueva_categorias.html', categorias=None)
+
+@admin_bp.route('/categorias/editar/<int:id>', methods=['GET', 'POST'])
+@admin_required
+def admin_editar_categorias(id):
+    categorias = controlador_categorias.obtener_categorias_por_id(id)
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        controlador_categorias.actualizar_categorias(id, nombre)
+        flash('Categoría actualizada con éxito', 'success')
+        return redirect(url_for('admin.admin_categorias'))
+    return render_template('admin/editar_nueva_categorias.html', categorias=categorias)
+
+@admin_bp.route('/categorias/eliminar/<int:id>', methods=['POST'])
+@admin_required
+def admin_eliminar_categorias(id):
+    controlador_categorias.eliminar_categorias(id)
+    flash('Categoría eliminada con éxito', 'success')
+    return redirect(url_for('admin.admin_categorias'))
+
+@admin_bp.route('/usuarios')
+@admin_required
+def admin_usuarios():
+    usuarios = controlador_usuario.obtener_todos_usuarios()
+    return render_template('admin/usuarios.html', usuarios=usuarios)
+
+@admin_bp.route('/usuario/<int:id>/detalle', methods=['GET'])
+@admin_required
+def admin_detalle_usuario(id):
+    usuario = controlador_usuario.obtener_usuario_por_id(id)
+    return render_template('admin/detalle_usuario.html', usuario=usuario)
+
+@admin_bp.route('/usuario/<int:id>/editar', methods=['GET', 'POST'])
+@admin_required
+def admin_editar_usuario(id):
+    usuario = controlador_usuario.obtener_usuario_por_id(id)
+
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        apellido = request.form['apellido']
+        email = request.form['email']
+        tipo = request.form['tipo']
+        nueva_contraseña = request.form.get('contraseña')
+        
+        foto = request.files.get('foto')
+        if foto and allowed_file(foto.filename):
+            try:
+                filename = secure_filename(foto.filename)
+                foto_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                foto.save(foto_path)
+            except Exception as e:
+                flash('Error al subir la imagen: ' + str(e), 'error')
+                return redirect(url_for('admin.admin_editar_usuario', id=id))
+        else:
+            filename = usuario.foto
+
+        controlador_usuario.actualizar_usuario(
+            id=id,
+            nombre=nombre,
+            apellido=apellido,
+            email=email,
+            tipo=tipo,
+            foto=filename,
+            nueva_contraseña=nueva_contraseña if nueva_contraseña else None
+        )
+
+        flash('Usuario actualizado con éxito', 'success')
+        return redirect(url_for('admin.admin_usuarios'))
+
+    return render_template('admin/editar_usuario.html', usuario=usuario)
+
+@admin_bp.route('/usuario/<int:id>/eliminar', methods=['POST'])
+@admin_required
+def admin_eliminar_usuario(id):
+    try:
+        controlador_usuario.eliminar_usuario(id)
+        flash('Usuario eliminado con éxito', 'success')
+    except Exception as e:
+        flash(f'Error al eliminar el usuario: {str(e)}', 'error')
+    return redirect(url_for('admin.admin_usuarios'))
+
+# Notificaciones PUSH
+@admin_bp.route('/notificaciones', methods=['GET'])
+@admin_required
+def obtener_notificaciones():
+    notificaciones = controlador_notificaciones.obtener_notificaciones_no_vistas()
+    # Convertir las notificaciones a formato JSON
+    notificaciones_json = [{
+        'id': n.id,
+        'usuario_nombre': n.usuario_nombre,
+        'mensaje': n.mensaje,
+        'fecha_creacion': n.fecha_creacion.strftime('%Y-%m-%d %H:%M:%S')
+    } for n in notificaciones]
+    return jsonify(notificaciones_json)
+
+@admin_bp.route('/notificaciones/marcar_vista', methods=['POST'])
+@admin_required
+def marcar_notificacion_vista():
+    notificacion_id = request.form.get('notificacion_id')
+    if notificacion_id:
+        controlador_notificaciones.marcar_notificacion_como_vista(notificacion_id)
+        return jsonify({'success': True})
+    return jsonify({'success': False}), 400
+
+# Registrar el Blueprint después de definir todas las rutas
+app.register_blueprint(admin_bp)
 
 # Iniciar el servidor
 if __name__ == "__main__":

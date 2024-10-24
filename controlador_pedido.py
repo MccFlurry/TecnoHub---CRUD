@@ -3,6 +3,7 @@ from clase.clase_pedido import Pedido
 from clase.clase_detalle_pedido import DetallePedido
 from datetime import datetime, timedelta
 import pymysql as MySQLdb
+import pymysql
 from pymysql.cursors import DictCursor
 
 def crear_pedido(usuario_id, direccion_id):
@@ -178,20 +179,29 @@ def eliminar_pedido(pedido_id):
     conexion = obtener_conexion()
     try:
         with conexion.cursor() as cursor:
-            # Eliminar primero los detalles del pedido
+            sql_check_details = "SELECT COUNT(*) FROM detalles_pedido WHERE pedido_id = %s"
+            cursor.execute(sql_check_details, (pedido_id,))
+            detalles_count = cursor.fetchone()[0]
+            
+            if detalles_count > 0:
+                print(f"No se puede eliminar el pedido {pedido_id} porque tiene detalles asociados.")
+                return False  # Retornar False para indicar que no se eliminó
+
             sql_delete_details = "DELETE FROM detalles_pedido WHERE pedido_id = %s"
             cursor.execute(sql_delete_details, (pedido_id,))
             
-            # Luego eliminar el pedido
             sql_delete_order = "DELETE FROM pedidos WHERE id = %s"
             cursor.execute(sql_delete_order, (pedido_id,))
-        
+
         conexion.commit()
-        print(f"Pedido {pedido_id} eliminado con éxito")
-    except MySQLdb.Error as e:
+        print(f"Pedido {pedido_id} eliminado con éxito.")
+        return True  # Retornar True para indicar que se eliminó exitosamente
+
+    except pymysql.MySQLError as e:
         conexion.rollback()
         print(f"Error al eliminar el pedido: {str(e)}")
-        raise e
+        raise e  # Re-lanzar la excepción para ser manejada más arriba
+
     finally:
         conexion.close()
 

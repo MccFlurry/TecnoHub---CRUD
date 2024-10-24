@@ -8,8 +8,9 @@
 <div class="bg-white shadow sm:rounded-lg">
     <div class="px-4 py-5 sm:p-6">
         <form id="categoria-form"
-            action="{{ url_for('admin_editar_categorias', id=categorias.id) if categorias is not none else url_for('admin_nueva_categorias') }}"
-            method="post" class="space-y-6" enctype="multipart/form-data">
+            action="{{ url_for('admin.admin_editar_categorias', id=categorias.id) if categorias is not none else url_for('admin.admin_nueva_categorias') }}"
+            method="post" class="space-y-6">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div>
                 <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre de la Categoría</label>
                 <div class="mt-1">
@@ -21,7 +22,7 @@
                 <button type="reset" class="px-4 py-2 font-bold text-white bg-gray-500 rounded-md hover:bg-gray-700">
                     Restablecer
                 </button>
-                <button id="btn-guardar-categoria" type="button"
+                <button id="btn-guardar-categoria" type="submit"
                     class="px-4 py-2 ml-3 font-bold text-white bg-blue-500 rounded-md hover:bg-blue-700">
                     {{ 'Actualizar' if categorias else 'Crear' }} Categoria
                 </button>

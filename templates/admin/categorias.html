@@ -8,7 +8,7 @@
 <div class="overflow-hidden bg-white shadow sm:rounded-lg">
     <div class="flex items-center justify-between px-4 py-5 sm:px-6">
         <h2 class="text-lg font-medium leading-6 text-gray-900">Categorías</h2>
-        <a id="btn-nueva-categoria" href="{{ url_for('admin_nueva_categorias') }}"
+        <a id="btn-nueva-categoria" href="{{ url_for('admin.admin_nueva_categorias') }}"
             class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
             Añadir Nueva Categoría
         </a>
@@ -34,15 +34,16 @@
                     <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{{ categorias.nombre }}
                     </td>
                     <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
-                        <a href="{{ url_for('admin_editar_categorias', id=categorias.id) }}" 
-                           class="mr-2 text-blue-600 hover:text-blue-900 editar-categoria-btn">Editar</a>
-                        <form action="{{ url_for('admin_eliminar_categorias', id=categorias.id) }}" 
-                              method="post" class="inline eliminar-categoria-form">
-                            <button type="button" class="text-red-600 hover:text-red-900 eliminar-categoria-btn">
+                        <a href="{{ url_for('admin.admin_editar_categorias', id=categorias.id) }}"
+                            class="mr-2 text-blue-600 hover:text-blue-900 editar-categoria-btn">Editar</a>
+                        <form action="{{ url_for('admin.admin_eliminar_categorias', id=categorias.id) }}" method="post"
+                            class="inline eliminar-categoria-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="text-red-600 hover:text-red-900 eliminar-categoria-btn">
                                 Eliminar
                             </button>
                         </form>
-                    </td>                    
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

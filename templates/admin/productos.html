@@ -8,7 +8,7 @@
 <div class="overflow-hidden bg-white shadow sm:rounded-lg">
     <div class="flex items-center justify-between px-4 py-5 sm:px-6">
         <h2 class="text-lg font-medium leading-6 text-gray-900">Productos</h2>
-        <a href="{{ url_for('admin_nuevo_producto') }}" id="btn-nuevo-producto"
+        <a href="{{ url_for('admin.admin_nuevo_producto') }}" id="btn-nuevo-producto"
             class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
             Añadir Nuevo Producto
         </a>
@@ -37,11 +37,12 @@
                     <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">S/.{{ producto.precio }}</td>
                     <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{{ producto.stock }}</td>
                     <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
-                        <a href="{{ url_for('admin_editar_producto', id=producto.id) }}"
+                        <a href="{{ url_for('admin.admin_editar_producto', id=producto.id) }}"
                             class="mr-2 text-blue-600 hover:text-blue-900 editar-producto-btn">Editar</a>
-                        <form action="{{ url_for('admin_eliminar_producto', id=producto.id) }}" method="post"
+                        <form action="{{ url_for('admin.admin_eliminar_producto', id=producto.id) }}" method="post"
                             class="inline eliminar-producto-form">
-                            <button type="button"
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit"
                                 class="text-red-600 hover:text-red-900 eliminar-producto-btn">Eliminar</button>
                         </form>
                     </td>

@@ -6,8 +6,9 @@
 <div class="container px-4 py-8 mx-auto">
     <h1 class="mb-8 text-3xl font-bold text-center">Editar Pedido</h1>
 
-    <form id="editar-pedido-form" action="{{ url_for('admin_editar_pedido', id=pedido.id) }}" method="post"
+    <form id="editar-pedido-form" action="{{ url_for('admin.admin_editar_pedido', id=pedido.id) }}" method="post"
         class="max-w-xl mx-auto">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="mb-4">
             <label for="usuario_id" class="block mb-2 text-sm font-medium">ID del Usuario</label>
             <input type="text" id="usuario_id" name="usuario_id" value="{{ pedido.usuario_id }}" readonly
@@ -49,11 +50,11 @@
             </select>
         </div>
         <div class="flex justify-between">
-            <a href="{{ url_for('admin_pedidos') }}"
+            <a href="{{ url_for('admin.admin_pedidos') }}"
                 class="px-4 py-2 font-bold text-white transition-colors duration-300 bg-gray-600 rounded-full hover:bg-gray-700">
                 Cancelar
             </a>
-            <button id="btn-guardar-cambios" type="button"
+            <button id="btn-guardar-cambios" type="submit"
                 class="px-4 py-2 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700">
                 Guardar Cambios
             </button>

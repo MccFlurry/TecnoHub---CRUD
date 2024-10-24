@@ -45,19 +45,18 @@
                     <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">S/.{{ pedido.total }}</td>
                     <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{{ pedido.estado }}</td>
                     <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
-                        <a href="{{ url_for('admin_detalle_pedido', id=pedido.id) }}"
+                        <a href="{{ url_for('admin.admin_detalle_pedido', id=pedido.id) }}"
                             class="text-blue-600 hover:text-blue-900">Ver Detalles</a>
 
-                        <form action="{{ url_for('admin_editar_pedido', id=pedido.id) }}" method="POST"
-                            class="inline editar-pedido-form">
-                            <button type="button" class="ml-4 text-blue-600 hover:text-blue-900 editar-pedido-btn">
-                                Editar
-                            </button>
-                        </form>
+                        <a href="{{ url_for('admin.admin_editar_pedido', id=pedido.id) }}"
+                            class="ml-4 text-blue-600 hover:text-blue-900 editar-pedido-btn">
+                            Editar
+                        </a>
 
-                        <form action="{{ url_for('admin_eliminar_pedido', id=pedido.id) }}" method="POST"
+                        <form action="{{ url_for('admin.admin_eliminar_pedido', id=pedido.id) }}" method="post"
                             class="inline eliminar-pedido-form">
-                            <button type="button" class="ml-4 text-red-600 hover:text-red-900 eliminar-pedido-btn">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="ml-4 text-red-600 hover:text-red-900 eliminar-pedido-btn">
                                 Eliminar
                             </button>
                         </form>

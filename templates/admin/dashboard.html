@@ -29,7 +29,7 @@
         </div>
         <div class="px-5 py-3 bg-gray-50">
             <div class="text-sm">
-                <a href="{{ url_for('admin_productos') }}" class="font-medium text-blue-700 hover:text-blue-900">Ver
+                <a href="{{ url_for('admin.admin_productos') }}" class="font-medium text-blue-700 hover:text-blue-900">Ver
                     todos</a>
             </div>
         </div>
@@ -58,7 +58,7 @@
         </div>
         <div class="px-5 py-3 bg-gray-50">
             <div class="text-sm">
-                <a href="{{ url_for('admin_pedidos') }}" class="font-medium text-green-700 hover:text-green-900">Ver
+                <a href="{{ url_for('admin.admin_pedidos') }}" class="font-medium text-green-700 hover:text-green-900">Ver
                     todos</a>
             </div>
         </div>
@@ -88,7 +88,7 @@
         </div>
         <div class="px-5 py-3 bg-gray-50">
             <div class="text-sm">
-                <a href="{{ url_for('admin_usuarios') }}" class="font-medium text-yellow-700 hover:text-yellow-900">Ver
+                <a href="{{ url_for('admin.admin_usuarios') }}" class="font-medium text-yellow-700 hover:text-yellow-900">Ver
                     todos</a>
             </div>
         </div>
@@ -124,22 +124,79 @@
     </div>
 </div>
 
-<script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+<div id="notificaciones-container" class="mb-8">
+    <h2 class="text-xl font-semibold">Notificaciones</h2>
+    <ul id="notificaciones-list" class="mt-4">
+        <!-- Las notificaciones se cargarán aquí -->
+    </ul>
+</div>
+
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-    const socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + '/notificaciones');
-    socket.on('nueva_compra', function(data) {
-      const notification = document.createElement('div');
-      notification.className = 'notification';
-      notification.innerText = data.mensaje;
-      document.body.appendChild(notification);
-      setTimeout(() => {
-        notification.remove();
-      }, 5000);
+    document.addEventListener("DOMContentLoaded", () => {
+        // Función para obtener las notificaciones no vistas
+        function obtenerNotificaciones() {
+            fetch("{{ url_for('admin.obtener_notificaciones') }}")
+                .then(response => response.json())
+                .then(data => {
+                    const notificacionesList = document.getElementById('notificaciones-list');
+                    notificacionesList.innerHTML = ''; // Limpiar la lista
+                    data.forEach(notificacion => {
+                        const li = document.createElement('li');
+                        li.className = 'flex items-center justify-between p-4 bg-white rounded shadow mb-2';
+                        
+                        const contenido = document.createElement('div');
+                        contenido.innerHTML = `
+                            <div class="flex items-center">
+                                <img src="{{ url_for('static', filename='static/img/cliente1.jpg') }}" alt="Usuario" class="w-8 h-8 mr-4">
+                                <div>
+                                    <p class="text-sm font-medium">${notificacion.usuario_nombre}</p>
+                                    <p class="text-sm text-gray-600">${notificacion.mensaje}</p>
+                                    <p class="text-xs text-gray-400">${notificacion.fecha_creacion}</p>
+                                </div>
+                            </div>
+                        `;
+                        
+                        const boton = document.createElement('button');
+                        boton.className = 'text-blue-500 hover:text-blue-700';
+                        boton.innerText = 'Marcar como visto';
+                        boton.addEventListener('click', () => marcarComoVisto(notificacion.id, li));
+                        
+                        li.appendChild(contenido);
+                        li.appendChild(boton);
+                        notificacionesList.appendChild(li);
+                    });
+                })
+                .catch(error => console.error('Error al obtener notificaciones:', error));
+        }
+    
+        // Función para marcar una notificación como vista
+        function marcarComoVisto(notificacionId, elemento) {
+            fetch("{{ url_for('admin.marcar_notificacion_vista') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">'  // Incluimos el token CSRF en el header
+                },
+                body: `notificacion_id=${notificacionId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    elemento.remove(); // Remover la notificación de la lista
+                } else {
+                    alert('No se pudo marcar la notificación como vista.');
+                }
+            })
+            .catch(error => console.error('Error al marcar como visto:', error));
+        }
+    
+        // Actualizar las notificaciones cada 5 segundos
+        obtenerNotificaciones(); // Obtener inicialmente
+        setInterval(obtenerNotificaciones, 5000); // Actualizar cada 5 segundos
     });
-  });
-</script>
-{% endblock %}
+    </script>
+    {% endblock %}

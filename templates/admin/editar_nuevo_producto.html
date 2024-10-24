@@ -7,8 +7,9 @@
 {% block content %}
 <div class="overflow-hidden bg-white shadow sm:rounded-lg">
     <form
-        action="{{ url_for('admin_editar_producto', id=producto.id) if producto else url_for('admin_nuevo_producto') }}"
+        action="{{ url_for('admin.admin_editar_producto', id=producto.id) if producto else url_for('admin.admin_nuevo_producto') }}"
         method="post" enctype="multipart/form-data" class="space-y-8 divide-y divide-gray-200">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="space-y-8 divide-y divide-gray-200 sm:space-y-5">
             <div class="pt-8 space-y-6 sm:pt-10 sm:space-y-5">
                 <div class="space-y-6 sm:space-y-5">
@@ -91,12 +92,12 @@
 
         <div class="pt-5">
             <div class="flex justify-end">
-                <button id="btn-guardar-producto" type="button" 
-                        class="inline-flex justify-center px-4 py-2 ml-3 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <button id="btn-guardar-producto" type="submit"
+                    class="inline-flex justify-center px-4 py-2 ml-3 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                     {{ 'Actualizar' if producto else 'Crear' }} Producto
                 </button>
             </div>
-        </div>        
+        </div>
     </form>
 </div>
 {% endblock %}

@@ -80,8 +80,9 @@
     <div class="px-4 py-5 sm:p-6">
         <h3 class="text-lg font-medium leading-6 text-gray-900">Actualizar Estado</h3>
         <div class="mt-5">
-            <form id="actualizar-estado-form" action="{{ url_for('admin_actualizar_estado_pedido', id=pedido.id) }}"
-                method="post">
+            <form id="actualizar-estado-form"
+                action="{{ url_for('admin.admin_actualizar_estado_pedido', id=pedido.id) }}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="w-full max-w-xs">
                     <select name="nuevo_estado" required
                         class="block w-full py-2 pl-3 pr-10 mt-1 text-base border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
@@ -92,7 +93,7 @@
                         </option>
                     </select>
                 </div>
-                <button id="btn-actualizar-estado" type="button"
+                <button id="btn-actualizar-estado" type="submit"
                     class="inline-flex items-center px-4 py-2 mt-3 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                     Actualizar Estado
                 </button>

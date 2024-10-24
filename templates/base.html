@@ -77,7 +77,7 @@
                             <a href="{{ url_for('mis_direcciones') }}"
                                 class="block px-4 py-2 transition-colors hover:bg-gray-700">Mis direcciones</a>
                             {% if session.get('usuario_tipo') == 'administrador' %}
-                            <a href="{{ url_for('admin_dashboard') }}"
+                            <a href="{{ url_for('admin.admin_dashboard') }}"
                                 class="block px-4 py-2 transition-colors hover:bg-gray-700">Admin Dashboard</a>
                             {% endif %}
                             <hr class="my-2 border-gray-700">
