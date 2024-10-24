@@ -66,7 +66,7 @@
         {% for opinion in opiniones %}
         <div class="p-6 mb-4 bg-gray-800 rounded-lg shadow-lg">
             <div class="flex items-center mb-2">
-                <p class="mr-2 font-semibold">{{ opinion.nombre }} {{ opinion.apellido }}</p>
+                <p class="mr-2 font-semibold">{{ opinion.nombre_usuario }}</p>
                 <div class="flex">
                     {% for i in range(5) %}
                     {% if i < opinion.calificacion %} <svg class="w-5 h-5 text-yellow-500 fill-current"

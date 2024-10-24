@@ -200,33 +200,6 @@ def obtener_productos_recomendados(producto_id, limite=4):
     conexion.close()
     return productos
 
-# Agrega una reseña a un producto
-def agregar_opiniones(producto_id, usuario_id, calificacion, comentario):
-    conexion = obtener_conexion()
-    with conexion.cursor() as cursor:
-        cursor.execute("""
-        INSERT INTO opiniones (producto_id, usuario_id, calificacion, comentario)
-        VALUES (%s, %s, %s, %s)
-        """, (producto_id, usuario_id, calificacion, comentario))
-    conexion.commit()
-    conexion.close()
-
-# Obtiene reseñas de un producto
-def obtener_opiniones(producto_id):
-    conexion = obtener_conexion()
-    opiniones = []
-    with conexion.cursor(DictCursor) as cursor:
-        cursor.execute("""
-        SELECT o.id, o.calificacion, o.comentario, o.fecha, u.nombre, u.apellido
-        FROM opiniones o
-        JOIN usuarios u ON o.usuario_id = u.id
-        WHERE o.producto_id = %s
-        ORDER BY o.fecha DESC
-        """, (producto_id,))
-        opiniones = cursor.fetchall()
-    conexion.close()
-    return opiniones
-
 # Cuenta el total de productos en la base de datos
 def contar_productos():
     conexion = obtener_conexion()

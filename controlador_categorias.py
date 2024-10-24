@@ -5,11 +5,16 @@ from pymysql.cursors import DictCursor
 def obtener_todas_categorias():
     conexion = obtener_conexion()
     categorias = []
-    with conexion.cursor(DictCursor) as cursor:
-        sql = "SELECT id, nombre FROM categorias"
-        cursor.execute(sql)
-        categorias = cursor.fetchall()
-    conexion.close()
+    try:
+        with conexion.cursor(DictCursor) as cursor:
+            sql = "SELECT id, nombre FROM categorias"
+            cursor.execute(sql)
+            categorias = cursor.fetchall()
+    except Exception as e:
+        print(f"Error al obtener todas las categorías: {e}")
+        categorias = []
+    finally:
+        conexion.close()
     return categorias
 
 def obtener_categorias_por_id(id):
@@ -29,7 +34,6 @@ def obtener_categorias_por_id(id):
         print(f"Error al obtener la categoría con id {id}: {e}")
     finally:
         conexion.close()
-    
     return categoria
 
 def insertar_categorias(nombre):
@@ -41,6 +45,7 @@ def insertar_categorias(nombre):
         conexion.commit()
     except Exception as e:
         print(f"Error al insertar categoría: {e}")
+        conexion.rollback()  # Revertir en caso de error
     finally:
         conexion.close()
 
@@ -53,6 +58,7 @@ def actualizar_categorias(id, nombre):
         conexion.commit()
     except Exception as e:
         print(f"Error al actualizar la categoría con id {id}: {e}")
+        conexion.rollback()  # Revertir en caso de error
     finally:
         conexion.close()
 
@@ -65,5 +71,6 @@ def eliminar_categorias(id):
         conexion.commit()
     except Exception as e:
         print(f"Error al eliminar la categoría con id {id}: {e}")
+        conexion.rollback()  # Revertir en caso de error
     finally:
         conexion.close()

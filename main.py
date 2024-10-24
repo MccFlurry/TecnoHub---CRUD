@@ -310,7 +310,7 @@ def mis_direcciones():
 @app.route('/producto/<int:id>')
 def producto(id):
     producto = controlador_producto.obtener_producto_por_id(id)
-    opiniones = controlador_producto.obtener_opiniones(id)
+    opiniones = controlador_opinion.obtener_opiniones_producto(id)
     productos_relacionados = controlador_producto.obtener_productos_relacionados(id)
     promedio_calificacion = controlador_opinion.calcular_calificacion_promedio(id)
 
@@ -545,7 +545,7 @@ def agregar_opiniones(id):
     comentario = request.form.get('comentario')
     usuario_id = session['usuario_id']
 
-    controlador_producto.agregar_opiniones(id, usuario_id, calificacion, comentario)
+    controlador_opinion.agregar_opiniones(id, usuario_id, comentario, calificacion)
     flash('Reseña agregada con éxito', 'success')
     return redirect(url_for('producto', id=id))
 

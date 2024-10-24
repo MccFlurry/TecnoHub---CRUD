@@ -40,29 +40,33 @@ def agregar_detalle_pedido(pedido_id, producto_id, cantidad, precio_unitario):
 def obtener_pedidos_por_usuario(usuario_id):
     conexion = obtener_conexion()
     pedidos = []
-    with conexion.cursor(DictCursor) as cursor:
-        sql = """
-        SELECT p.id, p.usuario_id, u.email, u.nombre, u.apellido, p.fecha_pedido, p.estado, d.direccion, d.ciudad, d.estado AS direccion_estado, d.pais, d.codigo_postal,
-               SUM(dp.precio_unitario * dp.cantidad) AS total
-        FROM pedidos p
-        JOIN direcciones d ON p.direccion_id = d.id
-        JOIN detalles_pedido dp ON dp.pedido_id = p.id
-        JOIN usuarios u ON p.usuario_id = u.id
-        WHERE p.usuario_id = %s
-        GROUP BY p.id, p.usuario_id, p.fecha_pedido, p.estado, d.direccion, d.ciudad, d.estado, d.pais, d.codigo_postal, u.email, u.nombre, u.apellido
-        """
-        cursor.execute(sql, (usuario_id,))
-        rows = cursor.fetchall()
-        for row in rows:
-            row['direccion'] = {
-                'direccion': row['direccion'],
-                'ciudad': row['ciudad'],
-                'estado': row['direccion_estado'],
-                'pais': row['pais'],
-                'codigo_postal': row['codigo_postal']  # Incluimos el código postal
-            }
-            pedidos.append(row)
-    conexion.close()
+    try:
+        with conexion.cursor(DictCursor) as cursor:
+            sql = """
+            SELECT p.id, p.usuario_id, u.email, u.nombre, u.apellido, p.fecha_pedido, p.estado, d.direccion, d.ciudad, d.estado AS direccion_estado, d.pais, d.codigo_postal,
+                   SUM(dp.precio_unitario * dp.cantidad) AS total
+            FROM pedidos p
+            JOIN direcciones d ON p.direccion_id = d.id
+            JOIN detalles_pedido dp ON dp.pedido_id = p.id
+            JOIN usuarios u ON p.usuario_id = u.id
+            WHERE p.usuario_id = %s
+            GROUP BY p.id, p.usuario_id, p.fecha_pedido, p.estado, d.direccion, d.ciudad, d.estado, d.pais, d.codigo_postal, u.email, u.nombre, u.apellido
+            """
+            cursor.execute(sql, (usuario_id,))
+            rows = cursor.fetchall()
+            for row in rows:
+                row['direccion'] = {
+                    'direccion': row['direccion'],
+                    'ciudad': row['ciudad'],
+                    'estado': row['direccion_estado'],
+                    'pais': row['pais'],
+                    'codigo_postal': row['codigo_postal']
+                }
+                pedidos.append(row)
+    except MySQLdb.Error as e:
+        print(f"Error al obtener los pedidos del usuario {usuario_id}: {str(e)}")
+    finally:
+        conexion.close()
     return pedidos
 
 def obtener_detalles_pedido(pedido_id):
@@ -75,6 +79,8 @@ def obtener_detalles_pedido(pedido_id):
             rows = cursor.fetchall()
             for row in rows:
                 detalles.append(DetallePedido(**row))
+    except MySQLdb.Error as e:
+        print(f"Error al obtener los detalles del pedido {pedido_id}: {str(e)}")
     finally:
         conexion.close()
     return detalles
@@ -96,19 +102,23 @@ def actualizar_estado_pedido(pedido_id, nuevo_estado):
 def obtener_todos_pedidos():
     conexion = obtener_conexion()
     pedidos = []
-    with conexion.cursor(DictCursor) as cursor:
-        sql = """
-        SELECT p.id, p.usuario_id, p.fecha_pedido, p.estado, SUM(dp.cantidad * dp.precio_unitario) AS total, 
-               u.nombre, u.apellido
-        FROM pedidos p
-        JOIN detalles_pedido dp ON p.id = dp.pedido_id
-        JOIN usuarios u ON p.usuario_id = u.id
-        GROUP BY p.id
-        ORDER BY p.fecha_pedido DESC
-        """
-        cursor.execute(sql)
-        pedidos = cursor.fetchall()
-    conexion.close()
+    try:
+        with conexion.cursor(DictCursor) as cursor:
+            sql = """
+            SELECT p.id, p.usuario_id, p.fecha_pedido, p.estado, SUM(dp.cantidad * dp.precio_unitario) AS total, 
+                   u.nombre, u.apellido
+            FROM pedidos p
+            JOIN detalles_pedido dp ON p.id = dp.pedido_id
+            JOIN usuarios u ON p.usuario_id = u.id
+            GROUP BY p.id
+            ORDER BY p.fecha_pedido DESC
+            """
+            cursor.execute(sql)
+            pedidos = cursor.fetchall()
+    except MySQLdb.Error as e:
+        print(f"Error al obtener todos los pedidos: {str(e)}")
+    finally:
+        conexion.close()
     return pedidos
 
 def obtener_pedido_por_id(id):
@@ -141,6 +151,8 @@ def obtener_pedido_por_id(id):
 
                 pedido['detalles'] = detalles
                 pedido['total'] = total
+    except MySQLdb.Error as e:
+        print(f"Error al obtener el pedido con id {id}: {str(e)}")
     finally:
         conexion.close()
     
@@ -153,6 +165,8 @@ def contar_pedidos_pendientes():
         with conexion.cursor() as cursor:
             cursor.execute("SELECT COUNT(*) FROM pedidos WHERE estado = 'pendiente'")
             count = cursor.fetchone()[0]
+    except MySQLdb.Error as e:
+        print(f"Error al contar los pedidos pendientes: {str(e)}")
     finally:
         conexion.close()
     return count
@@ -171,6 +185,8 @@ def calcular_ingresos_mes():
                 WHERE p.fecha_pedido BETWEEN %s AND %s AND p.estado != 'cancelado'
             """, (fecha_inicio, fecha_fin))
             ingresos = cursor.fetchone()[0] or 0
+    except MySQLdb.Error as e:
+        print(f"Error al calcular los ingresos del mes: {str(e)}")
     finally:
         conexion.close()
     return ingresos
@@ -179,14 +195,13 @@ def eliminar_pedido(pedido_id):
     conexion = obtener_conexion()
     try:
         with conexion.cursor() as cursor:
-            # Verificar si el pedido tiene detalles asociados
             sql_check_details = "SELECT COUNT(*) FROM detalles_pedido WHERE pedido_id = %s"
             cursor.execute(sql_check_details, (pedido_id,))
             detalles_count = cursor.fetchone()[0]
             
             if detalles_count > 0:
                 print(f"No se puede eliminar el pedido {pedido_id} porque tiene detalles asociados.")
-                return False  # Salimos si tiene detalles
+                return False
 
             sql_delete_details = "DELETE FROM detalles_pedido WHERE pedido_id = %s"
             cursor.execute(sql_delete_details, (pedido_id,))
@@ -205,7 +220,6 @@ def eliminar_pedido(pedido_id):
 
     finally:
         conexion.close()
-
 
 def editar_pedido(pedido_id, direccion, ciudad, estado, pais, fecha_pedido, estado_pedido):
     conexion = obtener_conexion()
@@ -232,5 +246,3 @@ def editar_pedido(pedido_id, direccion, ciudad, estado, pais, fecha_pedido, esta
         raise e
     finally:
         conexion.close()
-
-
