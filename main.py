@@ -781,7 +781,7 @@ def admin_editar_pedido(id):
         estado = request.form.get('estado')
         pais = request.form.get('pais')
         fecha_pedido = request.form.get('fecha_pedido')
-        estado_pedido = request.form.get('estado')
+        estado_pedido = request.form.get('estado_pedido')
 
         if calle and ciudad and estado and pais and fecha_pedido and estado_pedido:
             try:

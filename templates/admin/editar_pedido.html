@@ -39,26 +39,25 @@
             <input type="date" id="fecha_pedido" name="fecha_pedido"
                 value="{{ pedido.fecha_pedido.strftime('%Y-%m-%d') }}" required
                 class="w-full px-3 py-2 border border-gray-600 rounded-md bg-white-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div class="mb-4">
-            <label for="estado" class="block mb-2 text-sm font-medium">Estado</label>
-            <select id="estado" name="estado" required
-                class="w-full px-3 py-2 border border-gray-600 rounded-md bg-white-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="pendiente" {% if pedido.estado=='pendiente' %}selected{% endif %}>Pendiente</option>
-                <option value="enviado" {% if pedido.estado=='enviado' %}selected{% endif %}>Enviado</option>
-                <option value="entregado" {% if pedido.estado=='entregado' %}selected{% endif %}>Entregado</option>
-            </select>
-        </div>
-        <div class="flex justify-between">
-            <a href="{{ url_for('admin.admin_pedidos') }}"
-                class="px-4 py-2 font-bold text-white transition-colors duration-300 bg-gray-600 rounded-full hover:bg-gray-700">
-                Cancelar
-            </a>
-            <button id="btn-guardar-cambios" type="submit"
-                class="px-4 py-2 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700">
-                Guardar Cambios
-            </button>
-        </div>
+            <div class="mb-4">
+                <label for="estado_pedido" class="block mb-2 text-sm font-medium">Estado</label>
+                <select id="estado_pedido" name="estado_pedido" required
+                    class="w-full px-3 py-2 border border-gray-600 rounded-md bg-white-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="pendiente" {% if pedido.estado=='pendiente' %}selected{% endif %}>Pendiente</option>
+                    <option value="enviado" {% if pedido.estado=='enviado' %}selected{% endif %}>Enviado</option>
+                    <option value="entregado" {% if pedido.estado=='entregado' %}selected{% endif %}>Entregado</option>
+                </select>
+            </div>
+            <div class="flex justify-between">
+                <a href="{{ url_for('admin.admin_pedidos') }}"
+                    class="px-4 py-2 font-bold text-white transition-colors duration-300 bg-gray-600 rounded-full hover:bg-gray-700">
+                    Cancelar
+                </a>
+                <button id="btn-guardar-cambios" type="submit"
+                    class="px-4 py-2 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700">
+                    Guardar Cambios
+                </button>
+            </div>
     </form>
 </div>
 {% endblock %}
