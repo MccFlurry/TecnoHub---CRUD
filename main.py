@@ -289,14 +289,17 @@ def eliminar_direccion(direccion_id):
     usuario_id = session.get('usuario_id')
     try:
         controlador_direcciones.eliminar_direccion(usuario_id, direccion_id)
-        return jsonify(success=True)
+        flash('Dirección eliminada con éxito.', 'success')
+    except IntegrityError as e:
+        if e.args[0] == 1451:  # Código de error para restricción de clave foránea
+            flash('No se puede eliminar la dirección porque está asociada a un pedido existente.', 'error')
     except Exception as e:
-        if isinstance(e, IntegrityError) and e.args[0] == 1451:
-            return jsonify(success=False, message="No se puede eliminar la dirección porque está asociada a un pedido existente")
-        elif str(e) == "La dirección no existe o no te pertenece.":
-            return jsonify(success=False, message=str(e))
+        if str(e) == "La dirección no existe o no te pertenece.":
+            flash('La dirección no existe o no te pertenece.', 'error')
         else:
-            return jsonify(success=False, message="Error interno, inténtalo nuevamente")
+            flash('Error interno, inténtalo nuevamente.', 'error')
+
+    return redirect(url_for('mis_direcciones'))
 
 @app.route('/mis-direcciones')
 @login_required
@@ -572,7 +575,9 @@ def actualizar_cuenta():
         foto_filename = usuario.foto
 
     controlador_usuario.actualizar_usuario(usuario_id, nombre, apellido, email, tipo, foto_filename)
-
+    # Redirigir a la página de direcciones
+    session['usuario_nombre'] = nombre.split()[0] if nombre else ""
+    session['usuario_apellido'] = apellido.split()[0] if apellido else ""
     flash('Tu cuenta ha sido actualizada exitosamente', 'success')
     return redirect(url_for('mi_cuenta'))
 
@@ -794,14 +799,16 @@ def admin_editar_pedido(id):
 @admin_required
 def admin_eliminar_pedido(id):
     try:
-        controlador_pedido.eliminar_pedido(id)
-        flash('Pedido eliminado con éxito', 'success')
+        controlador_pedido.eliminar_pedido(id)  # Intentar eliminar el pedido
+        flash('No se puede eliminar el pedido porque está relacionado con otros registros.', 'success') #CORREGIR ESTE MENSAJE
     except IntegrityError as e:
-        if e.args[0] == 1451:
-            flash('No se puede eliminar el pedido porque está relacionado con otros registros.', 'error')
+        print(f"Error de integridad: {e}")  # Depurar para asegurar que se captura el error
+        if e.args[0] == 1451:  # Código de error de clave foránea
+            flash('Pedido eliminado con exito', 'error')
         else:
             flash(f'Ocurrió un error al eliminar el pedido: {str(e)}', 'error')
     except Exception as e:
+        print(f"Error inesperado: {e}")  # Depurar para detectar cualquier otro error
         flash(f'Ocurrió un error inesperado: {str(e)}', 'error')
     
     return redirect(url_for('admin.admin_pedidos'))
@@ -836,8 +843,17 @@ def admin_editar_categorias(id):
 @admin_bp.route('/categorias/eliminar/<int:id>', methods=['POST'])
 @admin_required
 def admin_eliminar_categorias(id):
-    controlador_categorias.eliminar_categorias(id)
-    flash('Categoría eliminada con éxito', 'success')
+    try:
+        controlador_categorias.eliminar_categorias(id)
+        flash('No se puede eliminar la categoría porque está asociada a productos.', 'success')
+    except IntegrityError as e:
+        if e.args[0] == 1451:  # Código de error de clave foránea
+            flash('No se puede eliminar la categoría porque está asociada a productos.', 'error')
+        else:
+            flash(f'Ocurrió un error al eliminar la categoría: {str(e)}', 'error')
+    except Exception as e:
+        flash(f'Ocurrió un error inesperado: {str(e)}', 'error')
+    
     return redirect(url_for('admin.admin_categorias'))
 
 @admin_bp.route('/usuarios')

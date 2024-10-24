@@ -6,7 +6,7 @@
 <div class="container px-4 py-8 mx-auto">
     <h1 class="mb-8 text-3xl font-bold text-center">Realizar Pedido</h1>
 
-    <form action="{{ url_for('realizar_pedido') }}" method="post" class="max-w-2xl mx-auto">
+    <form action="{{ url_for('realizar_pedido') }}" method="post" class="max-w-2xl mx-auto" id="pedidoForm">
         <div class="p-6 mb-8 bg-gray-800 rounded-lg shadow-lg">
             <h2 class="mb-4 text-xl font-semibold">Selecciona una dirección de envío</h2>
             <div class="mb-2">
@@ -22,11 +22,13 @@
                 </label>
                 {% endfor %}
             </div>
-            <p class="text-center text-gray-300">Tienes una direccion nueva? <a href="{{ url_for('agregar_direccion') }}"
-                    class="text-blue-500 hover:underline">Agregar una dirección</a></p>
+            <p class="text-center text-gray-300">¿Tienes una dirección nueva? 
+                <a href="{{ url_for('agregar_direccion') }}" class="text-blue-500 hover:underline">Agregar una dirección</a>
+            </p>
             {% else %}
-            <p class="text-gray-300">No tienes direcciones registradas. <a href="{{ url_for('agregar_direccion') }}"
-                    class="text-blue-500 hover:underline">Agregar una dirección</a></p>
+            <p class="text-gray-300">No tienes direcciones registradas. 
+                <a href="{{ url_for('agregar_direccion') }}" class="text-blue-500 hover:underline">Agregar una dirección</a>
+            </p>
             {% endif %}
         </div>
 
@@ -67,4 +69,15 @@
         </button>
     </form>
 </div>
+
+<script>
+    // Interceptar el envío del formulario para mostrar confirmación
+    document.getElementById('pedidoForm').addEventListener('submit', function (event) {
+        const confirmation = confirm('¿Estás seguro de que deseas realizar este pedido?');
+        if (!confirmation) {
+            // Evitar que el formulario se envíe si el usuario cancela
+            event.preventDefault();
+        }
+    });
+</script>
 {% endblock %}

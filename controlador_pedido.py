@@ -179,31 +179,33 @@ def eliminar_pedido(pedido_id):
     conexion = obtener_conexion()
     try:
         with conexion.cursor() as cursor:
+            # Verificar si el pedido tiene detalles asociados
             sql_check_details = "SELECT COUNT(*) FROM detalles_pedido WHERE pedido_id = %s"
             cursor.execute(sql_check_details, (pedido_id,))
             detalles_count = cursor.fetchone()[0]
             
             if detalles_count > 0:
                 print(f"No se puede eliminar el pedido {pedido_id} porque tiene detalles asociados.")
-                return False  # Retornar False para indicar que no se eliminó
+                return False  # Salimos si tiene detalles
 
             sql_delete_details = "DELETE FROM detalles_pedido WHERE pedido_id = %s"
             cursor.execute(sql_delete_details, (pedido_id,))
-            
+
             sql_delete_order = "DELETE FROM pedidos WHERE id = %s"
             cursor.execute(sql_delete_order, (pedido_id,))
 
         conexion.commit()
         print(f"Pedido {pedido_id} eliminado con éxito.")
-        return True  # Retornar True para indicar que se eliminó exitosamente
+        return True
 
     except pymysql.MySQLError as e:
         conexion.rollback()
         print(f"Error al eliminar el pedido: {str(e)}")
-        raise e  # Re-lanzar la excepción para ser manejada más arriba
+        raise e
 
     finally:
         conexion.close()
+
 
 def editar_pedido(pedido_id, direccion, ciudad, estado, pais, fecha_pedido, estado_pedido):
     conexion = obtener_conexion()
