@@ -5,16 +5,16 @@
 {% block header %}{{ 'Editar' if producto else 'Nuevo' }} Producto{% endblock %}
 
 {% block content %}
-<div class="overflow-hidden bg-white shadow sm:rounded-lg">
+<div class="p-6 overflow-hidden bg-white shadow sm:rounded-lg">
     <form
         action="{{ url_for('admin.admin_editar_producto', id=producto.id) if producto else url_for('admin.admin_nuevo_producto') }}"
         method="post" enctype="multipart/form-data" class="space-y-8 divide-y divide-gray-200">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <div class="space-y-8 divide-y divide-gray-200 sm:space-y-5">
-            <div class="pt-8 space-y-6 sm:pt-10 sm:space-y-5">
+        <div class="space-y-8 sm:space-y-5">
+            <div class="space-y-6 sm:space-y-5">
                 <div class="space-y-6 sm:space-y-5">
-                    <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
-                        <label for="nombre" class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
+                    <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:pt-5">
+                        <label for="nombre" class="block pl-10 text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
                             Nombre
                         </label>
                         <div class="mt-1 sm:mt-0 sm:col-span-2">
@@ -24,8 +24,10 @@
                         </div>
                     </div>
 
+                    <!-- Resto de los campos igual pero removiendo sm:border-t de la primera fila -->
+                    
                     <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
-                        <label for="descripcion" class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
+                        <label for="descripcion" class="block pl-10 text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
                             Descripción
                         </label>
                         <div class="mt-1 sm:mt-0 sm:col-span-2">
@@ -35,7 +37,7 @@
                     </div>
 
                     <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
-                        <label for="precio" class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
+                        <label for="precio" class="block pl-10 text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
                             Precio
                         </label>
                         <div class="mt-1 sm:mt-0 sm:col-span-2">
@@ -46,7 +48,7 @@
                     </div>
 
                     <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
-                        <label for="stock" class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
+                        <label for="stock" class="block pl-10 text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
                             Stock
                         </label>
                         <div class="mt-1 sm:mt-0 sm:col-span-2">
@@ -57,15 +59,14 @@
                     </div>
 
                     <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
-                        <label for="categoria_id" class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
+                        <label for="categoria_id" class="block pl-10 text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
                             Categoría
                         </label>
                         <div class="mt-1 sm:mt-0 sm:col-span-2">
                             <select id="categoria_id" name="categoria_id" required
                                 class="block w-full max-w-lg border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:max-w-xs sm:text-sm">
                                 {% for categorias in categorias %}
-                                <option value="{{ categorias.id }}" {% if producto and
-                                    producto.categoria_id==categorias.id %}selected{% endif %}>
+                                <option value="{{ categorias.id }}" {% if producto and producto.categoria_id==categorias.id %}selected{% endif %}>
                                     {{ categorias.nombre }}
                                 </option>
                                 {% endfor %}
@@ -74,16 +75,18 @@
                     </div>
 
                     <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
-                        <label for="imagen" class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
-                            Imagen
+                        <label for="imagen" class="block pl-10 text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
+                            Imagen <span class="text-red-500">*</span>
                         </label>
                         <div class="mt-1 sm:mt-0 sm:col-span-2">
                             <input type="file" id="imagen" name="imagen" accept="image/*"
-                                class="block w-full max-w-lg border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:max-w-xs sm:text-sm">
+                                class="block w-full max-w-lg border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:max-w-xs sm:text-sm"
+                                {% if not producto %}required{% endif %}>
                             {% if producto and producto.imagen %}
                             <img src="{{ url_for('static', filename='img/' + producto.imagen) }}"
                                 alt="{{ producto.nombre }}" class="h-auto max-w-xs mt-2">
                             {% endif %}
+                            <p class="mt-2 text-sm text-gray-500">La imagen es obligatoria para crear un nuevo producto</p>
                         </div>
                     </div>
                 </div>

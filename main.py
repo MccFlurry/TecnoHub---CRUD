@@ -288,11 +288,6 @@ def editar_direccion(direccion_id):
 
     return render_template('editar_direccion.html', direccion=direccion)
 
-from pymysql import IntegrityError
-import logging
-
-logger = logging.getLogger(__name__)
-
 @app.route('/eliminar-direccion/<int:direccion_id>', methods=['POST'])
 @login_required
 def eliminar_direccion(direccion_id):
@@ -690,17 +685,30 @@ def admin_nuevo_producto():
         stock = request.form['stock']
         destacado = 1 if 'destacado' in request.form else 0
 
+        # Verificar si se subió una imagen
+        if 'imagen' not in request.files:
+            flash('La imagen es obligatoria', 'error')
+            return render_template('admin/editar_nuevo_producto.html', 
+                                producto=None, 
+                                categorias=categorias)
+
         imagen = request.files['imagen']
-        imagen_filename = None
-        if imagen and allowed_file(imagen.filename):
-            try:
-                imagen_filename = secure_filename(imagen.filename)
-                imagen.save(os.path.join(UPLOAD_FOLDER, imagen_filename))
-            except Exception as e:
-                flash(f'Error al cargar la imagen: {str(e)}', 'error')
-                return redirect(url_for('admin.admin_nuevo_producto'))
+        if imagen.filename == '':
+            flash('Debe seleccionar una imagen', 'error')
+            return render_template('admin/editar_nuevo_producto.html', 
+                                producto=None, 
+                                categorias=categorias)
+
+        if not allowed_file(imagen.filename):
+            flash('Formato de imagen no permitido. Use: png, jpg, jpeg, gif', 'error')
+            return render_template('admin/editar_nuevo_producto.html', 
+                                producto=None, 
+                                categorias=categorias)
 
         try:
+            imagen_filename = secure_filename(imagen.filename)
+            imagen.save(os.path.join(UPLOAD_FOLDER, imagen_filename))
+
             controlador_producto.insertar_producto(
                 nombre=nombre,
                 descripcion=descripcion,
@@ -711,10 +719,18 @@ def admin_nuevo_producto():
                 imagen=imagen_filename
             )
             flash('Producto creado con éxito', 'success')
-        except Exception as e:
-            flash(f'Error al crear el producto: {str(e)}', 'error')
+            return redirect(url_for('admin.admin_productos'))
 
-        return redirect(url_for('admin.admin_productos'))
+        except Exception as e:
+            if imagen_filename:
+                try:
+                    os.remove(os.path.join(UPLOAD_FOLDER, imagen_filename))
+                except Exception:
+                    pass
+            flash(f'Error al crear el producto: {str(e)}', 'error')
+            return render_template('admin/editar_nuevo_producto.html', 
+                                producto=None, 
+                                categorias=categorias)
 
     return render_template('admin/editar_nuevo_producto.html', producto=None, categorias=categorias)
 
@@ -868,21 +884,43 @@ def admin_categorias():
 @admin_required
 def admin_nueva_categorias():
     if request.method == 'POST':
-        nombre = request.form['nombre']
-        controlador_categorias.insertar_categorias(nombre)
-        flash('Categoría creada con éxito', 'success')
-        return redirect(url_for('admin.admin_categorias'))
+        nombre = request.form.get('nombre', '').strip()
+        if not nombre:
+            flash('El nombre de la categoría es obligatorio', 'error')
+            return render_template('admin/editar_nueva_categorias.html', categorias=None)
+        
+        try:
+            controlador_categorias.insertar_categorias(nombre)
+            flash('Categoría creada con éxito', 'success')
+            return redirect(url_for('admin.admin_categorias'))
+        except Exception as e:
+            flash(f'Error al crear la categoría: {str(e)}', 'error')
+            return render_template('admin/editar_nueva_categorias.html', categorias=None)
+            
     return render_template('admin/editar_nueva_categorias.html', categorias=None)
 
 @admin_bp.route('/categorias/editar/<int:id>', methods=['GET', 'POST'])
 @admin_required
 def admin_editar_categorias(id):
     categorias = controlador_categorias.obtener_categorias_por_id(id)
-    if request.method == 'POST':
-        nombre = request.form['nombre']
-        controlador_categorias.actualizar_categorias(id, nombre)
-        flash('Categoría actualizada con éxito', 'success')
+    if not categorias:
+        flash('Categoría no encontrada', 'error')
         return redirect(url_for('admin.admin_categorias'))
+        
+    if request.method == 'POST':
+        nombre = request.form.get('nombre', '').strip()
+        if not nombre:
+            flash('El nombre de la categoría es obligatorio', 'error')
+            return render_template('admin/editar_nueva_categorias.html', categorias=categorias)
+            
+        try:
+            controlador_categorias.actualizar_categorias(id, nombre)
+            flash('Categoría actualizada con éxito', 'success')
+            return redirect(url_for('admin.admin_categorias'))
+        except Exception as e:
+            flash(f'Error al actualizar la categoría: {str(e)}', 'error')
+            return render_template('admin/editar_nueva_categorias.html', categorias=categorias)
+            
     return render_template('admin/editar_nueva_categorias.html', categorias=categorias)
 
 @admin_bp.route('/categorias/eliminar/<int:id>', methods=['POST'])

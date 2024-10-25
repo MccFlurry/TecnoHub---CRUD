@@ -211,3 +211,29 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+
+function validateForm() {
+    const nombreInput = document.getElementById('nombre');
+    const nombreError = document.getElementById('nombre-error');
+    const nombre = nombreInput.value.trim();
+
+    if (!nombre) {
+        nombreError.classList.remove('hidden');
+        nombreInput.classList.add('border-red-500');
+        return false;
+    }
+
+    nombreError.classList.add('hidden');
+    nombreInput.classList.remove('border-red-500');
+    return true;
+}
+
+document.getElementById('nombre').addEventListener('input', function() {
+    const nombreError = document.getElementById('nombre-error');
+    const nombreInput = this;
+    
+    if (nombreInput.value.trim()) {
+        nombreError.classList.add('hidden');
+        nombreInput.classList.remove('border-red-500');
+    }
+});
