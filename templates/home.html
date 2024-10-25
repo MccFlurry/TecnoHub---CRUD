@@ -54,8 +54,10 @@
             <div
                 class="overflow-hidden transition-all duration-300 transform bg-gray-800 rounded-lg shadow-lg hover:scale-105">
                 <div class="flex items-center justify-center w-full h-64">
-                    <img src="{{ url_for('static', filename='img/' + producto.imagen) }}" alt="{{ producto.nombre }}"
-                        class="object-contain max-h-full">
+                    <div class="flex items-center justify-center w-full h-64 bg-white">
+                        <img src="{{ url_for('static', filename='img/' + producto.imagen) }}"
+                            alt="{{ producto.nombre }}" class="object-contain w-full h-full p-4">
+                    </div>
                 </div>
                 <div class="p-4">
                     <h3 class="mb-2 text-xl font-semibold">{{ producto.nombre }}</h3>

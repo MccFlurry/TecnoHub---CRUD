@@ -17,8 +17,10 @@ Categoría no encontrada - TecnoHub
     <div class="grid grid-cols-1 gap-6 md:grid-cols-3 lg:grid-cols-4">
         {% for producto in productos %}
         <div class="overflow-hidden bg-gray-800 rounded-lg shadow-lg">
-            <img src="{{ url_for('static', filename='img/' + producto.imagen) }}" alt="{{ producto.nombre }}"
-                class="object-cover w-full h-48">
+            <div class="flex items-center justify-center w-full h-64 bg-white">
+                <img src="{{ url_for('static', filename='img/' + producto.imagen) }}" alt="{{ producto.nombre }}"
+                    class="object-contain w-full h-full p-4">
+            </div>
             <div class="p-4">
                 <h2 class="mb-2 text-xl font-semibold">{{ producto.nombre }}</h2>
                 <p class="mb-4 text-gray-400">{{ producto.descripcion[:100] }}...</p>

@@ -6,8 +6,11 @@
 <div class="container px-4 py-8 mx-auto">
     <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
         <div class="overflow-hidden bg-gray-800 rounded-lg shadow-lg">
-            <img src="{{ url_for('static', filename='img/' + producto.imagen) }}" alt="{{ producto.nombre }}"
-                class="object-cover w-full h-auto">
+            <div class="flex items-center justify-center w-full h-[400px] bg-white">
+                <img src="{{ url_for('static', filename='img/' + producto.imagen) }}" 
+                     alt="{{ producto.nombre }}"
+                     class="object-contain w-full h-full p-4">
+            </div>
         </div>
         <div class="p-6 bg-gray-800 rounded-lg shadow-lg">
             <div class="flex items-center justify-between mb-4">
