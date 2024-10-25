@@ -3,6 +3,7 @@ from functools import wraps
 from werkzeug.utils import secure_filename
 from flask_wtf.csrf import generate_csrf
 import os
+import logging
 from bd import obtener_conexion
 from pymysql.err import IntegrityError
 from flask_wtf import CSRFProtect
@@ -24,10 +25,14 @@ csrf = CSRFProtect()
 app.secret_key = 'tu_clave_secreta'
 UPLOAD_FOLDER = 'static/img'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+logger = logging.getLogger(__name__)
 
 # Agregar la configuración de CSRF para evitar el KeyError
 app.config['WTF_CSRF_METHODS'] = ['POST', 'PUT', 'PATCH', 'DELETE']
 app.config['WTF_CSRF_FIELD_NAME'] = 'csrf_token'
+app.config['WTF_CSRF_HEADERS'] = ['X-CSRF-Token', 'X-CSRFToken', 'X-XSRF-Token']
+app.config['WTF_CSRF_ENABLED'] = True
+app.config['SECRET_KEY'] = 'tu-clave-secreta-aqui'
 
 
 def allowed_file(filename):
@@ -283,21 +288,43 @@ def editar_direccion(direccion_id):
 
     return render_template('editar_direccion.html', direccion=direccion)
 
+from pymysql import IntegrityError
+import logging
+
+logger = logging.getLogger(__name__)
+
 @app.route('/eliminar-direccion/<int:direccion_id>', methods=['POST'])
 @login_required
 def eliminar_direccion(direccion_id):
     usuario_id = session.get('usuario_id')
+    if not usuario_id:
+        flash('Debes iniciar sesión para realizar esta acción.', 'error')
+        return redirect(url_for('login'))
+        
     try:
-        controlador_direcciones.eliminar_direccion(usuario_id, direccion_id)
-        flash('Dirección eliminada con éxito.', 'success')
+        resultado = controlador_direcciones.eliminar_direccion(usuario_id, direccion_id)
+        if resultado:
+            flash('Dirección eliminada con éxito.', 'success')
+        else:
+            flash('No se pudo eliminar la dirección.', 'error')
+            
     except IntegrityError as e:
-        if e.args[0] == 1451:  # Código de error para restricción de clave foránea
-            flash('No se puede eliminar la dirección porque está asociada a un pedido existente.', 'error')
-    except Exception as e:
+        logger.error(f"Error de integridad al eliminar dirección {direccion_id}: {str(e)}")
+        if e.args[0] == 1451:
+            flash('No se puede eliminar la dirección porque está asociada a pedidos existentes.', 'error')
+        else:
+            flash('Error de integridad en la base de datos.', 'error')
+            
+    except ValueError as e:
+        logger.error(f"Error de validación al eliminar dirección {direccion_id}: {str(e)}")
         if str(e) == "La dirección no existe o no te pertenece.":
             flash('La dirección no existe o no te pertenece.', 'error')
         else:
-            flash('Error interno, inténtalo nuevamente.', 'error')
+            flash('Error de validación al procesar la solicitud.', 'error')
+            
+    except Exception as e:
+        logger.error(f"Error inesperado al eliminar dirección {direccion_id}: {str(e)}")
+        flash('Ocurrió un error inesperado. Por favor, inténtalo nuevamente.', 'error')
 
     return redirect(url_for('mis_direcciones'))
 
@@ -476,7 +503,7 @@ def realizar_pedido():
             # Enviar notificación al administrador
             usuario_nombre = session.get('usuario_nombre', 'Un usuario')
             mensaje = f'El usuario "{usuario_nombre}" acaba de realizar una compra por S/. {total:.2f}'
-            controlador_notificaciones.agregar_notificacion(usuario_id, mensaje)
+            controlador_notificaciones.agregar_notificacion(usuario_id, pedido_id, mensaje)
 
             # Redirigir a la página de confirmación del pedido
             return redirect(url_for('confirmacion_pedido', pedido_id=pedido_id))
@@ -636,11 +663,13 @@ def admin_dashboard():
     pedidos_pendientes = controlador_pedido.contar_pedidos_pendientes()
     total_usuarios = controlador_usuario.contar_usuarios()
     ingresos_mes = controlador_pedido.calcular_ingresos_mes()
+    notificaciones = controlador_notificaciones.obtener_notificaciones()
     return render_template('admin/dashboard.html', 
                            total_productos=total_productos,
                            pedidos_pendientes=pedidos_pendientes,
                            total_usuarios=total_usuarios,
-                           ingresos_mes=ingresos_mes)
+                           ingresos_mes=ingresos_mes,
+                           notificaciones=notificaciones)
 
 @admin_bp.route('/productos')
 @admin_required
@@ -799,25 +828,41 @@ def admin_editar_pedido(id):
 @admin_required
 def admin_eliminar_pedido(id):
     try:
-        controlador_pedido.eliminar_pedido(id)  # Intentar eliminar el pedido
-        flash('No se puede eliminar el pedido porque está relacionado con otros registros.', 'success') #CORREGIR ESTE MENSAJE
-    except IntegrityError as e:
-        print(f"Error de integridad: {e}")  # Depurar para asegurar que se captura el error
-        if e.args[0] == 1451:  # Código de error de clave foránea
-            flash('Pedido eliminado con exito', 'error')
+        # Intentamos eliminar el pedido
+        if controlador_pedido.eliminar_pedido(id):
+            flash('Pedido eliminado con éxito.', 'success')
         else:
-            flash(f'Ocurrió un error al eliminar el pedido: {str(e)}', 'error')
+            flash('No se pudo eliminar el pedido. Verifique que no tenga registros asociados.', 'error')
+            
+    except IntegrityError as e:
+        logger.error(f"Error de integridad al eliminar pedido {id}: {str(e)}")
+        if e.args[0] == 1451:
+            flash('No se puede eliminar el pedido porque está relacionado con otros registros.', 'error')
+        else:
+            flash('Error de integridad en la base de datos.', 'error')
+            
     except Exception as e:
-        print(f"Error inesperado: {e}")  # Depurar para detectar cualquier otro error
-        flash(f'Ocurrió un error inesperado: {str(e)}', 'error')
-    
+        logger.error(f"Error inesperado al eliminar pedido {id}: {str(e)}")
+        flash('Ocurrió un error inesperado al intentar eliminar el pedido.', 'error')
+        
     return redirect(url_for('admin.admin_pedidos'))
 
 @admin_bp.route('/categorias')
 @admin_required
 def admin_categorias():
-    categorias = controlador_categorias.obtener_todas_categorias()
-    return render_template('admin/categorias.html', categorias=categorias)
+    try:
+        categorias = controlador_categorias.obtener_todas_categorias()
+        if not categorias:
+            flash('No se encontraron categorías o hubo un error al cargarlas.', 'warning')
+            categorias = []
+        
+        for categoria in categorias:
+            categoria['productos_count'] = controlador_categorias.contar_productos_por_categoria(categoria['id'])
+            
+        return render_template('admin/categorias.html', categorias=categorias)
+    except Exception as e:
+        flash('Ocurrió un error al cargar las categorías.', 'error')
+        return render_template('admin/categorias.html', categorias=[])
 
 @admin_bp.route('/categorias/nueva', methods=['GET', 'POST'])
 @admin_required
@@ -844,16 +889,22 @@ def admin_editar_categorias(id):
 @admin_required
 def admin_eliminar_categorias(id):
     try:
-        controlador_categorias.eliminar_categorias(id)
-        flash('No se puede eliminar la categoría porque está asociada a productos.', 'success')
+        if controlador_categorias.eliminar_categorias(id):
+            flash('Categoría eliminada con éxito.', 'success')
+        else:
+            flash('No se pudo eliminar la categoría. Verifique que no tenga productos asociados.', 'error')
+            
     except IntegrityError as e:
+        logger.error(f"Error de integridad al eliminar categoría {id}: {str(e)}")
         if e.args[0] == 1451:  # Código de error de clave foránea
             flash('No se puede eliminar la categoría porque está asociada a productos.', 'error')
         else:
-            flash(f'Ocurrió un error al eliminar la categoría: {str(e)}', 'error')
+            flash('Error de integridad en la base de datos.', 'error')
+            
     except Exception as e:
-        flash(f'Ocurrió un error inesperado: {str(e)}', 'error')
-    
+        logger.error(f"Error inesperado al eliminar categoría {id}: {str(e)}")
+        flash('Ocurrió un error inesperado al intentar eliminar la categoría.', 'error')
+        
     return redirect(url_for('admin.admin_categorias'))
 
 @admin_bp.route('/usuarios')
@@ -921,26 +972,28 @@ def admin_eliminar_usuario(id):
 @admin_bp.route('/notificaciones', methods=['GET'])
 @admin_required
 def obtener_notificaciones():
-    notificaciones = controlador_notificaciones.obtener_notificaciones_no_vistas()
-    # Convertir las notificaciones a formato JSON
-    notificaciones_json = [{
-        'id': n.id,
-        'usuario_nombre': n.usuario_nombre,
-        'mensaje': n.mensaje,
-        'fecha_creacion': n.fecha_creacion.strftime('%Y-%m-%d %H:%M:%S')
-    } for n in notificaciones]
-    return jsonify(notificaciones_json)
+    try:
+        notificaciones = controlador_notificaciones.obtener_notificaciones()
+        return jsonify(notificaciones)
+    except Exception as e:
+        return jsonify([]), 500
 
 @admin_bp.route('/notificaciones/marcar_vista', methods=['POST'])
 @admin_required
 def marcar_notificacion_vista():
-    notificacion_id = request.form.get('notificacion_id')
-    if notificacion_id:
-        controlador_notificaciones.marcar_notificacion_como_vista(notificacion_id)
-        return jsonify({'success': True})
-    return jsonify({'success': False}), 400
+    try:
+        notificacion_id = request.form.get('notificacion_id')
+        if not notificacion_id:
+            return jsonify({'success': False, 'error': 'ID de notificación requerido'}), 400
+            
+        resultado = controlador_notificaciones.marcar_notificacion_como_vista(notificacion_id)
+        if resultado:
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'error': 'No se pudo actualizar la notificación'}), 400
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
-# Registrar el Blueprint después de definir todas las rutas
 app.register_blueprint(admin_bp)
 
 # Iniciar el servidor

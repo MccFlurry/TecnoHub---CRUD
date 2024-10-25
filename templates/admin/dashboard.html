@@ -29,7 +29,8 @@
         </div>
         <div class="px-5 py-3 bg-gray-50">
             <div class="text-sm">
-                <a href="{{ url_for('admin.admin_productos') }}" class="font-medium text-blue-700 hover:text-blue-900">Ver
+                <a href="{{ url_for('admin.admin_productos') }}"
+                    class="font-medium text-blue-700 hover:text-blue-900">Ver
                     todos</a>
             </div>
         </div>
@@ -58,7 +59,8 @@
         </div>
         <div class="px-5 py-3 bg-gray-50">
             <div class="text-sm">
-                <a href="{{ url_for('admin.admin_pedidos') }}" class="font-medium text-green-700 hover:text-green-900">Ver
+                <a href="{{ url_for('admin.admin_pedidos') }}"
+                    class="font-medium text-green-700 hover:text-green-900">Ver
                     todos</a>
             </div>
         </div>
@@ -88,7 +90,8 @@
         </div>
         <div class="px-5 py-3 bg-gray-50">
             <div class="text-sm">
-                <a href="{{ url_for('admin.admin_usuarios') }}" class="font-medium text-yellow-700 hover:text-yellow-900">Ver
+                <a href="{{ url_for('admin.admin_usuarios') }}"
+                    class="font-medium text-yellow-700 hover:text-yellow-900">Ver
                     todos</a>
             </div>
         </div>
@@ -127,7 +130,17 @@
 <div id="notificaciones-container" class="mb-8">
     <h2 class="text-xl font-semibold">Notificaciones</h2>
     <ul id="notificaciones-list" class="mt-4">
-        <!-- Las notificaciones se cargarán aquí -->
+        {% for notificacion in notificaciones %}
+        <li id="notificacion-{{ notificacion.id }}" class="px-4 py-2 border-b notification-item">
+            <div class="flex items-center justify-between">
+                <span>{{ notificacion.mensaje }}</span>
+                <button onclick="marcarComoVisto('{{ notificacion.id }}', this.parentElement.parentElement)"
+                    class="px-2 py-1 text-white bg-blue-500 rounded hover:bg-blue-600">
+                    Marcar como vista
+                </button>
+            </div>
+        </li>
+        {% endfor %}
     </ul>
 </div>
 
@@ -137,65 +150,144 @@
 {% block extra_js %}
 <script>
     document.addEventListener("DOMContentLoaded", () => {
+        // Obtener el token CSRF una sola vez al cargar
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        // Función para formatear la fecha
+        function formatearFecha(fechaStr) {
+            const fecha = new Date(fechaStr);
+            return fecha.toLocaleString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
         // Función para obtener las notificaciones no vistas
         function obtenerNotificaciones() {
-            fetch("{{ url_for('admin.obtener_notificaciones') }}")
+            fetch("{{ url_for('admin.obtener_notificaciones') }}", {
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                credentials: 'same-origin'
+            })
                 .then(response => response.json())
                 .then(data => {
                     const notificacionesList = document.getElementById('notificaciones-list');
                     notificacionesList.innerHTML = ''; // Limpiar la lista
+
+                    if (data.length === 0) {
+                        const emptyMessage = document.createElement('li');
+                        emptyMessage.className = 'p-4 text-center text-gray-500';
+                        emptyMessage.textContent = 'No hay notificaciones nuevas';
+                        notificacionesList.appendChild(emptyMessage);
+                        return;
+                    }
+
                     data.forEach(notificacion => {
                         const li = document.createElement('li');
-                        li.className = 'flex items-center justify-between p-4 bg-white rounded shadow mb-2';
-                        
+                        li.className = 'flex items-center justify-between p-4 bg-white rounded shadow mb-2 hover:bg-gray-50 transition-colors duration-200';
+                        li.id = `notificacion-${notificacion.id}`;
+
                         const contenido = document.createElement('div');
+                        contenido.className = 'flex-grow';
                         contenido.innerHTML = `
-                            <div class="flex items-center">
-                                <img src="{{ url_for('static', filename='static/img/cliente1.jpg') }}" alt="Usuario" class="w-8 h-8 mr-4">
-                                <div>
-                                    <p class="text-sm font-medium">${notificacion.usuario_nombre}</p>
-                                    <p class="text-sm text-gray-600">${notificacion.mensaje}</p>
-                                    <p class="text-xs text-gray-400">${notificacion.fecha_creacion}</p>
-                                </div>
+                        <div class="flex items-center">
+                            <img src="/static/img/${notificacion.usuario_foto || 'default-user.jpg'}"
+                                alt="Usuario" 
+                                class="object-cover w-8 h-8 mr-4 rounded-full">
+                            <div class="flex-grow">
+                                <p class="text-sm font-medium text-gray-900">${notificacion.usuario_nombre}</p>
+                                <p class="text-sm text-gray-600">${notificacion.mensaje}</p>
+                                <p class="text-xs text-gray-400">${formatearFecha(notificacion.fecha_creacion)}</p>
                             </div>
-                        `;
+                        </div>
+                    `;
                         const boton = document.createElement('button');
-                        boton.className = 'text-blue-500 hover:text-blue-700';
+                        boton.className = 'ml-4 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50';
                         boton.innerText = 'Marcar como visto';
-                        boton.addEventListener('click', () => marcarComoVisto(notificacion.id, li));
-                        
+
+                        // Prevenir múltiples clics
+                        boton.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            if (!this.disabled) {
+                                this.disabled = true;
+                                marcarComoVisto(notificacion.id, li);
+                            }
+                        });
+
                         li.appendChild(contenido);
                         li.appendChild(boton);
                         notificacionesList.appendChild(li);
                     });
                 })
-                .catch(error => console.error('Error al obtener notificaciones:', error));
+                .catch(error => {
+                    console.error('Error al obtener notificaciones:', error);
+                    const notificacionesList = document.getElementById('notificaciones-list');
+                    notificacionesList.innerHTML = `
+                    <li class="p-4 text-center text-red-500">
+                        Error al cargar las notificaciones. Por favor, intente nuevamente.
+                    </li>
+                `;
+                });
         }
-    
+
         // Función para marcar una notificación como vista
         function marcarComoVisto(notificacionId, elemento) {
+            const formData = new FormData();
+            formData.append('notificacion_id', notificacionId);
+
             fetch("{{ url_for('admin.marcar_notificacion_vista') }}", {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': '<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">'  // Incluimos el token CSRF en el header
+                    'X-CSRFToken': csrfToken
                 },
-                body: `notificacion_id=${notificacionId}`
+                body: formData,
+                credentials: 'same-origin'
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    elemento.remove(); // Remover la notificación de la lista
-                } else {
-                    alert('No se pudo marcar la notificación como vista.');
-                }
-            })
-            .catch(error => console.error('Error al marcar como visto:', error));
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error en la respuesta del servidor');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        elemento.classList.add('fade-out');
+                        setTimeout(() => {
+                            elemento.remove();
+                            // Verificar si no hay más notificaciones
+                            const notificacionesList = document.getElementById('notificaciones-list');
+                            if (notificacionesList.children.length === 0) {
+                                const emptyMessage = document.createElement('li');
+                                emptyMessage.className = 'p-4 text-center text-gray-500';
+                                emptyMessage.textContent = 'No hay notificaciones nuevas';
+                                notificacionesList.appendChild(emptyMessage);
+                            }
+                        }, 300);
+                    } else {
+                        throw new Error(data.error || 'No se pudo marcar la notificación como vista');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al marcar la notificación como vista: ' + error.message);
+                    // Reactivar el botón en caso de error
+                    const boton = elemento.querySelector('button');
+                    if (boton) boton.disabled = false;
+                });
         }
-    
-        // Actualizar las notificaciones cada 5 segundos
-        obtenerNotificaciones(); // Obtener inicialmente
-        setInterval(obtenerNotificaciones, 5000); // Actualizar cada 5 segundos
+
+        // Iniciar el sistema de notificaciones
+        obtenerNotificaciones();
+        const intervaloActualizacion = setInterval(obtenerNotificaciones, 5000);
+
+        // Limpiar el intervalo cuando el usuario cambie de página
+        window.addEventListener('beforeunload', () => {
+            clearInterval(intervaloActualizacion);
+        });
     });
-    </script>
-    {% endblock %}
+</script>
+{% endblock %}
