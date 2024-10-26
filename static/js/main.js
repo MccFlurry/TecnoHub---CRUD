@@ -408,3 +408,25 @@ document.addEventListener('DOMContentLoaded', function () {
     smartwatchSelect.addEventListener('change', actualizarResumen);
     accesorioSelect.addEventListener('change', actualizarResumen);
 });
+
+// Función para cerrar el mensaje flash con animación
+function closeFlashMessage() {
+    const flashMessage = document.getElementById('flashMessage');
+    if (flashMessage) {
+        flashMessage.classList.remove('slide-in');
+        flashMessage.classList.add('slide-out');
+        setTimeout(() => {
+            flashMessage.remove();
+        }, 500);
+    }
+}
+
+// Ocultar automáticamente los mensajes flash después de 5 segundos
+window.onload = function() {
+    const flashMessage = document.getElementById('flashMessage');
+    if (flashMessage) {
+        setTimeout(() => {
+            closeFlashMessage();
+        }, 5000);
+    }
+}

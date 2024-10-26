@@ -16,8 +16,68 @@
             }
         }
     </script>
+    <style>
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        .slide-in {
+            animation: slideIn 0.5s ease-out forwards;
+        }
+
+        .slide-out {
+            animation: slideOut 0.5s ease-in forwards;
+        }
+    </style>
 </head>
 <body class="h-full">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div id="flashMessage" class="fixed bottom-4 right-4 z-50 p-4 rounded-lg shadow-lg slide-in {% if category == 'error' %}bg-red-100 border border-red-400 text-red-700{% else %}bg-green-100 border border-green-400 text-green-700{% endif %}" style="max-width: 24rem;">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            {% if category == 'error' %}
+                                <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                </svg>
+                            {% else %}
+                                <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            {% endif %}
+                            <p class="text-sm font-medium">{{ message }}</p>
+                        </div>
+                        <button onclick="closeFlashMessage()" class="ml-4 hover:opacity-75">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
     <header class="fixed top-0 left-0 right-0 z-50 bg-gray-800 bg-opacity-90 backdrop-blur-md">
         <nav class="container px-4 py-4 mx-auto">
             <div class="flex items-center justify-between">
@@ -27,6 +87,7 @@
             </div>
         </nav>
     </header>
+
     <div class="flex items-center justify-center min-h-screen px-4 py-12 bg-gray-900 sm:px-6 lg:px-8">
         <div class="w-full max-w-md p-10 space-y-8 bg-white shadow-md rounded-xl">
             <div>
@@ -37,16 +98,21 @@
                     Ingrese sus credenciales para acceder a TecnoHub
                 </p>
             </div>
-            <form class="mt-8 space-y-6" action="{{ url_for('login') }}" method="POST">
+            <form id="loginForm" class="mt-8 space-y-6" action="{{ url_for('login') }}" method="POST" onsubmit="return validateForm(event)">
                 <input type="hidden" name="remember" value="true">
                 <div class="-space-y-px rounded-md shadow-sm">
                     <div>
                         <label for="email" class="sr-only">Correo electrónico</label>
-                        <input id="email" name="email" type="email" autocomplete="email" required class="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-none appearance-none rounded-t-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm" placeholder="Correo electrónico">
+                        <input id="email" name="email" type="email" autocomplete="email" required 
+                            class="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-none appearance-none rounded-t-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm" 
+                            placeholder="Correo electrónico">
+                        <p id="emailError" class="hidden mt-1 text-sm text-red-600"></p>
                     </div>
                     <div>
                         <label for="contraseña" class="sr-only">Contraseña</label>
-                        <input id="contraseña" name="contraseña" type="password" autocomplete="current-password" required class="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-none appearance-none rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm" placeholder="Contraseña">
+                        <input id="contraseña" name="contraseña" type="password" autocomplete="current-password" required 
+                            class="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-none appearance-none rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm" 
+                            placeholder="Contraseña">
                     </div>
                 </div>
 
@@ -79,5 +145,47 @@
             </p>
         </div>
     </div>
+
+    <script>
+        function validateEmail(email) {
+            const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            return re.test(email.toLowerCase());
+        }
+
+        function closeFlashMessage() {
+            const flashMessage = document.getElementById('flashMessage');
+            if (flashMessage) {
+                flashMessage.classList.remove('slide-in');
+                flashMessage.classList.add('slide-out');
+                setTimeout(() => {
+                    flashMessage.remove();
+                }, 500);
+            }
+        }
+
+        window.onload = function() {
+            const flashMessage = document.getElementById('flashMessage');
+            if (flashMessage) {
+                setTimeout(() => {
+                    closeFlashMessage();
+                }, 5000);
+            }
+        }
+
+        function validateForm(event) {
+            const email = document.getElementById('email').value;
+            const emailError = document.getElementById('emailError');
+            
+            if (!validateEmail(email)) {
+                event.preventDefault();
+                emailError.textContent = 'Por favor, ingresa un correo electrónico válido';
+                emailError.classList.remove('hidden');
+                return false;
+            }
+            
+            emailError.classList.add('hidden');
+            return true;
+        }
+    </script>
 </body>
 </html>

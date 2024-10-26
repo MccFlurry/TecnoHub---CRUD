@@ -3,6 +3,7 @@ from functools import wraps
 from werkzeug.utils import secure_filename
 from flask_wtf.csrf import generate_csrf
 import os
+import re
 import logging
 from bd import obtener_conexion
 from pymysql.err import IntegrityError
@@ -101,6 +102,11 @@ def login():
         email = request.form['email'].strip().lower()
         contraseña = request.form['contraseña']
         
+        # Validación básica del formato del email en el backend
+        if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+            flash('Por favor, ingresa un correo electrónico válido', 'error')
+            return render_template('login.html')
+        
         usuario = controlador_usuario.obtener_usuario_por_email(email)
         
         if usuario and controlador_usuario.check_password(usuario.contraseña, contraseña):
@@ -108,14 +114,15 @@ def login():
             session['usuario_tipo'] = usuario.tipo
             session['usuario_nombre'] = usuario.nombre.split()[0] if usuario.nombre else ""
             session['usuario_apellido'] = usuario.apellido.split()[0] if usuario.apellido else ""
-            flash('Inicio de sesión exitoso', 'success')
+            flash('¡Bienvenido! Has iniciado sesión exitosamente', 'success')
             
             if usuario.tipo == 'administrador':
                 return redirect(url_for('admin.admin_dashboard'))
             else:
                 return redirect(url_for('home'))
         else:
-            flash('Credenciales inválidas', 'error')
+            flash('Credenciales inválidas. Por favor, verifica tu correo y contraseña', 'error')
+            return render_template('login.html')
 
     return render_template('login.html')
 
@@ -139,7 +146,7 @@ def registro():
 def logout():
     session.clear()
     flash('Has cerrado sesión', 'info')
-    return redirect(url_for('home'))
+    return redirect(url_for('login'))
 
 @app.route('/categorias/<int:id>')
 def categorias(id):
@@ -301,7 +308,7 @@ def eliminar_direccion(direccion_id):
         if resultado:
             flash('Dirección eliminada con éxito.', 'success')
         else:
-            flash('No se pudo eliminar la dirección.', 'error')
+            flash('No se puede eliminar la dirección porque está asociada a pedidos existentes.', 'error')
             
     except IntegrityError as e:
         logger.error(f"Error de integridad al eliminar dirección {direccion_id}: {str(e)}")

@@ -37,7 +37,7 @@
                     Crea tu cuenta en TecnoHub para acceder a nuestros productos
                 </p>
             </div>
-            <form class="mt-8 space-y-6" action="{{ url_for('registro') }}" method="POST">
+            <form id="registroForm" class="mt-8 space-y-6" action="{{ url_for('registro') }}" method="POST">
                 <input type="hidden" name="remember" value="true">
                 <div class="-space-y-px rounded-md shadow-sm">
                     <div>
@@ -51,6 +51,7 @@
                     <div>
                         <label for="email" class="sr-only">Correo electrónico</label>
                         <input id="email" name="email" type="email" autocomplete="email" required class="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-none appearance-none focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm" placeholder="Correo electrónico">
+                        <p id="emailError" class="hidden mt-1 text-sm text-red-600"></p>
                     </div>
                     <div>
                         <label for="contraseña" class="sr-only">Contraseña</label>
@@ -59,6 +60,7 @@
                     <div>
                         <label for="confirm_contraseña" class="sr-only">Confirmar contraseña</label>
                         <input id="confirm_contraseña" name="confirm_contraseña" type="password" autocomplete="new-password" required class="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-none appearance-none rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm" placeholder="Confirmar contraseña">
+                        <p id="passwordError" class="hidden mt-1 text-sm text-red-600"></p>
                     </div>
                 </div>
 
@@ -76,5 +78,91 @@
             </p>
         </div>
     </div>
+
+    <script>
+        const dominiosPermitidos = [
+            '@gmail.com',
+            '@outlook.com',
+            '@hotmail.com',
+            '@yahoo.com',
+            '@icloud.com'
+        ];
+
+        function validarEmail(email) {
+            let dominioValido = false;
+            for (const dominio of dominiosPermitidos) {
+                if (email.toLowerCase().endsWith(dominio)) {
+                    dominioValido = true;
+                    break;
+                }
+            }
+            return dominioValido;
+        }
+
+        function validarContraseñas() {
+            const contraseña = document.getElementById('contraseña').value;
+            const confirmContraseña = document.getElementById('confirm_contraseña').value;
+            const passwordError = document.getElementById('passwordError');
+            
+            if (contraseña && confirmContraseña) {
+                if (contraseña !== confirmContraseña) {
+                    passwordError.textContent = 'Las contraseñas no coinciden';
+                    passwordError.classList.remove('hidden');
+                    document.getElementById('contraseña').classList.add('border-red-500');
+                    document.getElementById('confirm_contraseña').classList.add('border-red-500');
+                    return false;
+                } else {
+                    passwordError.classList.add('hidden');
+                    document.getElementById('contraseña').classList.remove('border-red-500');
+                    document.getElementById('confirm_contraseña').classList.remove('border-red-500');
+                    return true;
+                }
+            }
+            return true;
+        }
+
+        document.getElementById('registroForm').addEventListener('submit', function(e) {
+            const email = document.getElementById('email').value;
+            const emailError = document.getElementById('emailError');
+            let formValido = true;
+
+            if (!validarEmail(email)) {
+                e.preventDefault();
+                emailError.textContent = 'Por favor, utiliza un correo con dominio válido (gmail.com, outlook.com, hotmail.com, yahoo.com, icloud.com)';
+                emailError.classList.remove('hidden');
+                document.getElementById('email').classList.add('border-red-500');
+                formValido = false;
+            } else {
+                emailError.classList.add('hidden');
+                document.getElementById('email').classList.remove('border-red-500');
+            }
+
+            if (!validarContraseñas()) {
+                e.preventDefault();
+                formValido = false;
+            }
+
+            if (!formValido) {
+                e.preventDefault();
+            }
+        });
+
+        document.getElementById('email').addEventListener('input', function() {
+            const email = this.value;
+            const emailError = document.getElementById('emailError');
+
+            if (email && !validarEmail(email)) {
+                emailError.textContent = 'Por favor, utiliza un correo con dominio válido (gmail.com, outlook.com, hotmail.com, yahoo.com, icloud.com)';
+                emailError.classList.remove('hidden');
+                this.classList.add('border-red-500');
+            } else {
+                emailError.classList.add('hidden');
+                this.classList.remove('border-red-500');
+            }
+        });
+
+        document.getElementById('contraseña').addEventListener('input', validarContraseñas);
+        document.getElementById('confirm_contraseña').addEventListener('input', validarContraseñas);
+    </script>
 </body>
 </html>

@@ -237,3 +237,23 @@ document.getElementById('nombre').addEventListener('input', function() {
         nombreInput.classList.remove('border-red-500');
     }
 });
+
+function closeFlashMessage() {
+    const flashMessage = document.getElementById('flashMessage');
+    if (flashMessage) {
+        flashMessage.classList.remove('slide-in');
+        flashMessage.classList.add('slide-out');
+        setTimeout(() => {
+            flashMessage.remove();
+        }, 500);
+    }
+}
+
+window.onload = function() {
+    const flashMessage = document.getElementById('flashMessage');
+    if (flashMessage) {
+        setTimeout(() => {
+            closeFlashMessage();
+        }, 5000);
+    }
+}
