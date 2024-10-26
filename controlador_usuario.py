@@ -2,6 +2,10 @@ from bd import obtener_conexion
 from clase.clase_usuario import Usuario
 from pymysql.cursors import DictCursor
 import bcrypt
+import logging
+
+logging.basicConfig(level=logging.ERROR)
+logger = logging.getLogger(__name__)
 
 def hash_password(password):
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
@@ -117,3 +121,24 @@ def obtener_todos_usuarios():
     finally:
         conexion.close()
     return usuarios
+
+def tiene_pedidos_pendientes(usuario_id):
+    conexion = None
+    try:
+        conexion = obtener_conexion()
+        with conexion.cursor() as cursor:
+            sql = """
+            SELECT COUNT(*) 
+            FROM pedidos 
+            WHERE usuario_id = %s 
+            AND estado IN ('pendiente', 'en_proceso', 'enviado')
+            """
+            cursor.execute(sql, (usuario_id,))
+            cantidad = cursor.fetchone()[0]
+            return cantidad > 0
+    except Exception as e:
+        logger.error(f"Error al verificar pedidos pendientes del usuario {usuario_id}: {str(e)}")
+        raise
+    finally:
+        if conexion:
+            conexion.close()

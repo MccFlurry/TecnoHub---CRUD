@@ -1000,10 +1000,21 @@ def admin_editar_usuario(id):
 @admin_required
 def admin_eliminar_usuario(id):
     try:
+        if controlador_usuario.tiene_pedidos_pendientes(id):
+            flash('No se puede eliminar este usuario, ya que tiene pedidos pendientes', 'error')
+            return redirect(url_for('admin.admin_usuarios'))
+            
         controlador_usuario.eliminar_usuario(id)
         flash('Usuario eliminado con éxito', 'success')
+        
+    except IntegrityError as e:
+        logger.error(f"Error de integridad al eliminar usuario {id}: {str(e)}")
+        flash('No se puede eliminar este usuario, ya que tiene pedidos pendientes', 'error')
+        
     except Exception as e:
+        logger.error(f"Error al eliminar usuario {id}: {str(e)}")
         flash(f'Error al eliminar el usuario: {str(e)}', 'error')
+        
     return redirect(url_for('admin.admin_usuarios'))
 
 # Notificaciones PUSH
