@@ -7,9 +7,8 @@
     <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
         <div class="overflow-hidden bg-gray-800 rounded-lg shadow-lg">
             <div class="flex items-center justify-center w-full h-[400px] bg-white">
-                <img src="{{ url_for('static', filename='img/' + producto.imagen) }}" 
-                     alt="{{ producto.nombre }}"
-                     class="object-contain w-full h-full p-4">
+                <img src="{{ url_for('static', filename='img/' + producto.imagen) }}" alt="{{ producto.nombre }}"
+                    class="object-contain w-full h-full p-4">
             </div>
         </div>
         <div class="p-6 bg-gray-800 rounded-lg shadow-lg">
@@ -51,6 +50,7 @@
 
             <p class="mb-6 text-gray-300">{{ producto.descripcion }}</p>
 
+            {% if producto.stock > 0 %}
             <form action="{{ url_for('agregar_al_carrito', producto_id=producto.id) }}" method="post" class="mb-6">
                 <div class="flex items-center mb-4">
                     <label for="cantidad" class="mr-2 text-gray-300">Cantidad:</label>
@@ -58,9 +58,17 @@
                         class="w-20 px-3 py-2 text-white bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <button type="submit"
-                    class="w-full px-4 py-2 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700">Agregar
-                    al carrito</button>
+                    class="w-full px-4 py-2 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700">
+                    Agregar al carrito
+                </button>
             </form>
+            {% else %}
+            <div class="mb-6">
+                <p class="px-4 py-3 text-sm font-medium text-red-500 bg-red-100 border border-red-400 rounded-md">
+                    No hay stock disponible en este momento
+                </p>
+            </div>
+            {% endif %}
         </div>
     </div>
 
