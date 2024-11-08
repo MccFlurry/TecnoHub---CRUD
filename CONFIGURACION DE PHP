@@ -1,0 +1,19 @@
+Extensiones:
+- Descargar la extension PHP Intelephense y PHP Server
+
+Instalar php:
+1. Visita https://windows.php.net/download/
+2. Descarga la versión Thread Safe de PHP 8.3 (PHP 8.3.x VS16 x64 Thread Safe)
+3. Crea una carpeta en C:\ llamada 'php'
+4. Extrae el contenido del ZIP descargado en C:\php
+
+Configurar php en VSCode:
+1. Abre VS Code
+2. File → Preferences → Settings
+3. Busca "php"
+4. En "PHP > Validate: Executable Path" agrega:
+   C:\php\php.exe o cual sea el Path
+
+Finalmente:
+1. Click derecho dentro del notificaciones.php → PHP Server: Serve Project
+2. Disfruta :D
