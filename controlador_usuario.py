@@ -13,12 +13,12 @@ def hash_password(password):
 def check_password(hashed_password, user_password):
     return bcrypt.checkpw(user_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
-def insertar_usuario(nombre, apellido, email, contraseña, tipo, foto):
+def insertar_usuario(nombre, apellido, email, contrasena, tipo, foto):
     conexion = obtener_conexion()
     try:
         with conexion.cursor() as cursor:
-            hashed_password = hash_password(contraseña)
-            sql = "INSERT INTO usuarios(nombre, apellido, email, contraseña, tipo, foto) VALUES (%s, %s, %s, %s, %s, %s)"
+            hashed_password = hash_password(contrasena)
+            sql = "INSERT INTO usuarios(nombre, apellido, email, contrasena, tipo, foto) VALUES (%s, %s, %s, %s, %s, %s)"
             cursor.execute(sql, (nombre, apellido, email, hashed_password, tipo, foto))
         conexion.commit()
         return True
@@ -33,7 +33,7 @@ def obtener_usuario_por_id(id):
     usuario = None
     try:
         with conexion.cursor(DictCursor) as cursor:
-            sql = "SELECT id, nombre, apellido, email, tipo, foto, fecha_registro, contraseña FROM usuarios WHERE id = %s"
+            sql = "SELECT id, nombre, apellido, email, tipo, foto, fecha_registro, contrasena FROM usuarios WHERE id = %s"
             cursor.execute(sql, (id,))
             row = cursor.fetchone()
             if row:
@@ -49,7 +49,7 @@ def obtener_usuario_por_email(email):
     usuario = None
     try:
         with conexion.cursor(DictCursor) as cursor:
-            sql = "SELECT id, nombre, apellido, email, contraseña, tipo, foto, fecha_registro FROM usuarios WHERE email = %s"
+            sql = "SELECT id, nombre, apellido, email, contrasena, tipo, foto, fecha_registro FROM usuarios WHERE email = %s"
             cursor.execute(sql, (email,))
             row = cursor.fetchone()
             if row:
@@ -60,13 +60,13 @@ def obtener_usuario_por_email(email):
         conexion.close()
     return usuario
 
-def actualizar_usuario(id, nombre, apellido, email, tipo, foto=None, nueva_contraseña=None):
+def actualizar_usuario(id, nombre, apellido, email, tipo, foto=None, nueva_contrasena=None):
     conexion = obtener_conexion()
     try:
         with conexion.cursor() as cursor:
-            if nueva_contraseña:
-                hashed_password = hash_password(nueva_contraseña)
-                sql = "UPDATE usuarios SET nombre = %s, apellido = %s, email = %s, tipo = %s, foto = %s, contraseña = %s WHERE id = %s"
+            if nueva_contrasena:
+                hashed_password = hash_password(nueva_contrasena)
+                sql = "UPDATE usuarios SET nombre = %s, apellido = %s, email = %s, tipo = %s, foto = %s, contrasena = %s WHERE id = %s"
                 cursor.execute(sql, (nombre, apellido, email, tipo, foto, hashed_password, id))
             else:
                 sql = "UPDATE usuarios SET nombre = %s, apellido = %s, email = %s, tipo = %s, foto = %s WHERE id = %s"
@@ -112,7 +112,7 @@ def obtener_todos_usuarios():
     usuarios = []
     try:
         with conexion.cursor(DictCursor) as cursor:
-            sql = "SELECT id, nombre, apellido, email, tipo, foto, contraseña, fecha_registro FROM usuarios"
+            sql = "SELECT id, nombre, apellido, email, tipo, foto, contrasena, fecha_registro FROM usuarios"
             cursor.execute(sql)
             rows = cursor.fetchall()
             usuarios = [Usuario(**row) for row in rows]

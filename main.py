@@ -100,7 +100,7 @@ def home():
 def login():
     if request.method == 'POST':
         email = request.form['email'].strip().lower()
-        contraseña = request.form['contraseña']
+        contrasena = request.form['contrasena']
         
         # Validación básica del formato del email en el backend
         if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
@@ -109,7 +109,7 @@ def login():
         
         usuario = controlador_usuario.obtener_usuario_por_email(email)
         
-        if usuario and controlador_usuario.check_password(usuario.contraseña, contraseña):
+        if usuario and controlador_usuario.check_password(usuario.contrasena, contrasena):
             session['usuario_id'] = usuario.id
             session['usuario_tipo'] = usuario.tipo
             session['usuario_nombre'] = usuario.nombre.split()[0] if usuario.nombre else ""
@@ -121,7 +121,7 @@ def login():
             else:
                 return redirect(url_for('home'))
         else:
-            flash('Credenciales inválidas. Por favor, verifica tu correo y contraseña', 'error')
+            flash('Credenciales inválidas. Por favor, verifica tu correo y contrasena', 'error')
             return render_template('login.html')
 
     return render_template('login.html')
@@ -132,9 +132,9 @@ def registro():
         nombre = request.form['nombre']
         apellido = request.form['apellido']
         email = request.form['email']
-        contraseña = request.form['contraseña']
+        contrasena = request.form['contrasena']
         
-        if controlador_usuario.insertar_usuario(nombre, apellido, email, contraseña, 'cliente', None):
+        if controlador_usuario.insertar_usuario(nombre, apellido, email, contrasena, 'cliente', None):
             flash('Registro exitoso. Por favor, inicia sesión.', 'success')
             return redirect(url_for('login'))
         else:
@@ -638,27 +638,27 @@ def faqs():
 def ayuda():
     return render_template('ayuda.html')
 
-@app.route('/cambiar-contraseña', methods=['GET', 'POST'])
+@app.route('/cambiar-contrasena', methods=['GET', 'POST'])
 @login_required
-def cambiar_contraseña():
+def cambiar_contrasena():
     if request.method == 'POST':
-        contraseña_actual = request.form['contraseña_actual']
-        nueva_contraseña = request.form['nueva_contraseña']
-        confirmar_contraseña = request.form['confirmar_contraseña']
+        contrasena_actual = request.form['contrasena_actual']
+        nueva_contrasena = request.form['nueva_contrasena']
+        confirmar_contrasena = request.form['confirmar_contrasena']
         
         usuario = controlador_usuario.obtener_usuario_por_id(session['usuario_id'])
-        if check_password_hash(usuario.contraseña, contraseña_actual):
-            if nueva_contraseña == confirmar_contraseña:
-                hashed_password = generate_password_hash(nueva_contraseña)
-                controlador_usuario.actualizar_contraseña(session['usuario_id'], hashed_password)
-                flash('Contraseña actualizada correctamente', 'success')
+        if check_password_hash(usuario.contrasena, contrasena_actual):
+            if nueva_contrasena == confirmar_contrasena:
+                hashed_password = generate_password_hash(nueva_contrasena)
+                controlador_usuario.actualizar_contrasena(session['usuario_id'], hashed_password)
+                flash('contrasena actualizada correctamente', 'success')
                 return redirect(url_for('mi_cuenta'))
             else:
-                flash('Las contraseñas nuevas no coinciden', 'error')
+                flash('Las contrasenas nuevas no coinciden', 'error')
         else:
-            flash('La contraseña actual es incorrecta', 'error')
+            flash('La contrasena actual es incorrecta', 'error')
     
-    return render_template('cambiar_contraseña.html')
+    return render_template('cambiar_contrasena.html')
 
 # Rutas del Blueprint de administración
 @admin_bp.route('/')
@@ -977,7 +977,7 @@ def admin_editar_usuario(id):
         apellido = request.form['apellido']
         email = request.form['email']
         tipo = request.form['tipo']
-        nueva_contraseña = request.form.get('contraseña')
+        nueva_contrasena = request.form.get('contrasena')
         
         foto = request.files.get('foto')
         if foto and allowed_file(foto.filename):
@@ -998,7 +998,7 @@ def admin_editar_usuario(id):
             email=email,
             tipo=tipo,
             foto=filename,
-            nueva_contraseña=nueva_contraseña if nueva_contraseña else None
+            nueva_contrasena=nueva_contrasena if nueva_contrasena else None
         )
 
         flash('Usuario actualizado con éxito', 'success')

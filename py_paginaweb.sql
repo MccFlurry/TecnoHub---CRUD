@@ -342,7 +342,7 @@ CREATE TABLE `usuarios` (
   `nombre` varchar(100) NOT NULL,
   `apellido` varchar(100) NOT NULL,
   `email` varchar(100) NOT NULL,
-  `contraseña` varchar(255) NOT NULL,
+  `contrasena` varchar(255) NOT NULL,
   `tipo` enum('cliente','administrador') DEFAULT 'cliente',
   `foto` varchar(255) DEFAULT NULL,
   `fecha_registro` timestamp NOT NULL DEFAULT current_timestamp()
@@ -352,7 +352,7 @@ CREATE TABLE `usuarios` (
 -- Dumping data for table `usuarios`
 --
 
-INSERT INTO `usuarios` (`id`, `nombre`, `apellido`, `email`, `contraseña`, `tipo`, `foto`, `fecha_registro`) VALUES
+INSERT INTO `usuarios` (`id`, `nombre`, `apellido`, `email`, `contrasena`, `tipo`, `foto`, `fecha_registro`) VALUES
 (1, 'Roger', 'Zavaleta', 'meencantas7u7@gmail.com', '$2b$12$SYr0n45Sj9X4fM1zzIYUZO9SJtAq7XNATT.BUxrKWEro4qmtAWtoG', 'administrador', 'cliente2.jpg', '2024-10-17 00:46:55'),
 (3, 'Abraham', 'Vidaurre', 'cliente@gmail.com', '$2b$12$NSXzq1c8RksnOj6pk6pCYer4Z88Eno93fCTcMrWfG.VSKJ/qBfR1m', 'cliente', NULL, '2024-10-18 18:16:52');
 

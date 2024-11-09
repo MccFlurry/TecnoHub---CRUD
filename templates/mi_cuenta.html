@@ -38,28 +38,28 @@
     </div>
 
     <div class="max-w-2xl mx-auto bg-gray-800 rounded-lg p-6 shadow-lg mt-8">
-        <h3 class="text-xl font-semibold mb-4">Cambiar Contraseña</h3>
-        <form action="{{ url_for('cambiar_contraseña') }}" method="post" class="space-y-4">
+        <h3 class="text-xl font-semibold mb-4">Cambiar contrasena</h3>
+        <form action="{{ url_for('cambiar_contrasena') }}" method="post" class="space-y-4">
             <div>
-                <label for="contraseña_actual" class="block text-sm font-medium text-gray-300">Contraseña
+                <label for="contrasena_actual" class="block text-sm font-medium text-gray-300">contrasena
                     Actual:</label>
-                <input type="password" id="contraseña_actual" name="contraseña_actual" required
+                <input type="password" id="contrasena_actual" name="contrasena_actual" required
                     class="mt-1 block w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div>
-                <label for="nueva_contraseña" class="block text-sm font-medium text-gray-300">Nueva Contraseña:</label>
-                <input type="password" id="nueva_contraseña" name="nueva_contraseña" required
+                <label for="nueva_contrasena" class="block text-sm font-medium text-gray-300">Nueva contrasena:</label>
+                <input type="password" id="nueva_contrasena" name="nueva_contrasena" required
                     class="mt-1 block w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div>
-                <label for="confirmar_contraseña" class="block text-sm font-medium text-gray-300">Confirmar Nueva
-                    Contraseña:</label>
-                <input type="password" id="confirmar_contraseña" name="confirmar_contraseña" required
+                <label for="confirmar_contrasena" class="block text-sm font-medium text-gray-300">Confirmar Nueva
+                    contrasena:</label>
+                <input type="password" id="confirmar_contrasena" name="confirmar_contrasena" required
                     class="mt-1 block w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <button type="submit"
                 class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">Cambiar
-                Contraseña</button>
+                contrasena</button>
         </form>
     </div>
 </div>

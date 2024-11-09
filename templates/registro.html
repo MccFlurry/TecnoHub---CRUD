@@ -54,12 +54,12 @@
                         <p id="emailError" class="hidden mt-1 text-sm text-red-600"></p>
                     </div>
                     <div>
-                        <label for="contraseña" class="sr-only">Contraseña</label>
-                        <input id="contraseña" name="contraseña" type="password" autocomplete="new-password" required class="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-none appearance-none focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm" placeholder="Contraseña">
+                        <label for="contrasena" class="sr-only">contrasena</label>
+                        <input id="contrasena" name="contrasena" type="password" autocomplete="new-password" required class="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-none appearance-none focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm" placeholder="contrasena">
                     </div>
                     <div>
-                        <label for="confirm_contraseña" class="sr-only">Confirmar contraseña</label>
-                        <input id="confirm_contraseña" name="confirm_contraseña" type="password" autocomplete="new-password" required class="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-none appearance-none rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm" placeholder="Confirmar contraseña">
+                        <label for="confirm_contrasena" class="sr-only">Confirmar contrasena</label>
+                        <input id="confirm_contrasena" name="confirm_contrasena" type="password" autocomplete="new-password" required class="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-none appearance-none rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm" placeholder="Confirmar contrasena">
                         <p id="passwordError" class="hidden mt-1 text-sm text-red-600"></p>
                     </div>
                 </div>
@@ -99,22 +99,22 @@
             return dominioValido;
         }
 
-        function validarContraseñas() {
-            const contraseña = document.getElementById('contraseña').value;
-            const confirmContraseña = document.getElementById('confirm_contraseña').value;
+        function validarcontrasenas() {
+            const contrasena = document.getElementById('contrasena').value;
+            const confirmcontrasena = document.getElementById('confirm_contrasena').value;
             const passwordError = document.getElementById('passwordError');
             
-            if (contraseña && confirmContraseña) {
-                if (contraseña !== confirmContraseña) {
-                    passwordError.textContent = 'Las contraseñas no coinciden';
+            if (contrasena && confirmcontrasena) {
+                if (contrasena !== confirmcontrasena) {
+                    passwordError.textContent = 'Las contrasenas no coinciden';
                     passwordError.classList.remove('hidden');
-                    document.getElementById('contraseña').classList.add('border-red-500');
-                    document.getElementById('confirm_contraseña').classList.add('border-red-500');
+                    document.getElementById('contrasena').classList.add('border-red-500');
+                    document.getElementById('confirm_contrasena').classList.add('border-red-500');
                     return false;
                 } else {
                     passwordError.classList.add('hidden');
-                    document.getElementById('contraseña').classList.remove('border-red-500');
-                    document.getElementById('confirm_contraseña').classList.remove('border-red-500');
+                    document.getElementById('contrasena').classList.remove('border-red-500');
+                    document.getElementById('confirm_contrasena').classList.remove('border-red-500');
                     return true;
                 }
             }
@@ -137,7 +137,7 @@
                 document.getElementById('email').classList.remove('border-red-500');
             }
 
-            if (!validarContraseñas()) {
+            if (!validarcontrasenas()) {
                 e.preventDefault();
                 formValido = false;
             }
@@ -161,8 +161,8 @@
             }
         });
 
-        document.getElementById('contraseña').addEventListener('input', validarContraseñas);
-        document.getElementById('confirm_contraseña').addEventListener('input', validarContraseñas);
+        document.getElementById('contrasena').addEventListener('input', validarcontrasenas);
+        document.getElementById('confirm_contrasena').addEventListener('input', validarcontrasenas);
     </script>
 </body>
 </html>
