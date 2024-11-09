@@ -19,6 +19,6 @@
         </div>
     </div>
 
-    <script src="/static/js/notificaciones.js"></script>
+    <script src="/static/js/notificaciones_php.js"></script>
 </body>
 </html>

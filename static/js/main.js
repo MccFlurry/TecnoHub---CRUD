@@ -410,8 +410,8 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // Función para cerrar el mensaje flash con animación
-function closeFlashMessage() {
-    const flashMessage = document.getElementById('flashMessage');
+function closeFlashMessage(messageId) {
+    const flashMessage = document.getElementById(messageId);
     if (flashMessage) {
         flashMessage.classList.remove('slide-in');
         flashMessage.classList.add('slide-out');
@@ -423,10 +423,10 @@ function closeFlashMessage() {
 
 // Ocultar automáticamente los mensajes flash después de 5 segundos
 window.onload = function() {
-    const flashMessage = document.getElementById('flashMessage');
-    if (flashMessage) {
+    const flashMessages = document.querySelectorAll('[id^="flashMessage-"]');
+    flashMessages.forEach(message => {
         setTimeout(() => {
-            closeFlashMessage();
+            closeFlashMessage(message.id);
         }, 5000);
-    }
+    });
 }

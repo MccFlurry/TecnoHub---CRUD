@@ -1,6 +1,7 @@
 from bd import obtener_conexion
 import pymysql.cursors
 from clase.clase_notificaciones import Notificaciones
+from datetime import datetime
 
 def agregar_notificacion(usuario_id, pedido_id, mensaje):
     conexion = obtener_conexion()
@@ -52,16 +53,17 @@ def obtener_notificaciones():
             JOIN usuarios u ON n.usuario_id = u.id
             WHERE n.visto = 0
             ORDER BY n.fecha_creacion DESC
+            LIMIT 5  # Limitamos a las 5 notificaciones más recientes
             """
             cursor.execute(sql)
-            rows = cursor.fetchall()
+            notificaciones = cursor.fetchall()
             
-            notificaciones_lista = []
-            for row in rows:
-                notificacion = Notificaciones(**row)
-                notificaciones_lista.append(notificacion.serialize())
+            # Formatear las fechas y serializar los datos
+            for notificacion in notificaciones:
+                if isinstance(notificacion['fecha_creacion'], datetime):
+                    notificacion['fecha_creacion'] = notificacion['fecha_creacion'].strftime('%Y-%m-%d %H:%M:%S')
             
-            return notificaciones_lista
+            return notificaciones
             
     except Exception as e:
         print(f"Error al obtener notificaciones no vistas: {e}")

@@ -111,12 +111,9 @@ document.addEventListener("DOMContentLoaded", () => {
             });
     }
 
-    // Hacer la función marcarComoVisto accesible globalmente
     window.marcarComoVisto = marcarComoVisto;
 
-    // Iniciar el sistema de notificaciones
     obtenerNotificaciones();
     
-    // Actualizar cada 5 segundos
     setInterval(obtenerNotificaciones, 5000);
 });

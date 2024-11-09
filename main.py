@@ -507,6 +507,9 @@ def realizar_pedido():
             mensaje = f'El usuario "{usuario_nombre}" acaba de realizar una compra por S/. {total:.2f}'
             controlador_notificaciones.agregar_notificacion(usuario_id, pedido_id, mensaje)
 
+            if 'usuario_tipo' in session and session['usuario_tipo'] == 'administrador':
+                flash('Alguien realizó una compra!', 'notification')
+
             # Redirigir a la página de confirmación del pedido
             return redirect(url_for('confirmacion_pedido', pedido_id=pedido_id))
 
