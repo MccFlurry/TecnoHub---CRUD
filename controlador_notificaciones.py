@@ -91,3 +91,22 @@ def marcar_notificacion_como_vista(notificacion_id):
         return False
     finally:
         conexion.close()
+
+def obtener_notificaciones_recientes():
+    conexion = obtener_conexion()
+    try:
+        with conexion.cursor(pymysql.cursors.DictCursor) as cursor:
+            sql = """
+            SELECT id, mensaje, fecha_creacion
+            FROM notificaciones
+            WHERE fecha_creacion >= NOW() - INTERVAL 15 SECOND
+            AND visto = 0
+            ORDER BY fecha_creacion DESC
+            """
+            cursor.execute(sql)
+            return cursor.fetchall()
+    except Exception as e:
+        print(f"Error al obtener notificaciones recientes: {e}")
+        return []
+    finally:
+        conexion.close()

@@ -1052,6 +1052,14 @@ def marcar_notificacion_vista():
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+    
+@app.route('/obtener-notificaciones-recientes')
+def obtener_notificaciones_recientes():
+    if session.get('usuario_tipo') != 'administrador':
+        return jsonify([])
+
+    notificaciones = controlador_notificaciones.obtener_notificaciones_recientes()
+    return jsonify(notificaciones)
 
 app.register_blueprint(admin_bp)
 
