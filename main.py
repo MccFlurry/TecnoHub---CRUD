@@ -504,28 +504,64 @@ def carrito():
     total = sum(int(item['cantidad']) * float(item['precio']) for item in session.get('carrito', []))
     return render_template('carrito.html', carrito=session.get('carrito', []), total=total)
 
-@app.route('/eliminar-del-carrito/<int:producto_id>', methods=['POST'])
-@login_required
-def eliminar_del_carrito(producto_id):
-    if 'carrito' in session:
-        session['carrito'] = [item for item in session['carrito'] if item['producto_id'] != producto_id]
-        session.modified = True
-        flash('Producto eliminado del carrito', 'success')
-    return redirect(url_for('carrito'))
-
 @app.route('/actualizar-carrito', methods=['POST'])
 @login_required
 def actualizar_carrito():
-    if 'carrito' in session:
-        for item in session['carrito']:
-            cantidad = int(request.form.get(f'cantidad_{item["producto_id"]}', 0))
-            if cantidad > 0:
-                item['cantidad'] = cantidad
-            else:
-                session['carrito'].remove(item)
-        session.modified = True
-        flash('Carrito actualizado', 'success')
-    return redirect(url_for('carrito'))
+    try:
+        data = request.get_json()
+        producto_id = int(data.get('producto_id'))
+        nueva_cantidad = int(data.get('cantidad'))
+        
+        if 'carrito' in session:
+            carrito_actualizado = []
+            total = 0
+            for item in session['carrito']:
+                if item['producto_id'] == producto_id:
+                    if nueva_cantidad > 0:
+                        item['cantidad'] = nueva_cantidad
+                        carrito_actualizado.append(item)
+                else:
+                    carrito_actualizado.append(item)
+                total += item['precio'] * item['cantidad']
+            
+            session['carrito'] = carrito_actualizado
+            session.modified = True
+            
+            return jsonify({
+                'success': True,
+                'message': 'Carrito actualizado',
+                'total': round(total, 2)
+            })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': 'Error al actualizar el carrito'
+        }), 400
+
+@app.route('/eliminar-del-carrito/<int:producto_id>', methods=['POST'])
+@login_required
+def eliminar_del_carrito(producto_id):
+    try:
+        if 'carrito' in session:
+            carrito_actualizado = [item for item in session['carrito'] 
+                                 if item['producto_id'] != producto_id]
+            total = sum(item['precio'] * item['cantidad'] 
+                       for item in carrito_actualizado)
+            
+            session['carrito'] = carrito_actualizado
+            session.modified = True
+            
+            return jsonify({
+                'success': True,
+                'message': 'Producto eliminado del carrito',
+                'total': round(total, 2),
+                'carrito_vacio': len(carrito_actualizado) == 0
+            })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': 'Error al eliminar el producto'
+        }), 400
 
 @app.route('/realizar-pedido', methods=['GET', 'POST'])
 @login_required

@@ -26,6 +26,42 @@ document.addEventListener('DOMContentLoaded', function () {
     formularios.forEach(form => {
         form.addEventListener('submit', validarFormulario);
     });
+
+    // Nueva funcionalidad para el carrito dinámico
+    const carritoTabla = document.getElementById('carrito-tabla');
+    if (carritoTabla) {
+        // Manejar cambios en las cantidades
+        carritoTabla.querySelectorAll('.cantidad-input').forEach(input => {
+            let timeoutId;
+            
+            input.addEventListener('change', (e) => {
+                const fila = e.target.closest('tr');
+                const productoId = fila.dataset.productoId;
+                const precio = parseFloat(fila.querySelector('[data-precio]').dataset.precio);
+                const cantidad = parseInt(e.target.value);
+                
+                // Actualizar subtotal visual inmediatamente
+                const subtotalElement = fila.querySelector('.subtotal');
+                const subtotal = (precio * cantidad).toFixed(2);
+                subtotalElement.textContent = `S/.${subtotal}`;
+                
+                // Debounce la actualización en el servidor
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => {
+                    actualizarCantidadCarrito(productoId, cantidad);
+                }, 500);
+            });
+        });
+
+        // Manejar clicks en botones de eliminar
+        carritoTabla.querySelectorAll('.eliminar-item').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                const productoId = e.target.dataset.productoId;
+                const fila = e.target.closest('tr');
+                await eliminarItemCarrito(productoId, fila);
+            });
+        });
+    }
 });
 
 function agregarAlCarrito(event) {
@@ -54,6 +90,68 @@ function agregarAlCarrito(event) {
             console.error('Error:', error);
             mostrarNotificacion('Error al procesar la solicitud', 'error');
         });
+}
+
+async function actualizarCantidadCarrito(productoId, cantidad) {
+    try {
+        const response = await fetch('/actualizar-carrito', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                producto_id: productoId,
+                cantidad: cantidad
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            mostrarNotificacion(data.message || 'Carrito actualizado', 'success');
+            document.querySelector('#total-carrito strong').textContent = `S/.${data.total}`;
+            actualizarContadorCarrito(data.total_items);
+        } else {
+            mostrarNotificacion(data.message || 'Error al actualizar el carrito', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarNotificacion('Error al procesar la solicitud', 'error');
+    }
+}
+
+async function eliminarItemCarrito(productoId, fila) {
+    try {
+        const response = await fetch(`/eliminar-del-carrito/${productoId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Mostrar mensaje primero
+            mostrarNotificacion(data.message || 'Producto eliminado del carrito', 'success');
+            
+            fila.remove();
+            
+            if (data.carrito_vacio) {
+                setTimeout(() => {
+                    window.location.href = '/carrito';
+                }, 1000);
+            } else {
+                document.querySelector('#total-carrito strong').textContent = `S/.${data.total}`;
+                actualizarContadorCarrito(data.total_items);
+            }
+        } else {
+            mostrarNotificacion(data.message || 'Error al eliminar el producto', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarNotificacion('Error al procesar la solicitud', 'error');
+    }
 }
 
 function busquedaEnTiempoReal() {
@@ -148,30 +246,45 @@ function actualizarContadorCarrito(totalItems) {
 }
 
 function mostrarNotificacion(mensaje, tipo) {
+    const notificacionesContainer = document.getElementById('notificaciones');
+    
     const notificacion = document.createElement('div');
-    notificacion.classList.add('notificacion', `notificacion-${tipo}`);
+    notificacion.classList.add(
+        'mb-4',
+        'p-4',
+        'rounded-lg',
+        'shadow-lg',
+        'transform',
+        'transition-all',
+        'duration-300',
+        'translate-x-full',
+        tipo === 'success' ? 'bg-green-500' : 'bg-red-500',
+        'text-white'
+    );
     notificacion.textContent = mensaje;
 
-    document.body.appendChild(notificacion);
+    notificacionesContainer.appendChild(notificacion);
 
+    // Trigger animation
     setTimeout(() => {
-        notificacion.classList.add('mostrar');
+        notificacion.classList.remove('translate-x-full');
     }, 10);
 
+    // Remove notification after delay
     setTimeout(() => {
-        notificacion.classList.remove('mostrar');
+        notificacion.classList.add('translate-x-full');
         setTimeout(() => {
             notificacion.remove();
         }, 300);
     }, 3000);
 }
 
+// Inicializar tooltips de Bootstrap
 document.addEventListener('DOMContentLoaded', function () {
-    // Inicializar los tooltips de Bootstrap
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl)
-    })
+    });
 
     // Animación de fade-in para elementos
     const fadeElems = document.querySelectorAll('.fade-in');
@@ -184,38 +297,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     fadeElems.forEach(elem => observer.observe(elem));
-
-    // Smooth scroll para enlaces internos
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            document.querySelector(this.getAttribute('href')).scrollIntoView({
-                behavior: 'smooth'
-            });
-        });
-    });
-
-    // Validación de formulario de suscripción
-    const form = document.querySelector('form');
-    if (form) {
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
-            const email = this.querySelector('input[type="email"]').value;
-            if (validateEmail(email)) {
-                alert('¡Gracias por suscribirte!');
-                this.reset();
-            } else {
-                alert('Por favor, ingresa un email válido.');
-            }
-        });
-    }
-
-    function validateEmail(email) {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(String(email).toLowerCase());
-    }
 });
 
+// Manejo del menú móvil
 document.addEventListener('DOMContentLoaded', function () {
     const mobileMenuButton = document.getElementById('mobile-menu-button');
     const mobileMenu = document.getElementById('mobile-menu');
@@ -231,20 +315,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth'
-                });
-            }
-        });
-    });
 });
 
+// Manejo del menú de usuario
 document.addEventListener('DOMContentLoaded', function () {
     const userButton = document.querySelector('[data-menu="user"]');
     const userMenu = document.querySelector('[data-menu-content="user"]');
@@ -264,29 +337,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
+// Manejo del menú de categorías
 document.addEventListener('DOMContentLoaded', function () {
-    // Función para encontrar el botón de categorías
-    function findCategoriasButton() {
-        const buttons = document.querySelectorAll('button');
-        for (let button of buttons) {
-            if (button.textContent.trim().toLowerCase().includes('categorías')) {
-                return button;
-            }
-        }
-        return document.querySelector('[data-menu="categorias"]');
-    }
-
-    // Función para encontrar el menú de categorías
-    function findCategoriasMenu(button) {
-        if (button) {
-            const parent = button.closest('.relative, .group');
-            return parent ? parent.querySelector('.absolute, [data-menu-content="categorias"]') : null;
-        }
-        return document.querySelector('[data-menu-content="categorias"]');
-    }
-
-    const categoriasButton = findCategoriasButton();
-    const categoriasMenu = findCategoriasMenu(categoriasButton);
+    const categoriasButton = document.querySelector('[data-menu="categorias"]');
+    const categoriasMenu = document.querySelector('[data-menu-content="categorias"]');
 
     if (categoriasButton && categoriasMenu) {
         categoriasButton.addEventListener('click', function (e) {
@@ -300,28 +354,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 categoriasMenu.classList.add('hidden');
             }
         });
-    } else {
-        console.warn('No se encontró el botón de categorías o el menú de categorías');
-        console.log('Botón de categorías:', categoriasButton);
-        console.log('Menú de categorías:', categoriasMenu);
     }
 });
 
+// Manejo del formulario de búsqueda
 document.addEventListener('DOMContentLoaded', function () {
-    const campoBusqueda = document.getElementById('busqueda'); // Cambia 'busqueda' por el id correcto del input de búsqueda
-    const formBusqueda = document.querySelector('form[action="/buscar"]'); // Asegúrate de que el form apunta a la ruta correcta
+    const campoBusqueda = document.getElementById('busqueda');
+    const formBusqueda = document.querySelector('form[action="/buscar"]');
 
     if (campoBusqueda && formBusqueda) {
         campoBusqueda.addEventListener('keydown', function (event) {
             if (event.key === 'Enter') {
-                event.preventDefault(); // Prevenir el comportamiento por defecto
-                formBusqueda.submit(); // Enviar el formulario al servidor
+                event.preventDefault();
+                formBusqueda.submit();
             }
         });
     }
 });
 
-
+// Manejo de favoritos
 document.addEventListener('DOMContentLoaded', function () {
     const favButton = document.getElementById('fav-button');
     const favIcon = document.getElementById('fav-icon');
@@ -332,8 +383,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const isFavorito = favIcon.classList.contains('text-red-500');
             const url = isFavorito ? `/eliminar-favorito/${productoId}` : `/agregar-favorito/${productoId}`;
 
-            console.log('Enviando solicitud a:', url);  // Verifica si la URL es correcta
-
             fetch(url, {
                 method: 'POST',
                 headers: {
@@ -341,38 +390,32 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 body: JSON.stringify({ producto_id: productoId })
             })
-                .then(response => {
-                    console.log('Respuesta recibida:', response);
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(data => {
-                    console.log('Datos recibidos:', data);  // Imprimir los datos recibidos
                     if (data.success) {
                         if (isFavorito) {
                             favIcon.classList.remove('text-red-500');
                             favIcon.classList.add('text-gray-500');
-                            alert('Producto eliminado de tus favoritos');
+                            mostrarNotificacion('Producto eliminado de favoritos', 'success');
                         } else {
                             favIcon.classList.remove('text-gray-500');
                             favIcon.classList.add('text-red-500');
-                            alert('Producto añadido a tus favoritos');
+                            mostrarNotificacion('Producto añadido a favoritos', 'success');
                         }
                     } else {
-                        alert(`Error: ${data.message || 'Hubo un error, inténtalo nuevamente.'}`);
+                        mostrarNotificacion(data.message || 'Error al procesar la solicitud', 'error');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Error al procesar la solicitud, inténtalo nuevamente.');
+                    mostrarNotificacion('Error al procesar la solicitud', 'error');
                 });
         });
     }
 });
 
-//Arma tu kit
-
+// Funcionalidad Arma tu Kit
 document.addEventListener('DOMContentLoaded', function () {
-    // Obtener los elementos de los select y del resumen
     const celularSelect = document.getElementById('celular-select');
     const smartwatchSelect = document.getElementById('smartwatch-select');
     const accesorioSelect = document.getElementById('accesorio-select');
@@ -382,34 +425,34 @@ document.addEventListener('DOMContentLoaded', function () {
     const accesorioSeleccionado = document.getElementById('accesorio-seleccionado');
     const totalKit = document.getElementById('total-kit');
 
-    // Función para actualizar el resumen del kit
     function actualizarResumen() {
-        // Obtener los valores seleccionados
-        const celularOption = celularSelect.options[celularSelect.selectedIndex];
-        const smartwatchOption = smartwatchSelect.options[smartwatchSelect.selectedIndex];
-        const accesorioOption = accesorioSelect.options[accesorioSelect.selectedIndex];
+        if (celularSelect && smartwatchSelect && accesorioSelect) {
+            const celularOption = celularSelect.options[celularSelect.selectedIndex];
+            const smartwatchOption = smartwatchSelect.options[smartwatchSelect.selectedIndex];
+            const accesorioOption = accesorioSelect.options[accesorioSelect.selectedIndex];
 
-        // Actualizar los nombres seleccionados en el resumen
-        celularSeleccionado.textContent = celularOption.text.includes('-') ? celularOption.text.split('-')[0].trim() : 'Ninguno';
-        smartwatchSeleccionado.textContent = smartwatchOption.text.includes('-') ? smartwatchOption.text.split('-')[0].trim() : 'Ninguno';
-        accesorioSeleccionado.textContent = accesorioOption.text.includes('-') ? accesorioOption.text.split('-')[0].trim() : 'Ninguno';
+            if (celularSeleccionado && smartwatchSeleccionado && accesorioSeleccionado && totalKit) {
+                celularSeleccionado.textContent = celularOption.text.includes('-') ? celularOption.text.split('-')[0].trim() : 'Ninguno';
+                smartwatchSeleccionado.textContent = smartwatchOption.text.includes('-') ? smartwatchOption.text.split('-')[0].trim() : 'Ninguno';
+                accesorioSeleccionado.textContent = accesorioOption.text.includes('-') ? accesorioOption.text.split('-')[0].trim() : 'Ninguno';
 
-        // Calcular el total sumando los precios seleccionados
-        const total = parseFloat(celularOption.getAttribute('data-precio')) +
-            parseFloat(smartwatchOption.getAttribute('data-precio')) +
-            parseFloat(accesorioOption.getAttribute('data-precio'));
+                const total = parseFloat(celularOption.getAttribute('data-precio') || 0) +
+                    parseFloat(smartwatchOption.getAttribute('data-precio') || 0) +
+                    parseFloat(accesorioOption.getAttribute('data-precio') || 0);
 
-        // Actualizar el total en el resumen
-        totalKit.textContent = total.toFixed(2);
+                totalKit.textContent = total.toFixed(2);
+            }
+        }
     }
 
-    // Añadir eventos de cambio a los selects para actualizar el resumen dinámicamente
-    celularSelect.addEventListener('change', actualizarResumen);
-    smartwatchSelect.addEventListener('change', actualizarResumen);
-    accesorioSelect.addEventListener('change', actualizarResumen);
+    if (celularSelect && smartwatchSelect && accesorioSelect) {
+        celularSelect.addEventListener('change', actualizarResumen);
+        smartwatchSelect.addEventListener('change', actualizarResumen);
+        accesorioSelect.addEventListener('change', actualizarResumen);
+    }
 });
 
-// Función para cerrar el mensaje flash con animación
+// Función para cerrar mensajes flash
 function closeFlashMessage(messageId) {
     const flashMessage = document.getElementById(messageId);
     if (flashMessage) {
@@ -421,12 +464,76 @@ function closeFlashMessage(messageId) {
     }
 }
 
-// Ocultar automáticamente los mensajes flash después de 5 segundos
-window.onload = function() {
+// Inicialización de mensajes flash
+window.addEventListener('load', function() {
     const flashMessages = document.querySelectorAll('[id^="flashMessage-"]');
     flashMessages.forEach(message => {
         setTimeout(() => {
             closeFlashMessage(message.id);
         }, 5000);
     });
+});
+
+// Funciones de utilidad para validación
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(String(email).toLowerCase());
 }
+
+// Smooth scroll para enlaces internos
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+    });
+});
+
+// Inicializar observador de intersección para animaciones
+document.addEventListener('DOMContentLoaded', function() {
+    const animatedElements = document.querySelectorAll('.animate-on-scroll');
+    
+    const observerOptions = {
+        root: null,
+        threshold: 0.1,
+        rootMargin: '0px'
+    };
+
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animated');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    animatedElements.forEach(element => {
+        observer.observe(element);
+    });
+});
+
+// Gestión de estado de carga
+window.addEventListener('load', function() {
+    const loadingIndicator = document.getElementById('loading-indicator');
+    if (loadingIndicator) {
+        loadingIndicator.style.display = 'none';
+    }
+});
+
+// Manejo de errores global
+window.addEventListener('error', function(e) {
+    console.error('Error global:', e.error);
+    mostrarNotificacion('Ha ocurrido un error inesperado', 'error');
+});
+
+// Prevenir reenvío de formularios
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        window.location.reload();
+    }
+});
