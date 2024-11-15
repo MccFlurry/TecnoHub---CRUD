@@ -1139,7 +1139,7 @@ app.register_blueprint(admin_bp)
 def obtener_paises():
     try:
         paises = controlador_ubicacion.obtener_todos_paises()
-        return jsonify([pais.to_dict() for pais in paises])
+        return jsonify(paises)  
     except Exception as e:
         logger.error(f"Error al obtener países: {str(e)}")
         return jsonify({'error': 'Error al obtener países'}), 500
@@ -1148,7 +1148,7 @@ def obtener_paises():
 def obtener_estados(pais_id):
     try:
         estados = controlador_ubicacion.obtener_estados_por_pais(pais_id)
-        return jsonify([estado.to_dict() for estado in estados])
+        return jsonify(estados)
     except Exception as e:
         logger.error(f"Error al obtener estados: {str(e)}")
         return jsonify({'error': 'Error al obtener estados'}), 500
@@ -1157,7 +1157,7 @@ def obtener_estados(pais_id):
 def obtener_ciudades(estado_id):
     try:
         ciudades = controlador_ubicacion.obtener_ciudades_por_estado(estado_id)
-        return jsonify([ciudad.to_dict() for ciudad in ciudades])
+        return jsonify(ciudades)
     except Exception as e:
         logger.error(f"Error al obtener ciudades: {str(e)}")
         return jsonify({'error': 'Error al obtener ciudades'}), 500
@@ -1166,7 +1166,7 @@ def obtener_ciudades(estado_id):
 def obtener_distritos(ciudad_id):
     try:
         distritos = controlador_ubicacion.obtener_distritos_por_ciudad(ciudad_id)
-        return jsonify([distrito.to_dict() for distrito in distritos])
+        return jsonify(distritos)
     except Exception as e:
         logger.error(f"Error al obtener distritos: {str(e)}")
         return jsonify({'error': 'Error al obtener distritos'}), 500
