@@ -13,24 +13,31 @@
             <div class="space-y-4">
                 {% for direccion in direcciones %}
                 <div
-                    class="border border-gray-700 rounded-lg p-4 {% if direccion.direccion_predeterminada %}bg-gray-700{% endif %}">
+                    class="border border-gray-700 rounded-lg p-4 {% if direccion['direccion_predeterminada'] %}bg-gray-700{% endif %}">
                     <label class="flex items-start">
-                        <input type="radio" name="direccion_id" value="{{ direccion.id }}" required
-                            class="mt-1 text-blue-600 form-radio" {% if direccion.direccion_predeterminada %}checked{%
-                            endif %}>
+                        <input type="radio" name="direccion_id" value="{{ direccion['id'] }}" required
+                            class="mt-1 text-blue-600 form-radio" 
+                            {% if direccion['direccion_predeterminada'] %}checked{% endif %}>
                         <div class="ml-3">
                             <div class="font-medium">
-                                {{ direccion.direccion }} {{ direccion.numero }}
-                                {% if direccion.departamento %}
-                                , Dpto. {{ direccion.departamento }}
+                                {{ direccion['direccion'] }}
+                                {% if direccion.get('numero') %}
+                                {{ direccion['numero'] }}
                                 {% endif %}
-                                {% if direccion.direccion_predeterminada %}
+                                {% if direccion.get('departamento') %}
+                                , Dpto. {{ direccion['departamento'] }}
+                                {% endif %}
+                                {% if direccion['direccion_predeterminada'] %}
                                 <span class="px-2 py-1 ml-2 text-xs bg-blue-600 rounded-full">Predeterminada</span>
                                 {% endif %}
                             </div>
                             <div class="text-sm text-gray-400">
-                                {{ direccion.distrito.nombre }}, {{ direccion.ciudad.nombre }},
-                                {{ direccion.estado.nombre }}, {{ direccion.pais.nombre }}
+                                {{ direccion.get('ciudad', '') }}, 
+                                {{ direccion.get('estado', '') }},
+                                {{ direccion.get('pais', '') }}
+                                {% if direccion.get('codigo_postal') %}
+                                - CP: {{ direccion['codigo_postal'] }}
+                                {% endif %}
                             </div>
                         </div>
                     </label>
@@ -67,11 +74,10 @@
                 <tbody>
                     {% for item in session['carrito'] %}
                     <tr class="border-b border-gray-700">
-                        <td class="py-3">{{ item.nombre }}</td>
-                        <td class="py-3 text-center">{{ item.cantidad | int }}</td>
-                        <td class="py-3 text-right">S/. {{ "%.2f"|format(item.precio | float) }}</td>
-                        <td class="py-3 text-right">S/. {{ "%.2f"|format(item.cantidad | int * item.precio | float) }}
-                        </td>
+                        <td class="py-3">{{ item['nombre'] }}</td>
+                        <td class="py-3 text-center">{{ item['cantidad'] | int }}</td>
+                        <td class="py-3 text-right">S/. {{ "%.2f"|format(item['precio'] | float) }}</td>
+                        <td class="py-3 text-right">S/. {{ "%.2f"|format(item['cantidad'] | int * item['precio'] | float) }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
