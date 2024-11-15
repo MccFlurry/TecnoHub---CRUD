@@ -3,45 +3,122 @@
 {% block title %}Agregar Dirección - TecnoHub{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-center mb-8">Agregar Nueva Dirección</h1>
+<div class="container px-4 py-8 mx-auto">
+    <h1 class="mb-8 text-3xl font-bold text-center">Agregar Nueva Dirección</h1>
     
     <form action="{{ url_for('agregar_direccion') }}" method="post" class="max-w-xl mx-auto">
-        <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-8">
+        <div class="p-6 mb-8 bg-gray-800 rounded-lg shadow-lg">
             <div class="mb-4">
-                <label for="direccion" class="block text-sm font-medium mb-2">Dirección</label>
+                <label for="pais" class="block mb-2 text-sm font-medium">País</label>
+                <select id="pais" name="pais_id" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Seleccione un país</option>
+                    {% for pais in paises %}
+                        <option value="{{ pais.id }}">{{ pais.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label for="estado" class="block mb-2 text-sm font-medium">Estado/Departamento</label>
+                <select id="estado" name="estado_id" required disabled class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Seleccione un estado</option>
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label for="ciudad" class="block mb-2 text-sm font-medium">Ciudad</label>
+                <select id="ciudad" name="ciudad_id" required disabled class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Seleccione una ciudad</option>
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label for="distrito" class="block mb-2 text-sm font-medium">Distrito</label>
+                <select id="distrito" name="distrito_id" required disabled class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Seleccione un distrito</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label for="direccion" class="block mb-2 text-sm font-medium">Calle/Avenida</label>
                 <input type="text" id="direccion" name="direccion" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
-            
+
             <div class="mb-4">
-                <label for="ciudad" class="block text-sm font-medium mb-2">Ciudad</label>
-                <input type="text" id="ciudad" name="ciudad" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <label for="numero" class="block mb-2 text-sm font-medium">Número</label>
+                <input type="text" id="numero" name="numero" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
-            
+
             <div class="mb-4">
-                <label for="estado" class="block text-sm font-medium mb-2">Estado</label>
-                <input type="text" id="estado" name="estado" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            
-            <div class="mb-4">
-                <label for="pais" class="block text-sm font-medium mb-2">País</label>
-                <input type="text" id="pais" name="pais" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            
-            <div class="mb-4">
-                <label for="codigo_postal" class="block text-sm font-medium mb-2">Código Postal</label>
-                <input type="text" id="codigo_postal" name="codigo_postal" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <label class="flex items-center">
+                    <input type="checkbox" name="direccion_predeterminada" class="text-blue-500 form-checkbox">
+                    <span class="ml-2">Establecer como dirección predeterminada</span>
+                </label>
             </div>
         </div>
         
         <div class="flex justify-between">
-            <a href="{{ url_for('realizar_pedido') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">
-                Volver
+            <a href="{{ url_for('mis_direcciones') }}" class="px-4 py-2 font-bold text-white transition-colors duration-300 bg-gray-600 rounded-full hover:bg-gray-700">
+                Cancelar
             </a>
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">
+            <button type="submit" class="px-4 py-2 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700">
                 Guardar Dirección
             </button>
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const paisSelect = document.getElementById('pais');
+    const estadoSelect = document.getElementById('estado');
+    const ciudadSelect = document.getElementById('ciudad');
+    const distritoSelect = document.getElementById('distrito');
+
+    // Función para cargar opciones en un select
+    async function cargarOpciones(url, select) {
+        select.disabled = true;
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            select.innerHTML = '<option value="">Seleccione una opción</option>';
+            data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = item.nombre;
+                select.appendChild(option);
+            });
+            select.disabled = false;
+        } catch (error) {
+            console.error('Error al cargar opciones:', error);
+        }
+    }
+
+    // Event listeners
+    paisSelect.addEventListener('change', function() {
+        if (this.value) {
+            cargarOpciones(`/api/ubicacion/estados/${this.value}`, estadoSelect);
+            ciudadSelect.innerHTML = '<option value="">Seleccione una ciudad</option>';
+            distritoSelect.innerHTML = '<option value="">Seleccione un distrito</option>';
+            ciudadSelect.disabled = true;
+            distritoSelect.disabled = true;
+        }
+    });
+
+    estadoSelect.addEventListener('change', function() {
+        if (this.value) {
+            cargarOpciones(`/api/ubicacion/ciudades/${this.value}`, ciudadSelect);
+            distritoSelect.innerHTML = '<option value="">Seleccione un distrito</option>';
+            distritoSelect.disabled = true;
+        }
+    });
+
+    ciudadSelect.addEventListener('change', function() {
+        if (this.value) {
+            cargarOpciones(`/api/ubicacion/distritos/${this.value}`, distritoSelect);
+        }
+    });
+});
+</script>
 {% endblock %}

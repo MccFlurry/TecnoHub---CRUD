@@ -3,39 +3,147 @@
 {% block title %}Editar Dirección - TecnoHub{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-6">Editar Dirección</h1>
+<div class="container px-4 py-8 mx-auto">
+    <h1 class="mb-6 text-3xl font-bold">Editar Dirección</h1>
 
-    <form action="{{ url_for('editar_direccion', direccion_id=direccion.id) }}" method="POST">
-        <div class="mb-4">
-            <label for="direccion" class="block text-sm font-medium text-gray-300 mb-2">Dirección:</label>
-            <input type="text" name="direccion" id="direccion" value="{{ direccion.direccion }}" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <form action="{{ url_for('editar_direccion', direccion_id=direccion.id) }}" method="POST" class="max-w-xl mx-auto">
+        <div class="p-6 mb-8 bg-gray-800 rounded-lg shadow-lg">
+            <div class="mb-4">
+                <label for="pais" class="block mb-2 text-sm font-medium">País</label>
+                <select id="pais" name="pais_id" required 
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Seleccione un país</option>
+                    {% for pais in paises %}
+                        <option value="{{ pais.id }}" {% if pais.id == direccion.pais %}selected{% endif %}>
+                            {{ pais.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label for="estado" class="block mb-2 text-sm font-medium">Estado/Departamento</label>
+                <select id="estado" name="estado_id" required 
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Seleccione un estado</option>
+                    {% for estado in estados %}
+                        <option value="{{ estado.id }}" {% if estado.id == direccion.estado %}selected{% endif %}>
+                            {{ estado.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label for="ciudad" class="block mb-2 text-sm font-medium">Ciudad</label>
+                <select id="ciudad" name="ciudad_id" required 
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Seleccione una ciudad</option>
+                    {% for ciudad in ciudades %}
+                        <option value="{{ ciudad.id }}" {% if ciudad.id == direccion.ciudad %}selected{% endif %}>
+                            {{ ciudad.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label for="direccion" class="block mb-2 text-sm font-medium">Calle/Avenida</label>
+                <input type="text" id="direccion" name="direccion" 
+                       value="{{ direccion.direccion }}" required 
+                       class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div class="mb-4">
+                <label for="codigo_postal" class="block mb-2 text-sm font-medium">Código Postal</label>
+                <input type="text" id="codigo_postal" name="codigo_postal" 
+                       value="{{ direccion.codigo_postal }}" required 
+                       class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div class="mb-4">
+                <label class="flex items-center">
+                    <input type="checkbox" name="direccion_predeterminada" 
+                           class="text-blue-500 form-checkbox" 
+                           {% if direccion.direccion_predeterminada %}checked{% endif %}>
+                    <span class="ml-2">Establecer como dirección predeterminada</span>
+                </label>
+            </div>
         </div>
 
-        <div class="mb-4">
-            <label for="ciudad" class="block text-sm font-medium text-gray-300 mb-2">Ciudad:</label>
-            <input type="text" name="ciudad" id="ciudad" value="{{ direccion.ciudad }}" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-
-        <div class="mb-4">
-            <label for="estado" class="block text-sm font-medium text-gray-300 mb-2">Estado/Provincia:</label>
-            <input type="text" name="estado" id="estado" value="{{ direccion.estado }}" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-
-        <div class="mb-4">
-            <label for="pais" class="block text-sm font-medium text-gray-300 mb-2">País:</label>
-            <input type="text" name="pais" id="pais" value="{{ direccion.pais }}" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-
-        <div class="mb-4">
-            <label for="codigo_postal" class="block text-sm font-medium text-gray-300 mb-2">Código Postal:</label>
-            <input type="text" name="codigo_postal" id="codigo_postal" value="{{ direccion.codigo_postal }}" required class="w-full bg-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-
-        <div class="flex justify-end">
-            <a href="{{ url_for('mis_direcciones') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 mr-2">Cancelar</a>
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">Guardar Cambios</button>
+        <div class="flex justify-between">
+            <a href="{{ url_for('mis_direcciones') }}" 
+               class="px-4 py-2 font-bold text-white transition-colors duration-300 bg-gray-600 rounded-full hover:bg-gray-700">
+                Cancelar
+            </a>
+            <button type="submit" 
+                    class="px-4 py-2 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700">
+                Guardar Cambios
+            </button>
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const paisSelect = document.getElementById('pais');
+    const estadoSelect = document.getElementById('estado');
+    const ciudadSelect = document.getElementById('ciudad');
+
+    async function cargarOpciones(url, select, valorSeleccionado = null) {
+        try {
+            select.disabled = true;
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            select.innerHTML = '<option value="">Seleccione una opción</option>';
+            data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = item.nombre;
+                if (valorSeleccionado && item.id === parseInt(valorSeleccionado)) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+            select.disabled = false;
+        } catch (error) {
+            console.error('Error al cargar opciones:', error);
+        }
+    }
+
+    // Cargar estados cuando cambia el país
+    paisSelect.addEventListener('change', function() {
+        if (this.value) {
+            cargarOpciones(`/api/ubicacion/estados/${this.value}`, estadoSelect);
+            ciudadSelect.innerHTML = '<option value="">Seleccione una ciudad</option>';
+            ciudadSelect.disabled = true;
+        }
+    });
+
+    // Cargar ciudades cuando cambia el estado
+    estadoSelect.addEventListener('change', function() {
+        if (this.value) {
+            cargarOpciones(`/api/ubicacion/ciudades/${this.value}`, ciudadSelect);
+        }
+    });
+
+    // Cargar valores iniciales si existen
+    if (paisSelect.value) {
+        cargarOpciones(
+            `/api/ubicacion/estados/${paisSelect.value}`, 
+            estadoSelect, 
+            "{{ direccion.estado }}"
+        ).then(() => {
+            if (estadoSelect.value) {
+                cargarOpciones(
+                    `/api/ubicacion/ciudades/${estadoSelect.value}`, 
+                    ciudadSelect, 
+                    "{{ direccion.ciudad }}"
+                );
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

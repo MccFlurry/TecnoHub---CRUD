@@ -3,41 +3,99 @@
 {% block title %}Mis Direcciones - TecnoHub{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-center mb-8">Mis Direcciones</h1>
-    
+<div class="container px-4 py-8 mx-auto">
+    <h1 class="mb-8 text-3xl font-bold text-center">Mis Direcciones</h1>
+
     <div class="max-w-3xl mx-auto">
         {% if direcciones %}
-            {% for direccion in direcciones %}
-                <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-4 flex justify-between items-center">
-                    <div>
-                        <p class="text-lg font-semibold mb-2">{{ direccion.direccion }}</p>
-                        <p class="text-sm text-gray-400">
-                            {{ direccion.ciudad }}, {{ direccion.estado }}, {{ direccion.pais }}
+        {% for direccion in direcciones %}
+        <div class="p-6 mb-4 bg-gray-800 rounded-lg shadow-lg">
+            <div class="flex items-start justify-between">
+                <div class="flex-grow">
+                    <div class="flex items-center mb-2">
+                        <p class="text-lg font-semibold">
+                            {{ direccion['direccion'] }}
+                            {% if direccion['numero'] %}
+                            {{ direccion['numero'] }}
+                            {% endif %}
+                            {% if direccion['departamento'] %}
+                            , Dpto. {{ direccion['departamento'] }}
+                            {% endif %}
                         </p>
-                        <p class="text-sm text-gray-400">CP: {{ direccion.codigo_postal }}</p>
+                        {% if direccion['direccion_predeterminada'] %}
+                        <span class="px-2 py-1 ml-2 text-xs bg-blue-600 rounded-full">Predeterminada</span>
+                        {% endif %}
                     </div>
-                    <div class="flex space-x-2">
-                        <a href="{{ url_for('editar_direccion', direccion_id=direccion.id) }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">
-                            Editar
-                        </a>
-                        <form action="{{ url_for('eliminar_direccion', direccion_id=direccion.id) }}" method="post" onsubmit="return confirm('¿Estás seguro de que quieres eliminar esta dirección?');">
-                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">
-                                Eliminar
-                            </button>
-                        </form>
-                    </div>
+                    <p class="text-sm text-gray-400">
+                        {{ direccion['ciudad'] }}, {{ direccion['estado'] }}, {{ direccion['pais'] }}
+                        {% if direccion['codigo_postal'] %}
+                        - CP: {{ direccion['codigo_postal'] }}
+                        {% endif %}
+                    </p>
                 </div>
-            {% endfor %}
+                <div class="flex ml-4 space-x-2">
+                    {% if not direccion.direccion_predeterminada %}
+                    <form action="{{ url_for('establecer_direccion_predeterminada', direccion_id=direccion.id) }}"
+                        method="post" class="inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit"
+                            class="px-3 py-2 text-sm text-white transition-colors duration-300 bg-green-600 rounded-full hover:bg-green-700">
+                            Establecer predeterminada
+                        </button>
+                    </form>
+                    {% endif %}
+                    <a href="{{ url_for('editar_direccion', direccion_id=direccion['id']) }}"
+                        class="px-3 py-2 text-sm text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700">
+                        Editar
+                    </a>
+                    <form action="{{ url_for('eliminar_direccion', direccion_id=direccion['id']) }}" method="post"
+                        class="inline"
+                        onsubmit="return confirm('¿Estás seguro de que quieres eliminar esta dirección?');">
+                        <button type="submit"
+                            class="px-3 py-2 text-sm text-white transition-colors duration-300 bg-red-600 rounded-full hover:bg-red-700">
+                            Eliminar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
         {% else %}
-            <p class="text-center text-gray-400 mb-8">No tienes direcciones registradas.</p>
+        <div class="py-8 text-center">
+            <p class="mb-4 text-gray-400">No tienes direcciones registradas.</p>
+            <p class="text-gray-400">Agrega una dirección para realizar pedidos.</p>
+        </div>
         {% endif %}
-        
-        <div class="text-center mt-8">
-            <a href="{{ url_for('agregar_direccion') }}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full transition-colors duration-300 inline-block">
+
+        <div class="mt-8 text-center">
+            <a href="{{ url_for('agregar_direccion') }}"
+                class="inline-block px-6 py-2 font-bold text-white transition-colors duration-300 bg-green-600 rounded-full hover:bg-green-700">
                 Agregar Nueva Dirección
             </a>
         </div>
     </div>
 </div>
+
+<script>
+    async function establecerPredeterminada(direccionId) {
+        try {
+            const response = await fetch(`/api/direccion/predeterminada/${direccionId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                alert(data.error || 'Error al establecer la dirección predeterminada');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al procesar la solicitud');
+        }
+    }
+</script>
 {% endblock %}

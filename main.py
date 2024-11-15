@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, make_response, Blueprint, current_app
 from functools import wraps
 from werkzeug.utils import secure_filename
+from werkzeug.exceptions import BadRequest
 from flask_wtf.csrf import generate_csrf
 import os
 import re
@@ -18,6 +19,7 @@ import controlador_favorito
 import controlador_direcciones
 import controlador_opinion
 import controlador_notificaciones
+import controlador_ubicacion
 
 # PROYECTO ACTUALIZADO 17/11/2024 NO OLVIDAR IMPLEMENTAR PAPIS
 
@@ -258,43 +260,112 @@ def mis_favoritos():
 @login_required
 def agregar_direccion():
     if request.method == 'POST':
-        usuario_id = session.get('usuario_id')
-        if not usuario_id:
-            flash('Error: No se pudo identificar al usuario.', 'error')
+        try:
+            usuario_id = session.get('usuario_id')
+            if not usuario_id:
+                flash('Error: No se pudo identificar al usuario.', 'error')
+                return redirect(url_for('agregar_direccion'))
+
+            datos = {
+                'usuario_id': usuario_id,
+                'distrito_id': request.form.get('distrito_id'),
+                'direccion': request.form.get('direccion'),
+                'numero': request.form.get('numero'),
+                'departamento': request.form.get('departamento'),
+                'referencia': request.form.get('referencia'),
+                'direccion_predeterminada': bool(request.form.get('direccion_predeterminada', False))
+            }
+
+            # Validar campos requeridos
+            if not all([datos['distrito_id'], datos['direccion']]):
+                flash('Por favor complete todos los campos requeridos.', 'error')
+                return redirect(url_for('agregar_direccion'))
+
+            controlador_direcciones.agregar_direccion(datos)
+            flash('Dirección agregada con éxito', 'success')
+            return redirect(url_for('mis_direcciones'))
+
+        except ValueError as e:
+            flash(str(e), 'error')
+            return redirect(url_for('agregar_direccion'))
+        except Exception as e:
+            logger.error(f"Error al agregar dirección: {str(e)}")
+            flash('Ocurrió un error al agregar la dirección.', 'error')
             return redirect(url_for('agregar_direccion'))
 
-        print(f"Usuario ID: {usuario_id}")
-
-        direccion = request.form['direccion']
-        ciudad = request.form['ciudad']
-        estado = request.form['estado']
-        pais = request.form['pais']
-        codigo_postal = request.form['codigo_postal']
-        
-        controlador_direcciones.agregar_direccion(usuario_id, direccion, ciudad, estado, pais, codigo_postal)
-        flash('Dirección agregada con éxito', 'success')
+    # GET: Obtener datos para el formulario
+    try:
+        paises = controlador_ubicacion.obtener_todos_paises()
+        return render_template('agregar_direccion.html', paises=paises)
+    except Exception as e:
+        logger.error(f"Error al cargar formulario de dirección: {str(e)}")
+        flash('Error al cargar el formulario.', 'error')
         return redirect(url_for('mis_direcciones'))
-    
-    return render_template('agregar_direccion.html')
 
 @app.route('/editar-direccion/<int:direccion_id>', methods=['GET', 'POST'])
 @login_required
 def editar_direccion(direccion_id):
-    direccion = controlador_direcciones.obtener_direccion_por_id(direccion_id)
-    
-    if request.method == 'POST':
-        nueva_direccion = request.form['direccion']
-        ciudad = request.form['ciudad']
-        estado = request.form['estado']
-        pais = request.form['pais']
-        codigo_postal = request.form['codigo_postal']
+    try:
+        direccion = controlador_direcciones.obtener_direccion_por_id(direccion_id)
+        if not direccion:
+            flash('Dirección no encontrada', 'error')
+            return redirect(url_for('mis_direcciones'))
 
-        controlador_direcciones.actualizar_direccion(direccion_id, nueva_direccion, ciudad, estado, pais, codigo_postal)
-        flash('Dirección actualizada con éxito', 'success')
+        if request.method == 'POST':
+            # Recoger datos del formulario
+            datos = {
+                'direccion': request.form.get('direccion'),
+                'ciudad': request.form.get('ciudad_id'),
+                'estado': request.form.get('estado_id'),
+                'pais': request.form.get('pais_id'),
+                'codigo_postal': request.form.get('codigo_postal'),
+                'direccion_predeterminada': bool(request.form.get('direccion_predeterminada', False))
+            }
+
+            # Validar campos requeridos
+            campos_requeridos = ['direccion', 'ciudad', 'estado', 'pais', 'codigo_postal']
+            if not all(datos.get(campo) for campo in campos_requeridos):
+                flash('Por favor complete todos los campos requeridos.', 'error')
+                return redirect(url_for('editar_direccion', direccion_id=direccion_id))
+
+            controlador_direcciones.actualizar_direccion(direccion_id, datos)
+            flash('Dirección actualizada con éxito', 'success')
+            return redirect(url_for('mis_direcciones'))
+
+        # GET: Obtener datos para los combo boxes
+        paises = controlador_ubicacion.obtener_todos_paises()
+        estados = controlador_ubicacion.obtener_estados_por_pais(direccion['pais']) if direccion['pais'] else []
+        ciudades = controlador_ubicacion.obtener_ciudades_por_estado(direccion['estado']) if direccion['estado'] else []
+        
+        return render_template('editar_direccion.html', 
+                             direccion=direccion,
+                             paises=paises,
+                             estados=estados,
+                             ciudades=ciudades)
+
+    except Exception as e:
+        logger.error(f"Error en editar_direccion: {str(e)}")
+        flash('Ocurrió un error al procesar la solicitud.', 'error')
         return redirect(url_for('mis_direcciones'))
-
-    return render_template('editar_direccion.html', direccion=direccion)
-
+    
+@app.route('/establecer-direccion-predeterminada/<int:direccion_id>', methods=['POST'])
+@login_required
+def establecer_direccion_predeterminada(direccion_id):
+    try:
+        usuario_id = session.get('usuario_id')
+        resultado = controlador_direcciones.establecer_direccion_predeterminada(
+            usuario_id, direccion_id
+        )
+        if resultado:
+            flash('Dirección establecida como predeterminada', 'success')
+        else:
+            flash('No se pudo establecer la dirección como predeterminada', 'error')
+    except Exception as e:
+        logger.error(f"Error al establecer dirección predeterminada: {str(e)}")
+        flash('Error al procesar la solicitud', 'error')
+    
+    return redirect(url_for('mis_direcciones'))
+    
 @app.route('/eliminar-direccion/<int:direccion_id>', methods=['POST'])
 @login_required
 def eliminar_direccion(direccion_id):
@@ -1062,6 +1133,59 @@ def obtener_notificaciones_recientes():
     return jsonify(notificaciones)
 
 app.register_blueprint(admin_bp)
+
+#APIS
+@app.route('/api/ubicacion/paises', methods=['GET'])
+def obtener_paises():
+    try:
+        paises = controlador_ubicacion.obtener_todos_paises()
+        return jsonify([pais.to_dict() for pais in paises])
+    except Exception as e:
+        logger.error(f"Error al obtener países: {str(e)}")
+        return jsonify({'error': 'Error al obtener países'}), 500
+
+@app.route('/api/ubicacion/estados/<int:pais_id>', methods=['GET'])
+def obtener_estados(pais_id):
+    try:
+        estados = controlador_ubicacion.obtener_estados_por_pais(pais_id)
+        return jsonify([estado.to_dict() for estado in estados])
+    except Exception as e:
+        logger.error(f"Error al obtener estados: {str(e)}")
+        return jsonify({'error': 'Error al obtener estados'}), 500
+
+@app.route('/api/ubicacion/ciudades/<int:estado_id>', methods=['GET'])
+def obtener_ciudades(estado_id):
+    try:
+        ciudades = controlador_ubicacion.obtener_ciudades_por_estado(estado_id)
+        return jsonify([ciudad.to_dict() for ciudad in ciudades])
+    except Exception as e:
+        logger.error(f"Error al obtener ciudades: {str(e)}")
+        return jsonify({'error': 'Error al obtener ciudades'}), 500
+
+@app.route('/api/ubicacion/distritos/<int:ciudad_id>', methods=['GET'])
+def obtener_distritos(ciudad_id):
+    try:
+        distritos = controlador_ubicacion.obtener_distritos_por_ciudad(ciudad_id)
+        return jsonify([distrito.to_dict() for distrito in distritos])
+    except Exception as e:
+        logger.error(f"Error al obtener distritos: {str(e)}")
+        return jsonify({'error': 'Error al obtener distritos'}), 500
+
+@app.route('/api/direccion/geocodificar', methods=['POST'])
+@login_required
+def geocodificar_direccion():
+    try:
+        datos = request.get_json()
+        if not datos or 'direccion' not in datos:
+            raise BadRequest('Dirección requerida')
+
+        resultado = controlador_direcciones.geocodificar_direccion(datos['direccion'])
+        if resultado:
+            return jsonify(resultado)
+        return jsonify({'error': 'No se pudo geocodificar la dirección'}), 400
+    except Exception as e:
+        logger.error(f"Error en geocodificación: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 # Iniciar el servidor
 if __name__ == "__main__":
