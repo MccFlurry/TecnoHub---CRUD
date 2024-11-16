@@ -26,6 +26,24 @@
                     <p class="text-gray-400">Total:</p>
                     <p class="font-semibold">S/.{{ "%.2f"|format(pedido['total']) }}</p>
                 </div>
+                {% if pedido.get('metodo_pago') %}
+                <div class="col-span-2">
+                    <p class="text-gray-400">Método de Pago:</p>
+                    <p class="flex items-center font-semibold">
+                        {% if pedido['metodo_pago']['tipo'] == 'visa' %}
+                        <i class='text-blue-400 bx bxl-visa mr-2'></i>
+                        {% elif pedido['metodo_pago']['tipo'] == 'mastercard' %}
+                        <i class='text-orange-400 bx bxl-mastercard mr-2'></i>
+                        {% elif pedido['metodo_pago']['tipo'] == 'american_express' %}
+                        <i class='text-blue-600 bx bxl-amex mr-2'></i>
+                        {% else %}
+                        <i class='text-gray-400 bx bxs-credit-card mr-2'></i>
+                        {% endif %}
+                        {{ pedido['metodo_pago']['tipo']|replace('_', ' ')|title }}
+                        •••• {{ pedido['metodo_pago']['numero_tarjeta'] }}
+                    </p>
+                </div>
+                {% endif %}
             </div>
 
             <h2 class="mb-4 text-2xl font-semibold">Información del Cliente</h2>

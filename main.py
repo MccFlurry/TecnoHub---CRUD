@@ -576,13 +576,20 @@ def realizar_pedido():
                 flash('Debes seleccionar una dirección de envío', 'error')
                 return redirect(url_for('realizar_pedido'))
 
+            # Obtener el método de pago seleccionado (opcional)
+            metodo_pago_id = request.form.get('metodo_pago_id')
+
             # Crear el pedido
             usuario_id = session.get('usuario_id')
             if not usuario_id:
                 flash('No se pudo identificar al usuario. Por favor, inicia sesión nuevamente.', 'error')
                 return redirect(url_for('login'))
 
-            pedido_id = controlador_pedido.crear_pedido(usuario_id, int(direccion_id))
+            pedido_id = controlador_pedido.crear_pedido(
+                usuario_id=usuario_id,
+                direccion_id=int(direccion_id),
+                metodo_pago_id=int(metodo_pago_id) if metodo_pago_id else None
+            )
             total = 0
 
             # Agregar los detalles del pedido
@@ -626,9 +633,10 @@ def realizar_pedido():
     # Si es una solicitud GET, mostrar la página para seleccionar la dirección de envío
     try:
         direcciones = controlador_direcciones.obtener_direcciones_usuario(session['usuario_id'])
+        metodos_pago = controlador_metodo_pago.listar_metodos_pago(session['usuario_id'])
     except Exception as e:
-        app.logger.error(f'Error al obtener direcciones del usuario: {str(e)}')
-        flash('Ocurrió un error al cargar tus direcciones. Por favor, inténtalo nuevamente.', 'error')
+        app.logger.error(f'Error al obtener datos del usuario: {str(e)}')
+        flash('Ocurrió un error al cargar tus datos. Por favor, inténtalo nuevamente.', 'error')
         return redirect(url_for('home'))
 
     # Calcular el total del pedido para mostrarlo en la página
@@ -642,7 +650,7 @@ def realizar_pedido():
                 flash('Ocurrió un error al calcular el total del carrito. Por favor, revisa los productos.', 'error')
                 return redirect(url_for('carrito'))
 
-    return render_template('realizar_pedido.html', direcciones=direcciones, total=total)
+    return render_template('realizar_pedido.html', direcciones=direcciones, metodos_pago=metodos_pago, total=total)
 
 @app.route('/pedido/<int:pedido_id>', methods=['GET'])
 @login_required

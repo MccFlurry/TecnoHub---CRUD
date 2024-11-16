@@ -6,13 +6,19 @@ import pymysql as MySQLdb
 import pymysql
 from pymysql.cursors import DictCursor
 
-def crear_pedido(usuario_id, direccion_id):
+def crear_pedido(usuario_id, direccion_id, metodo_pago_id=None):
     conexion = obtener_conexion()
     fecha_pedido = datetime.now()
     try:
         with conexion.cursor() as cursor:
-            sql = "INSERT INTO pedidos (usuario_id, direccion_id, fecha_pedido, estado) VALUES (%s, %s, %s, 'pendiente')"
-            cursor.execute(sql, (usuario_id, direccion_id, fecha_pedido))
+            if metodo_pago_id:
+                sql = """INSERT INTO pedidos (usuario_id, direccion_id, metodo_pago_id, fecha_pedido, estado) 
+                        VALUES (%s, %s, %s, %s, 'pendiente')"""
+                cursor.execute(sql, (usuario_id, direccion_id, metodo_pago_id, fecha_pedido))
+            else:
+                sql = """INSERT INTO pedidos (usuario_id, direccion_id, fecha_pedido, estado) 
+                        VALUES (%s, %s, %s, 'pendiente')"""
+                cursor.execute(sql, (usuario_id, direccion_id, fecha_pedido))
             pedido_id = cursor.lastrowid
         conexion.commit()
         return pedido_id
@@ -43,14 +49,18 @@ def obtener_pedidos_por_usuario(usuario_id):
     try:
         with conexion.cursor(DictCursor) as cursor:
             sql = """
-            SELECT p.id, p.usuario_id, u.email, u.nombre, u.apellido, p.fecha_pedido, p.estado, d.direccion, d.ciudad, d.estado AS direccion_estado, d.pais, d.codigo_postal,
+            SELECT p.id, p.usuario_id, u.email, u.nombre, u.apellido, p.fecha_pedido, p.estado, 
+                   d.direccion, d.ciudad, d.estado AS direccion_estado, d.pais, d.codigo_postal,
+                   mp.tipo AS metodo_pago_tipo, mp.numero_tarjeta,
                    SUM(dp.precio_unitario * dp.cantidad) AS total
             FROM pedidos p
             JOIN direcciones d ON p.direccion_id = d.id
             JOIN detalles_pedido dp ON dp.pedido_id = p.id
             JOIN usuarios u ON p.usuario_id = u.id
+            LEFT JOIN metodos_pago mp ON p.metodo_pago_id = mp.id
             WHERE p.usuario_id = %s
-            GROUP BY p.id, p.usuario_id, p.fecha_pedido, p.estado, d.direccion, d.ciudad, d.estado, d.pais, d.codigo_postal, u.email, u.nombre, u.apellido
+            GROUP BY p.id, p.usuario_id, p.fecha_pedido, p.estado, d.direccion, d.ciudad, d.estado, 
+                     d.pais, d.codigo_postal, u.email, u.nombre, u.apellido, mp.tipo, mp.numero_tarjeta
             """
             cursor.execute(sql, (usuario_id,))
             rows = cursor.fetchall()
@@ -62,6 +72,11 @@ def obtener_pedidos_por_usuario(usuario_id):
                     'pais': row['pais'],
                     'codigo_postal': row['codigo_postal']
                 }
+                if row['metodo_pago_tipo']:
+                    row['metodo_pago'] = {
+                        'tipo': row['metodo_pago_tipo'],
+                        'numero_tarjeta': row['numero_tarjeta'][-4:] if row['numero_tarjeta'] else None
+                    }
                 pedidos.append(row)
     except MySQLdb.Error as e:
         print(f"Error al obtener los pedidos del usuario {usuario_id}: {str(e)}")
@@ -128,10 +143,14 @@ def obtener_pedido_por_id(id):
     try:
         with conexion.cursor(DictCursor) as cursor:
             cursor.execute("""
-                SELECT p.id, p.usuario_id, p.fecha_pedido, p.estado, u.nombre, u.apellido, u.email, d.direccion, d.ciudad, d.estado AS direccion_estado, d.pais, d.codigo_postal
+                SELECT p.id, p.usuario_id, p.fecha_pedido, p.estado, 
+                       u.nombre, u.apellido, u.email, 
+                       d.direccion, d.ciudad, d.estado AS direccion_estado, d.pais, d.codigo_postal,
+                       mp.tipo AS metodo_pago_tipo, mp.numero_tarjeta
                 FROM pedidos p
                 JOIN usuarios u ON p.usuario_id = u.id
                 JOIN direcciones d ON p.direccion_id = d.id
+                LEFT JOIN metodos_pago mp ON p.metodo_pago_id = mp.id
                 WHERE p.id = %s
             """, (id,))
             pedido = cursor.fetchone()
@@ -151,6 +170,13 @@ def obtener_pedido_por_id(id):
 
                 pedido['detalles'] = detalles
                 pedido['total'] = total
+                
+                # Formatear la información del método de pago
+                if pedido['metodo_pago_tipo']:
+                    pedido['metodo_pago'] = {
+                        'tipo': pedido['metodo_pago_tipo'],
+                        'numero_tarjeta': pedido['numero_tarjeta'][-4:] if pedido['numero_tarjeta'] else None
+                    }
     except MySQLdb.Error as e:
         print(f"Error al obtener el pedido con id {id}: {str(e)}")
     finally:

@@ -61,6 +61,57 @@
         </div>
 
         <div class="p-6 mb-8 bg-gray-800 rounded-lg shadow-lg">
+            <h2 class="mb-4 text-xl font-semibold">Método de Pago</h2>
+            {% if metodos_pago %}
+            <div class="space-y-4">
+                {% for metodo in metodos_pago %}
+                <div class="border border-gray-700 rounded-lg p-4 {% if metodo['predeterminado'] %}bg-gray-700{% endif %}">
+                    <label class="flex items-start">
+                        <input type="radio" name="metodo_pago_id" value="{{ metodo['id'] }}" required
+                            class="mt-1 text-blue-600 form-radio"
+                            {% if metodo['predeterminado'] %}checked{% endif %}>
+                        <div class="ml-3">
+                            <div class="font-medium flex items-center">
+                                {% if metodo.tipo == 'visa' %}
+                                <i class='text-blue-400 bx bxl-visa mr-2'></i>
+                                {% elif metodo.tipo == 'mastercard' %}
+                                <i class='text-orange-400 bx bxl-mastercard mr-2'></i>
+                                {% elif metodo.tipo == 'american_express' %}
+                                <i class='text-blue-600 bx bxl-amex mr-2'></i>
+                                {% else %}
+                                <i class='text-gray-400 bx bxs-credit-card mr-2'></i>
+                                {% endif %}
+                                {{ metodo.tipo|replace('_', ' ')|title }}
+                                •••• {{ metodo['numero_tarjeta'][-4:] }}
+                                {% if metodo['predeterminado'] %}
+                                <span class="px-2 py-1 ml-2 text-xs bg-blue-600 rounded-full">Predeterminada</span>
+                                {% endif %}
+                            </div>
+                            <div class="text-sm text-gray-400">
+                                Vence: {{ metodo['fecha_vencimiento'] }}
+                            </div>
+                        </div>
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="mt-4 text-center">
+                <a href="{{ url_for('agregar_metodo_pago') }}" class="text-blue-500 hover:underline">
+                    Agregar un nuevo método de pago
+                </a>
+            </div>
+            {% else %}
+            <div class="py-4 text-center">
+                <p class="mb-4 text-gray-300">No tienes métodos de pago registrados.</p>
+                <a href="{{ url_for('agregar_metodo_pago') }}"
+                    class="px-4 py-2 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700">
+                    Agregar un método de pago
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="p-6 mb-8 bg-gray-800 rounded-lg shadow-lg">
             <h2 class="mb-4 text-xl font-semibold">Resumen del Pedido</h2>
             <table class="w-full mb-4">
                 <thead>
@@ -95,9 +146,9 @@
                 class="px-4 py-2 font-bold text-white transition-colors duration-300 bg-gray-600 rounded-full hover:bg-gray-700">
                 Volver al Carrito
             </a>
-            <button type="submit"
+            <button type="submit" id="submitButton"
                 class="px-6 py-2 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700"
-                {% if not direcciones %}disabled{% endif %}>
+                {% if not direcciones or not metodos_pago %}disabled{% endif %}>
                 Confirmar Pedido
             </button>
         </div>
@@ -105,17 +156,64 @@
 </div>
 
 <script>
-    document.getElementById('pedidoForm').addEventListener('submit', function (event) {
-        if (!document.querySelector('input[name="direccion_id"]:checked')) {
-            event.preventDefault();
-            alert('Por favor, selecciona una dirección de envío');
-            return;
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('pedidoForm');
+        const submitButton = document.getElementById('submitButton');
+
+        function validarFormulario() {
+            const direccionSeleccionada = document.querySelector('input[name="direccion_id"]:checked');
+            const metodoPagoSeleccionado = document.querySelector('input[name="metodo_pago_id"]:checked');
+            
+            if (direccionSeleccionada && metodoPagoSeleccionado) {
+                submitButton.disabled = false;
+                submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                submitButton.disabled = true;
+                submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+            }
         }
 
-        const confirmation = confirm('¿Estás seguro de que deseas realizar este pedido?');
-        if (!confirmation) {
+        // Validar al cargar la página
+        validarFormulario();
+
+        // Validar cuando cambian las selecciones
+        document.querySelectorAll('input[name="direccion_id"], input[name="metodo_pago_id"]').forEach(input => {
+            input.addEventListener('change', validarFormulario);
+        });
+
+        form.addEventListener('submit', function(event) {
             event.preventDefault();
-        }
+            
+            const direccionSeleccionada = document.querySelector('input[name="direccion_id"]:checked');
+            const metodoPagoSeleccionado = document.querySelector('input[name="metodo_pago_id"]:checked');
+            
+            if (!direccionSeleccionada) {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Por favor, selecciona una dirección de envío',
+                    icon: 'error',
+                    confirmButtonText: 'Entendido',
+                    background: '#1F2937',
+                    color: '#fff'
+                });
+                return;
+            }
+            
+            if (!metodoPagoSeleccionado) {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Por favor, selecciona un método de pago',
+                    icon: 'error',
+                    confirmButtonText: 'Entendido',
+                    background: '#1F2937',
+                    color: '#fff'
+                });
+                return;
+            }
+            
+            // Si todo está validado, enviar el formulario
+            this.submit();
+        });
     });
 </script>
 {% endblock %}
