@@ -5,6 +5,7 @@ import requests
 import logging
 from datetime import datetime, timedelta
 import json
+import controlador_ubicacion
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -68,7 +69,7 @@ def geocodificar_direccion(direccion_completa):
     finally:
         conexion.close()
 
-def agregar_direccion(usuario_id, direccion, ciudad, estado, pais, codigo_postal):
+def agregar_direccion(usuario_id, direccion, ciudad_id, estado_id, pais_id, codigo_postal):
     conexion = obtener_conexion()
     try:
         with conexion.cursor() as cursor:
@@ -80,8 +81,20 @@ def agregar_direccion(usuario_id, direccion, ciudad, estado, pais, codigo_postal
             if not cursor.fetchone():
                 raise ValueError(f"Usuario con ID {usuario_id} no existe.")
 
+            # Obtener nombres de ubicaciones
+            ciudad_data = controlador_ubicacion.obtener_ciudad_por_id(ciudad_id)
+            estado_data = controlador_ubicacion.obtener_estado_por_id(estado_id)
+            pais_data = controlador_ubicacion.obtener_pais_por_id(pais_id)
+
+            if not all([ciudad_data, estado_data, pais_data]):
+                raise ValueError("No se encontraron todos los datos de ubicación")
+
+            ciudad_nombre = ciudad_data['nombre']
+            estado_nombre = estado_data['nombre']
+            pais_nombre = pais_data['nombre']
+
             # Geocodificar dirección
-            direccion_completa = f"{direccion}, {ciudad}, {estado}, {pais}"
+            direccion_completa = f"{direccion}, {ciudad_nombre}, {estado_nombre}, {pais_nombre}"
             coordenadas = geocodificar_direccion(direccion_completa)
 
             # SQL modificado para incluir nuevos campos
@@ -92,21 +105,17 @@ def agregar_direccion(usuario_id, direccion, ciudad, estado, pais, codigo_postal
             ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             cursor.execute(sql, (
-                usuario_id, direccion, ciudad, estado, pais, 
+                usuario_id, direccion, ciudad_nombre, estado_nombre, pais_nombre, 
                 codigo_postal,
                 coordenadas['latitud'] if coordenadas else None,
                 coordenadas['longitud'] if coordenadas else None,
                 direccion_completa
             ))
-        
-        conexion.commit()
-        logger.info("Dirección agregada con éxito.")
-    except ValueError as e:
-        logger.error(f"Error de validación: {e}")
-        conexion.rollback()
-        raise
+            
+            conexion.commit()
+            return cursor.lastrowid
     except Exception as e:
-        logger.error(f"Error al agregar dirección: {e}")
+        logger.error(f"Error al agregar dirección: {str(e)}")
         conexion.rollback()
         raise
     finally:
@@ -156,6 +165,18 @@ def actualizar_direccion(id, datos):
             if not cursor.fetchone():
                 raise ValueError("Dirección no encontrada")
 
+            # Obtener nombres de ubicaciones
+            ciudad_data = controlador_ubicacion.obtener_ciudad_por_id(datos['ciudad'])
+            estado_data = controlador_ubicacion.obtener_estado_por_id(datos['estado'])
+            pais_data = controlador_ubicacion.obtener_pais_por_id(datos['pais'])
+
+            if not all([ciudad_data, estado_data, pais_data]):
+                raise ValueError("No se encontraron todos los datos de ubicación")
+
+            ciudad_nombre = ciudad_data['nombre']
+            estado_nombre = estado_data['nombre']
+            pais_nombre = pais_data['nombre']
+
             # Si es dirección predeterminada, actualizar las demás
             if datos.get('direccion_predeterminada'):
                 cursor.execute("""
@@ -177,9 +198,9 @@ def actualizar_direccion(id, datos):
             """
             cursor.execute(sql, (
                 datos['direccion'],
-                datos['ciudad'],
-                datos['estado'],
-                datos['pais'],
+                ciudad_nombre,
+                estado_nombre,
+                pais_nombre,
                 datos['codigo_postal'],
                 datos.get('direccion_predeterminada', False),
                 id

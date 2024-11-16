@@ -20,6 +20,8 @@ import controlador_direcciones
 import controlador_opinion
 import controlador_notificaciones
 import controlador_ubicacion
+import controlador_metodo_pago
+from clase.clase_metodo_pago import MetodoPago
 
 # PROYECTO ACTUALIZADO 17/11/2024 NO OLVIDAR IMPLEMENTAR PAPIS
 
@@ -689,6 +691,107 @@ def mi_cuenta():
     usuario_id = session.get('usuario_id')
     usuario = controlador_usuario.obtener_usuario_por_id(usuario_id)
     return render_template('mi_cuenta.html', usuario=usuario)
+
+@app.route('/mis-metodos-pago')
+@login_required
+def mis_metodos_pago():
+    metodos = controlador_metodo_pago.listar_metodos_pago(session['usuario_id'])
+    return render_template('metodos_pago.html', metodos=metodos)
+
+@app.route('/agregar-metodo-pago', methods=['GET', 'POST'])
+@login_required
+def agregar_metodo_pago():
+    if request.method == 'POST':
+        tipo = request.form.get('tipo')
+        numero_tarjeta = request.form.get('numero_tarjeta')
+        titular = request.form.get('titular')
+        fecha_vencimiento = request.form.get('fecha_vencimiento')
+        cvv = request.form.get('cvv')
+        predeterminado = bool(request.form.get('predeterminado'))
+
+        metodo = MetodoPago(
+            usuario_id=session['usuario_id'],
+            tipo=tipo,
+            numero_tarjeta=numero_tarjeta,
+            titular=titular,
+            fecha_vencimiento=fecha_vencimiento,
+            cvv=cvv,
+            predeterminado=predeterminado
+        )
+        
+        try:
+            controlador_metodo_pago.insertar_metodo_pago(metodo)
+            flash('Método de pago agregado correctamente', 'success')
+            return redirect(url_for('mis_metodos_pago'))
+        except Exception as e:
+            flash('Error al agregar el método de pago', 'error')
+            return redirect(url_for('agregar_metodo_pago'))
+            
+    return render_template('agregar_metodo_pago.html')
+
+@app.route('/editar-metodo-pago/<int:id>', methods=['GET', 'POST'])
+@login_required
+def editar_metodo_pago(id):
+    metodo = controlador_metodo_pago.obtener_metodo_pago(id)
+    if not metodo or metodo['usuario_id'] != session['usuario_id']:
+        flash('Método de pago no encontrado', 'error')
+        return redirect(url_for('mis_metodos_pago'))
+    
+    if request.method == 'POST':
+        tipo = request.form.get('tipo')
+        titular = request.form.get('titular')
+        fecha_vencimiento = request.form.get('fecha_vencimiento')
+        predeterminado = bool(request.form.get('predeterminado'))
+
+        metodo_actualizado = MetodoPago(
+            id=id,
+            usuario_id=session['usuario_id'],
+            tipo=tipo,
+            titular=titular,
+            fecha_vencimiento=fecha_vencimiento,
+            predeterminado=predeterminado
+        )
+        
+        try:
+            controlador_metodo_pago.actualizar_metodo_pago(id, metodo_actualizado)
+            flash('Método de pago actualizado correctamente', 'success')
+            return redirect(url_for('mis_metodos_pago'))
+        except Exception as e:
+            flash('Error al actualizar el método de pago', 'error')
+            
+    return render_template('editar_metodo_pago.html', metodo=metodo)
+
+@app.route('/eliminar-metodo-pago/<int:id>', methods=['POST'])
+@login_required
+def eliminar_metodo_pago(id):
+    metodo = controlador_metodo_pago.obtener_metodo_pago(id)
+    if not metodo or metodo['usuario_id'] != session['usuario_id']:
+        flash('Método de pago no encontrado', 'error')
+        return redirect(url_for('mis_metodos_pago'))
+    
+    try:
+        controlador_metodo_pago.eliminar_metodo_pago(id)
+        flash('Método de pago eliminado correctamente', 'success')
+    except Exception as e:
+        flash('Error al eliminar el método de pago', 'error')
+        
+    return redirect(url_for('mis_metodos_pago'))
+
+@app.route('/establecer-metodo-pago-predeterminado/<int:id>', methods=['POST'])
+@login_required
+def establecer_metodo_pago_predeterminado(id):
+    metodo = controlador_metodo_pago.obtener_metodo_pago(id)
+    if not metodo or metodo['usuario_id'] != session['usuario_id']:
+        flash('Método de pago no encontrado', 'error')
+        return redirect(url_for('mis_metodos_pago'))
+    
+    try:
+        controlador_metodo_pago.establecer_predeterminado(id, session['usuario_id'])
+        flash('Método de pago establecido como predeterminado', 'success')
+    except Exception as e:
+        flash('Error al establecer el método de pago como predeterminado', 'error')
+        
+    return redirect(url_for('mis_metodos_pago'))
 
 @app.route('/actualizar-cuenta', methods=['POST'])
 @login_required

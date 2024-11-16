@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Método de Pago - TecnoHub{% endblock %}
+
+{% block content %}
+<main class="container px-4 py-24 mx-auto">
+    <div class="max-w-2xl mx-auto">
+        <div class="p-6 bg-gray-800 rounded-lg shadow-lg">
+            <h1 class="mb-6 text-2xl font-bold text-white">Editar Método de Pago</h1>
+            
+            <form action="{{ url_for('editar_metodo_pago', id=metodo.id) }}" method="POST" class="space-y-6">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div>
+                    <label for="tipo" class="block mb-2 text-sm font-medium text-gray-300">Tipo de Tarjeta</label>
+                    <select class="w-full px-4 py-2 text-white bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                            id="tipo" name="tipo" required>
+                        <option value="">Selecciona un tipo de tarjeta</option>
+                        <option value="visa" {% if metodo.tipo == 'visa' %}selected{% endif %}>Visa</option>
+                        <option value="mastercard" {% if metodo.tipo == 'mastercard' %}selected{% endif %}>Mastercard</option>
+                        <option value="american_express" {% if metodo.tipo == 'american_express' %}selected{% endif %}>American Express</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-gray-300">Número de Tarjeta</label>
+                    <div class="px-4 py-2 text-gray-400 bg-gray-700 border border-gray-600 rounded-lg">
+                        {{ metodo.numero_tarjeta }}
+                    </div>
+                    <p class="mt-1 text-sm text-gray-400">El número de tarjeta no se puede editar por seguridad.</p>
+                </div>
+
+                <div>
+                    <label for="titular" class="block mb-2 text-sm font-medium text-gray-300">Titular de la Tarjeta</label>
+                    <input type="text" class="w-full px-4 py-2 text-white bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                           id="titular" name="titular" value="{{ metodo.titular }}" required>
+                </div>
+
+                <div>
+                    <label for="fecha_vencimiento" class="block mb-2 text-sm font-medium text-gray-300">Fecha de Vencimiento</label>
+                    <input type="month" class="w-full px-4 py-2 text-white bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                           id="fecha_vencimiento" name="fecha_vencimiento" 
+                           value="{{ metodo.fecha_vencimiento.strftime('%Y-%m') }}" required>
+                </div>
+
+                <div class="flex items-center">
+                    <input type="checkbox" class="w-4 h-4 text-blue-600 border-gray-600 rounded bg-gray-700 focus:ring-blue-500" 
+                           id="predeterminado" name="predeterminado" value="1"
+                           {% if metodo.predeterminado %}checked disabled{% endif %}>
+                    <label class="ml-2 text-sm font-medium text-gray-300" for="predeterminado">
+                        Establecer como método de pago predeterminado
+                    </label>
+                </div>
+                {% if metodo.predeterminado %}
+                <p class="text-sm text-gray-400">
+                    Este método de pago ya es el predeterminado.
+                </p>
+                {% endif %}
+
+                <div class="flex flex-col gap-3 mt-6">
+                    <button type="submit" class="w-full px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <i class='bx bx-save'></i> Guardar Cambios
+                    </button>
+                    <a href="{{ url_for('mis_metodos_pago') }}" 
+                       class="w-full px-4 py-2 text-center text-gray-300 bg-gray-700 rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                        <i class='bx bx-arrow-back'></i> Volver
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+{% endblock %}
