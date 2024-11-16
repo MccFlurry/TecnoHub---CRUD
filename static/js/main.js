@@ -94,63 +94,24 @@ function agregarAlCarrito(event) {
 
 async function actualizarCantidadCarrito(productoId, cantidad) {
     try {
-        const response = await fetch('/actualizar-carrito', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                producto_id: productoId,
-                cantidad: cantidad
-            })
-        });
+        const formData = new FormData();
+        formData.append('producto_id', productoId);
+        formData.append('cantidad', cantidad);
+
+        window.location.href = '/carrito';
         
-        const data = await response.json();
-        
-        if (data.success) {
-            mostrarNotificacion(data.message || 'Carrito actualizado', 'success');
-            document.querySelector('#total-carrito strong').textContent = `S/.${data.total}`;
-            actualizarContadorCarrito(data.total_items);
-        } else {
-            mostrarNotificacion(data.message || 'Error al actualizar el carrito', 'error');
-        }
     } catch (error) {
         console.error('Error:', error);
-        mostrarNotificacion('Error al procesar la solicitud', 'error');
+        window.location.href = '/carrito';
     }
 }
 
 async function eliminarItemCarrito(productoId, fila) {
     try {
-        const response = await fetch(`/eliminar-del-carrito/${productoId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            // Mostrar mensaje primero
-            mostrarNotificacion(data.message || 'Producto eliminado del carrito', 'success');
-            
-            fila.remove();
-            
-            if (data.carrito_vacio) {
-                setTimeout(() => {
-                    window.location.href = '/carrito';
-                }, 1000);
-            } else {
-                document.querySelector('#total-carrito strong').textContent = `S/.${data.total}`;
-                actualizarContadorCarrito(data.total_items);
-            }
-        } else {
-            mostrarNotificacion(data.message || 'Error al eliminar el producto', 'error');
-        }
+        window.location.href = `/eliminar-del-carrito/${productoId}`;
     } catch (error) {
         console.error('Error:', error);
-        mostrarNotificacion('Error al procesar la solicitud', 'error');
+        window.location.href = '/carrito';
     }
 }
 

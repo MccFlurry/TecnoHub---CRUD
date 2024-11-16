@@ -508,9 +508,9 @@ def carrito():
 @login_required
 def actualizar_carrito():
     try:
-        data = request.get_json()
-        producto_id = int(data.get('producto_id'))
-        nueva_cantidad = int(data.get('cantidad'))
+        # Cambiar de request.get_json() a request.form
+        producto_id = int(request.form.get('producto_id'))
+        nueva_cantidad = int(request.form.get('cantidad'))
         
         if 'carrito' in session:
             carrito_actualizado = []
@@ -526,42 +526,37 @@ def actualizar_carrito():
             
             session['carrito'] = carrito_actualizado
             session.modified = True
+            flash('Carrito actualizado exitosamente', 'success')
             
-            return jsonify({
-                'success': True,
-                'message': 'Carrito actualizado',
-                'total': round(total, 2)
-            })
+        return redirect(url_for('carrito'))
+            
     except Exception as e:
-        return jsonify({
-            'success': False,
-            'message': 'Error al actualizar el carrito'
-        }), 400
+        app.logger.error(f'Error al actualizar carrito: {str(e)}')
+        flash('Error al actualizar el carrito', 'error')
+        return redirect(url_for('carrito'))
 
 @app.route('/eliminar-del-carrito/<int:producto_id>', methods=['POST'])
 @login_required
 def eliminar_del_carrito(producto_id):
     try:
         if 'carrito' in session:
+            producto_nombre = next((item['nombre'] for item in session['carrito'] 
+                                  if item['producto_id'] == producto_id), 'Producto')
+            
             carrito_actualizado = [item for item in session['carrito'] 
                                  if item['producto_id'] != producto_id]
-            total = sum(item['precio'] * item['cantidad'] 
-                       for item in carrito_actualizado)
             
             session['carrito'] = carrito_actualizado
             session.modified = True
             
-            return jsonify({
-                'success': True,
-                'message': 'Producto eliminado del carrito',
-                'total': round(total, 2),
-                'carrito_vacio': len(carrito_actualizado) == 0
-            })
+            flash(f'{producto_nombre} eliminado del carrito', 'success')
+            
+        return redirect(url_for('carrito'))
+            
     except Exception as e:
-        return jsonify({
-            'success': False,
-            'message': 'Error al eliminar el producto'
-        }), 400
+        app.logger.error(f'Error al eliminar del carrito: {str(e)}')
+        flash('Error al eliminar el producto del carrito', 'error')
+        return redirect(url_for('carrito'))
 
 @app.route('/realizar-pedido', methods=['GET', 'POST'])
 @login_required
