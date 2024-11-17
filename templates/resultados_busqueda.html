@@ -6,7 +6,9 @@ Resultados de búsqueda para "{{ query }}" - TecnoHub
 
 {% block content %}
 <div class="container px-4 py-8 mx-auto">
-    <h1 class="mb-6 text-3xl font-bold">Resultados para "{{ query }}"</h1>
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-3xl font-bold">Resultados para "{{ query }}"</h1>
+    </div>
     
     <div class="flex flex-col md:flex-row">
         <!-- Barra lateral de filtros -->
@@ -16,8 +18,20 @@ Resultados de búsqueda para "{{ query }}" - TecnoHub
             <!-- Filtro de categorías -->
             <div class="mb-6">
                 <h3 class="mb-2 font-medium">Categorías</h3>
-                <form action="{{ url_for('buscar') }}" method="get">
+                <form action="{{ url_for('buscar') }}" method="get" class="space-y-2">
                     <input type="hidden" name="q" value="{{ query }}">
+                    {% if marca_seleccionada %}
+                        <input type="hidden" name="marca" value="{{ marca_seleccionada }}">
+                    {% endif %}
+                    {% if modelo_seleccionado %}
+                        <input type="hidden" name="modelo" value="{{ modelo_seleccionado }}">
+                    {% endif %}
+                    {% if precio_min %}
+                        <input type="hidden" name="precio_min" value="{{ precio_min }}">
+                    {% endif %}
+                    {% if precio_max %}
+                        <input type="hidden" name="precio_max" value="{{ precio_max }}">
+                    {% endif %}
                     <select name="categoria" class="w-full px-3 py-2 text-white bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="this.form.submit()">
                         <option value="">Todas las categorías</option>
                         {% for categoria in categorias %}
@@ -29,52 +43,116 @@ Resultados de búsqueda para "{{ query }}" - TecnoHub
                 </form>
             </div>
 
+            <!-- Filtro de marcas -->
+            <div class="mb-6">
+                <h3 class="mb-2 font-medium">Marcas disponibles</h3>
+                <form action="{{ url_for('buscar') }}" method="get" class="space-y-2">
+                    <input type="hidden" name="q" value="{{ query }}">
+                    {% if categoria_seleccionada %}
+                        <input type="hidden" name="categoria" value="{{ categoria_seleccionada }}">
+                    {% endif %}
+                    {% if modelo_seleccionado %}
+                        <input type="hidden" name="modelo" value="{{ modelo_seleccionado }}">
+                    {% endif %}
+                    {% if precio_min %}
+                        <input type="hidden" name="precio_min" value="{{ precio_min }}">
+                    {% endif %}
+                    {% if precio_max %}
+                        <input type="hidden" name="precio_max" value="{{ precio_max }}">
+                    {% endif %}
+                    <select name="marca" class="w-full px-3 py-2 text-white bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="this.form.submit()">
+                        <option value="">Todas las marcas</option>
+                        {% for marca in marcas %}
+                            <option value="{{ marca.id }}" {% if marca_seleccionada == marca.id %}selected{% endif %}>
+                                {{ marca.nombre }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+
+            <!-- Filtro de modelos -->
+            <div class="mb-6">
+                <h3 class="mb-2 font-medium">Modelos disponibles</h3>
+                <form action="{{ url_for('buscar') }}" method="get" class="space-y-2">
+                    <input type="hidden" name="q" value="{{ query }}">
+                    {% if categoria_seleccionada %}
+                        <input type="hidden" name="categoria" value="{{ categoria_seleccionada }}">
+                    {% endif %}
+                    {% if marca_seleccionada %}
+                        <input type="hidden" name="marca" value="{{ marca_seleccionada }}">
+                    {% endif %}
+                    {% if precio_min %}
+                        <input type="hidden" name="precio_min" value="{{ precio_min }}">
+                    {% endif %}
+                    {% if precio_max %}
+                        <input type="hidden" name="precio_max" value="{{ precio_max }}">
+                    {% endif %}
+                    <select name="modelo" class="w-full px-3 py-2 text-white bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="this.form.submit()">
+                        <option value="">Todos los modelos</option>
+                        {% for modelo in modelos %}
+                            <option value="{{ modelo.id }}" {% if modelo_seleccionado == modelo.id %}selected{% endif %}>
+                                {{ modelo.nombre }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+
             <!-- Filtro de precios -->
             <div class="mb-6">
                 <h3 class="mb-2 font-medium">Rango de Precio</h3>
-                <form action="{{ url_for('buscar') }}" method="get">
+                <form action="{{ url_for('buscar') }}" method="get" class="space-y-4">
                     <input type="hidden" name="q" value="{{ query }}">
-                    <input type="hidden" name="categoria" value="{{ categoria_seleccionada }}">
+                    {% if categoria_seleccionada %}
+                        <input type="hidden" name="categoria" value="{{ categoria_seleccionada }}">
+                    {% endif %}
+                    {% if marca_seleccionada %}
+                        <input type="hidden" name="marca" value="{{ marca_seleccionada }}">
+                    {% endif %}
+                    {% if modelo_seleccionado %}
+                        <input type="hidden" name="modelo" value="{{ modelo_seleccionado }}">
+                    {% endif %}
                     <div class="flex items-center space-x-2">
                         <input type="number" name="precio_min" value="{{ precio_min }}" placeholder="Mín" min="0" step="0.01" class="w-full px-3 py-2 text-white bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <span class="text-gray-400">a</span>
                         <input type="number" name="precio_max" value="{{ precio_max }}" placeholder="Máx" min="0" step="0.01" class="w-full px-3 py-2 text-white bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
-                    <button type="submit" class="w-full px-4 py-2 mt-4 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-md hover:bg-blue-700">Filtrar</button>
+                    <button type="submit" class="w-full px-4 py-2 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        Aplicar Filtros
+                    </button>
                 </form>
-            </div>
-
-            <!-- Espacio para futuros filtros (Marcas, etc.) -->
-            <div class="mb-6">
-                <h3 class="mb-2 font-medium">Marca</h3>
-                <p class="italic text-gray-400">Próximamente</p>
             </div>
         </div>
 
         <!-- Resultados de la búsqueda -->
-        <div class="w-full md:w-3/4">
+        <div class="flex-1">
             {% if productos %}
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-3 lg:grid-cols-4">
-                {% for producto in productos %}
-                <div class="overflow-hidden bg-gray-800 rounded-lg shadow-lg">
-                    <div class="flex items-center justify-center w-full h-64 bg-white">
-                        <img src="{{ url_for('static', filename='img/' + producto.imagen) }}" alt="{{ producto.nombre }}"
-                            class="object-contain w-full h-full p-4">
+                <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+                    {% for producto in productos %}
+                    <div class="overflow-hidden bg-gray-800 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105">
+                        <div class="flex justify-center items-center w-full h-64">
+                            <div class="flex justify-center items-center w-full h-64 bg-white">
+                                <img src="{{ url_for('static', filename='img/' + producto.imagen) }}"
+                                    alt="{{ producto.nombre }}" class="object-contain p-4 w-full h-full">
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="mb-2 text-xl font-semibold">{{ producto.nombre }}</h3>
+                            <p class="mb-4 text-lg font-bold text-blue-500">S/.{{ producto.precio }}</p>
+                            <a href="{{ url_for('producto', id=producto.id) }}"
+                                class="inline-block px-4 py-2 w-full font-bold text-center text-white bg-blue-600 rounded-full transition-colors duration-300 hover:bg-blue-700">
+                                Ver Detalles
+                            </a>
+                        </div>
                     </div>
-                    <div class="p-4">
-                        <h2 class="mb-2 text-xl font-semibold">{{ producto.nombre }}</h2>
-                        <p class="mb-4 text-gray-400">{{ producto.descripcion[:100] }}...</p>
-                        <p class="mb-4 text-2xl font-bold text-blue-500">S/.{{ producto.precio }}</p>
-                        <a href="{{ url_for('producto', id=producto.id) }}"
-                            class="block px-4 py-2 font-bold text-center text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700">
-                            Ver detalles
-                        </a>
-                    </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
             {% else %}
-            <p class="text-xl text-gray-400">No se encontraron productos que coincidan con tu búsqueda.</p>
+                <div class="p-8 text-center bg-gray-800 rounded-lg">
+                    <h2 class="mb-4 text-2xl font-bold">No se encontraron resultados</h2>
+                    <p class="text-gray-400">Intenta con otros términos de búsqueda o filtros diferentes.</p>
+                </div>
             {% endif %}
         </div>
     </div>

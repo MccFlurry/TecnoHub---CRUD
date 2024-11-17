@@ -13,19 +13,19 @@
             {% set accesorios_disponibles = namespace(value=false) %}
 
             {% for celular in celulares %}
-            {% if celular.stock > 0 %}
+            {% if celular and celular.stock is not none and celular.stock > 0 %}
             {% set celulares_disponibles.value = true %}
             {% endif %}
             {% endfor %}
 
             {% for watch in smartwatch %}
-            {% if watch.stock > 0 %}
+            {% if watch and watch.stock is not none and watch.stock > 0 %}
             {% set smartwatch_disponibles.value = true %}
             {% endif %}
             {% endfor %}
 
             {% for accesorio in accesorios %}
-            {% if accesorio.stock > 0 %}
+            {% if accesorio and accesorio.stock is not none and accesorio.stock > 0 %}
             {% set accesorios_disponibles.value = true %}
             {% endif %}
             {% endfor %}
@@ -36,7 +36,7 @@
                     class="w-full px-3 py-2 text-white bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="" data-precio="0">Elige un celular</option>
                     {% for celular in celulares %}
-                    {% if celular.stock > 0 %}
+                    {% if celular and celular.stock is not none and celular.stock > 0 %}
                     <option value="{{ celular.id }}" data-precio="{{ celular.precio }}">
                         {{ celular.nombre }} - S/.{{ celular.precio }}
                     </option>
@@ -54,7 +54,7 @@
                     class="w-full px-3 py-2 text-white bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="" data-precio="0">Elige un smartwatch</option>
                     {% for watch in smartwatch %}
-                    {% if watch.stock > 0 %}
+                    {% if watch and watch.stock is not none and watch.stock > 0 %}
                     <option value="{{ watch.id }}" data-precio="{{ watch.precio }}">
                         {{ watch.nombre }} - S/.{{ watch.precio }}
                     </option>
@@ -72,7 +72,7 @@
                     class="w-full px-3 py-2 text-white bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="" data-precio="0">Elige un accesorio</option>
                     {% for accesorio in accesorios %}
-                    {% if accesorio.stock > 0 %}
+                    {% if accesorio and accesorio.stock is not none and accesorio.stock > 0 %}
                     <option value="{{ accesorio.id }}" data-precio="{{ accesorio.precio }}">
                         {{ accesorio.nombre }} - S/.{{ accesorio.precio }}
                     </option>

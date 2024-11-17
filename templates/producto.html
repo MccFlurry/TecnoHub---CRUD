@@ -62,7 +62,7 @@
                     Agregar al carrito
                 </button>
             </form>
-            {% else %}
+            {% elif producto.stock == 0 %}
             <div class="mb-6">
                 <p class="px-4 py-3 text-sm font-medium text-red-500 bg-red-100 border border-red-400 rounded-md">
                     No hay stock disponible en este momento

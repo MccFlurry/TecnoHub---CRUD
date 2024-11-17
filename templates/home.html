@@ -4,18 +4,18 @@
 
 {% block content %}
 <!-- Hero Section -->
-<section class="relative flex items-center justify-center h-screen overflow-hidden">
+<section class="flex overflow-hidden relative justify-center items-center h-screen">
     <div class="absolute inset-0 z-0">
         <img src="{{ url_for('static', filename='img/hero-bg.jpg') }}" alt="Hero Background"
             class="object-cover w-full h-full opacity-50">
     </div>
     <div class="container z-10 px-4 mx-auto text-center">
-        <h1 class="mb-6 text-5xl font-bold md:text-7xl animate-pulse">
+        <h1 class="mb-6 text-5xl font-bold animate-pulse md:text-7xl">
             Bienvenido al Futuro de la Tecnología
         </h1>
         <p class="mb-8 text-xl md:text-2xl">Descubre las últimas innovaciones en TecnoHub</p>
         <a href="#categorias"
-            class="inline-block px-8 py-3 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700">
+            class="inline-block px-8 py-3 font-bold text-white bg-blue-600 rounded-full transition-colors duration-300 hover:bg-blue-700">
             Explora Ahora
         </a>
     </div>
@@ -29,7 +29,7 @@
             {% for categoria in categorias %}
             <a href="{{ url_for('categorias', id=categoria.id) }}" class="group">
                 <div
-                    class="overflow-hidden transition-all duration-300 transform bg-gray-700 rounded-lg group-hover:scale-105 group-hover:shadow-lg">
+                    class="overflow-hidden bg-gray-700 rounded-lg transition-all duration-300 transform group-hover:scale-105 group-hover:shadow-lg">
                     <img src="{{ url_for('static', filename='img/' + categoria.nombre|lower + '.jpg') }}"
                         alt="{{ categoria.nombre }}" class="object-cover w-full h-48">
                     <div class="p-4">
@@ -52,18 +52,18 @@
         <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
             {% for producto in productos %}
             <div
-                class="overflow-hidden transition-all duration-300 transform bg-gray-800 rounded-lg shadow-lg hover:scale-105">
-                <div class="flex items-center justify-center w-full h-64">
-                    <div class="flex items-center justify-center w-full h-64 bg-white">
+                class="overflow-hidden bg-gray-800 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105">
+                <div class="flex justify-center items-center w-full h-64">
+                    <div class="flex justify-center items-center w-full h-64 bg-white">
                         <img src="{{ url_for('static', filename='img/' + producto.imagen) }}"
-                            alt="{{ producto.nombre }}" class="object-contain w-full h-full p-4">
+                            alt="{{ producto.nombre }}" class="object-contain p-4 w-full h-full">
                     </div>
                 </div>
                 <div class="p-4">
                     <h3 class="mb-2 text-xl font-semibold">{{ producto.nombre }}</h3>
                     <p class="mb-4 text-lg font-bold text-blue-500">S/.{{ producto.precio }}</p>
                     <a href="{{ url_for('producto', id=producto.id) }}"
-                        class="inline-block w-full px-4 py-2 font-bold text-center text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700">
+                        class="inline-block px-4 py-2 w-full font-bold text-center text-white bg-blue-600 rounded-full transition-colors duration-300 hover:bg-blue-700">
                         Ver Detalles
                     </a>
                 </div>
@@ -84,7 +84,7 @@
             <div class="p-6 bg-gray-700 rounded-lg shadow-lg">
                 <div class="flex items-center mb-4">
                     <img src="{{ url_for('static', filename='img/cliente' + i|string + '.jpg') }}" alt="Cliente {{ i }}"
-                        class="w-16 h-16 mr-4 rounded-full">
+                        class="mr-4 w-16 h-16 rounded-full">
                     <div>
                         <h5 class="font-semibold">Cliente {{ i }}</h5>
                         <div class="flex text-yellow-500">

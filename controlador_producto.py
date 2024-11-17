@@ -7,16 +7,16 @@ import logging
 logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
 
-def insertar_producto(nombre, descripcion, categoria_id, precio, stock, destacado, imagen):
+def insertar_producto(nombre, descripcion, categoria_id, precio, imagen, id_marca=None, id_modelo=None):
     conexion = None
     try:
         conexion = obtener_conexion()
         with conexion.cursor() as cursor:
             sql = """
-            INSERT INTO productos (nombre, descripcion, categoria_id, precio, stock, destacado, imagen)
+            INSERT INTO productos (nombre, descripcion, categoria_id, precio, imagen, id_marca, id_modelo)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
             """
-            cursor.execute(sql, (nombre, descripcion, categoria_id, precio, stock, destacado, imagen))
+            cursor.execute(sql, (nombre, descripcion, categoria_id, precio, imagen, id_marca, id_modelo))
         conexion.commit()
     except Exception as e:
         if conexion:
@@ -32,20 +32,27 @@ def obtener_producto_por_id(id):
     try:
         conexion = obtener_conexion()
         with conexion.cursor() as cursor:
-            cursor.execute("SELECT id, nombre, descripcion, precio, stock, imagen, categoria_id FROM productos WHERE id = %s", (id,))
-            producto = cursor.fetchone()
+            sql = """SELECT p.id, p.nombre, p.descripcion, p.precio, p.stock, p.categoria_id, 
+                    p.id_marca, p.id_modelo, p.destacado, p.imagen 
+                    FROM productos p WHERE p.id = %s"""
+            cursor.execute(sql, (id,))
+            datos = cursor.fetchone()
             
-        if producto:
-            return Producto(
-                id=producto[0],
-                nombre=producto[1],
-                descripcion=producto[2],
-                precio=producto[3],
-                stock=producto[4],
-                imagen=producto[5],
-                categoria_id=producto[6]
-            )
-        return None
+            if datos is not None:
+                producto = Producto(
+                    id=datos[0],
+                    nombre=datos[1],
+                    descripcion=datos[2],
+                    precio=datos[3],
+                    stock=datos[4],
+                    categoria_id=datos[5],
+                    id_marca=datos[6],
+                    id_modelo=datos[7],
+                    destacado=datos[8],
+                    imagen=datos[9]
+                )
+                return producto
+            return None
     except Exception as e:
         logger.error(f"Error al obtener producto por ID: {str(e)}")
         raise
@@ -59,7 +66,7 @@ def obtener_productos_por_categorias(categoria_id):
         conexion = obtener_conexion()
         productos = []
         with conexion.cursor(DictCursor) as cursor:
-            sql = "SELECT id, nombre, descripcion, precio, stock, categoria_id, imagen FROM productos WHERE categoria_id = %s"
+            sql = "SELECT id, nombre, descripcion, precio, stock, imagen, categoria_id, id_marca, id_modelo FROM productos WHERE categoria_id = %s"
             cursor.execute(sql, (categoria_id,))
             rows = cursor.fetchall()
             for row in rows:
@@ -78,7 +85,7 @@ def obtener_productos_por_ids(ids):
         conexion = obtener_conexion()
         productos = []
         with conexion.cursor(DictCursor) as cursor:
-            sql = "SELECT id, nombre, descripcion, precio, stock, imagen, categoria_id FROM productos WHERE id IN ({})".format(
+            sql = "SELECT id, nombre, descripcion, precio, imagen, categoria_id, id_marca, id_modelo FROM productos WHERE id IN ({})".format(
                 ', '.join(['%s'] * len(ids))
             )
             cursor.execute(sql, ids)
@@ -93,23 +100,25 @@ def obtener_productos_por_ids(ids):
         if conexion:
             conexion.close()
 
-def actualizar_producto(id, nombre, descripcion, precio, stock, categoria_id, imagen):
+def actualizar_producto(id, nombre, descripcion, precio, categoria_id, imagen, id_marca=None, id_modelo=None):
     conexion = None
     try:
         conexion = obtener_conexion()
         with conexion.cursor() as cursor:
             sql = """
             UPDATE productos 
-            SET nombre = %s, descripcion = %s, precio = %s, stock = %s, categoria_id = %s, imagen = %s 
+            SET nombre = %s, descripcion = %s, precio = %s, 
+                categoria_id = %s, imagen = %s, id_marca = %s, id_modelo = %s
             WHERE id = %s
             """
-            cursor.execute(sql, (nombre, descripcion, precio, stock, categoria_id, imagen, id))
+            cursor.execute(sql, (nombre, descripcion, precio, categoria_id, imagen, id_marca, id_modelo, id))
         conexion.commit()
+        return True
     except Exception as e:
         if conexion:
             conexion.rollback()
         logger.error(f"Error al actualizar producto: {str(e)}")
-        raise
+        return False
     finally:
         if conexion:
             conexion.close()
@@ -138,7 +147,7 @@ def buscar_productos(query):
         productos = []
         with conexion.cursor(DictCursor) as cursor:
             sql = """
-            SELECT id, nombre, descripcion, precio, stock, categoria_id, imagen 
+            SELECT id, nombre, descripcion, precio, imagen, categoria_id, id_marca, id_modelo 
             FROM productos 
             WHERE nombre LIKE %s OR descripcion LIKE %s
             """
@@ -161,7 +170,7 @@ def obtener_productos_relacionados(producto_id, limite=4):
         productos = []
         with conexion.cursor(DictCursor) as cursor:
             sql = """
-            SELECT p.id, p.nombre, p.descripcion, p.precio, p.stock, p.categoria_id, p.imagen 
+            SELECT p.id, p.nombre, p.descripcion, p.precio, p.imagen, p.categoria_id, p.id_marca, p.id_modelo 
             FROM productos p
             JOIN productos original ON p.categoria_id = original.categoria_id
             WHERE original.id = %s AND p.id != %s
@@ -187,7 +196,7 @@ def obtener_todos_productos():
         productos = []
         with conexion.cursor(DictCursor) as cursor:
             sql = """
-            SELECT p.id, p.nombre, p.descripcion, p.precio, p.stock, p.imagen, p.categoria_id, c.nombre AS categoria_nombre
+            SELECT p.id, p.nombre, p.descripcion, p.precio, p.imagen, p.categoria_id, c.nombre AS categoria_nombre, p.id_marca, p.id_modelo
             FROM productos p
             JOIN categorias c ON p.categoria_id = c.id
             ORDER BY p.id ASC
@@ -200,9 +209,10 @@ def obtener_todos_productos():
                     nombre=row['nombre'],
                     descripcion=row['descripcion'],
                     precio=row['precio'],
-                    stock=row['stock'],
                     imagen=row['imagen'],
-                    categoria_id=row['categoria_id']
+                    categoria_id=row['categoria_id'],
+                    id_marca=row['id_marca'],
+                    id_modelo=row['id_modelo']
                 )
                 producto.categoria_nombre = row['categoria_nombre']
                 productos.append(producto)
@@ -214,44 +224,66 @@ def obtener_todos_productos():
         if conexion:
             conexion.close()
 
-def busqueda_avanzada(query=None, categoria_id=None, precio_min=None, precio_max=None):
+def busqueda_avanzada(query=None, categoria_id=None, precio_min=None, precio_max=None, id_marca=None, id_modelo=None):
     conexion = None
     try:
         conexion = obtener_conexion()
-        productos = []
-        with conexion.cursor(DictCursor) as cursor:
-            sql = """
-            SELECT p.id, p.nombre, p.descripcion, p.precio, p.stock, p.categoria_id, p.imagen
-            FROM productos p
-            WHERE 1=1
-            """
-            params = []
+        with conexion.cursor() as cursor:
+            condiciones = []
+            parametros = []
             
             if query:
-                sql += " AND (p.nombre LIKE %s OR p.descripcion LIKE %s)"
-                params.extend(['%' + query + '%', '%' + query + '%'])
+                condiciones.append("(nombre LIKE %s OR descripcion LIKE %s)")
+                parametros.extend([f"%{query}%", f"%{query}%"])
             
             if categoria_id:
-                sql += " AND p.categoria_id = %s"
-                params.append(categoria_id)
+                condiciones.append("categoria_id = %s")
+                parametros.append(categoria_id)
             
-            if precio_min:
-                sql += " AND p.precio >= %s"
-                params.append(float(precio_min))
+            if precio_min is not None:
+                condiciones.append("precio >= %s")
+                parametros.append(precio_min)
             
-            if precio_max:
-                sql += " AND p.precio <= %s"
-                params.append(float(precio_max))
+            if precio_max is not None:
+                condiciones.append("precio <= %s")
+                parametros.append(precio_max)
+                
+            if id_marca:
+                condiciones.append("id_marca = %s")
+                parametros.append(id_marca)
+                
+            if id_modelo:
+                condiciones.append("id_modelo = %s")
+                parametros.append(id_modelo)
             
-            cursor.execute(sql, params)
-            productos = cursor.fetchall()
-        return productos
+            sql = "SELECT id, nombre, descripcion, precio, imagen, categoria_id, id_marca, id_modelo FROM productos"
+            
+            if condiciones:
+                sql += " WHERE " + " AND ".join(condiciones)
+            
+            cursor.execute(sql, parametros)
+            productos = []
+            for fila in cursor.fetchall():
+                producto = Producto(
+                    id=fila[0],
+                    nombre=fila[1],
+                    descripcion=fila[2],
+                    precio=fila[3],
+                    imagen=fila[4],
+                    categoria_id=fila[5],
+                    id_marca=fila[6],
+                    id_modelo=fila[7]
+                )
+                productos.append(producto)
+            return productos
+            
     except Exception as e:
         logger.error(f"Error en búsqueda avanzada: {str(e)}")
         raise
     finally:
         if conexion:
             conexion.close()
+    return []
 
 def obtener_productos_recomendados(producto_id, limite=4):
     conexion = None
@@ -260,7 +292,7 @@ def obtener_productos_recomendados(producto_id, limite=4):
         productos = []
         with conexion.cursor(DictCursor) as cursor:
             sql = """
-            SELECT p.id, p.nombre, p.descripcion, p.precio, p.stock, p.categoria_id, p.imagen
+            SELECT p.id, p.nombre, p.descripcion, p.precio, p.imagen, p.categoria_id, p.id_marca, p.id_modelo
             FROM productos p
             JOIN productos original ON p.categoria_id = original.categoria_id
             WHERE original.id = %s AND p.id != %s
@@ -322,39 +354,6 @@ def obtener_productos_visitados_recientes(usuario_id, limite=6):
         if conexion:
             conexion.close()
 
-def actualizar_stock(producto_id, cantidad):
-    conexion = None
-    try:
-        conexion = obtener_conexion()
-        with conexion.cursor() as cursor:
-            sql_select = "SELECT stock FROM productos WHERE id = %s"
-            cursor.execute(sql_select, (producto_id,))
-            resultado = cursor.fetchone()
-            
-            if resultado is None:
-                raise ValueError(f"No se encontró el producto con ID {producto_id}")
-            
-            stock_actual = resultado[0]
-            nuevo_stock = stock_actual + cantidad
-            
-            if nuevo_stock < 0:
-                raise ValueError(f"Stock insuficiente para el producto con ID {producto_id}")
-            
-            sql_update = "UPDATE productos SET stock = %s WHERE id = %s"
-            cursor.execute(sql_update, (nuevo_stock, producto_id))
-        
-        conexion.commit()
-        logger.info(f"Stock actualizado para el producto {producto_id}. Nuevo stock: {nuevo_stock}")
-        return nuevo_stock
-    except Exception as e:
-        if conexion:
-            conexion.rollback()
-        logger.error(f"Error al actualizar el stock: {str(e)}")
-        raise
-    finally:
-        if conexion:
-            conexion.close()
-
 def obtener_rango_precios():
     conexion = None
     try:
@@ -387,25 +386,14 @@ def obtener_productos_destacados(limite=4):
         productos = []
         with conexion.cursor(DictCursor) as cursor:
             sql = """
-            SELECT id, nombre, descripcion, precio, stock, categoria_id, imagen
+            SELECT id, nombre, descripcion, precio, imagen, categoria_id, id_marca, id_modelo
             FROM productos
-            WHERE destacado = 1
+            ORDER BY RAND()
             LIMIT %s
             """
             cursor.execute(sql, (limite,))
             productos = list(cursor.fetchall())
 
-            if len(productos) < limite:
-                sql = """
-                SELECT id, nombre, descripcion, precio, stock, categoria_id, imagen
-                FROM productos
-                ORDER BY RAND()
-                LIMIT %s
-                """
-                cursor.execute(sql, (limite - len(productos),))
-                productos_aleatorios = list(cursor.fetchall())
-                productos.extend(productos_aleatorios)
-        
         return productos
     except Exception as e:
         logger.error(f"Error al obtener productos destacados: {str(e)}")

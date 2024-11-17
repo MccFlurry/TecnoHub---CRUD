@@ -22,6 +22,8 @@ import controlador_notificaciones
 import controlador_ubicacion
 import controlador_metodo_pago
 from clase.clase_metodo_pago import MetodoPago
+import controlador_modelo
+import controlador_marca
 
 # PROYECTO ACTUALIZADO 17/11/2024 NO OLVIDAR IMPLEMENTAR PAPIS
 
@@ -440,17 +442,37 @@ def producto(id):
 
 @app.route('/buscar')
 def buscar():
-    query = request.args.get('q', '').strip()
-    categoria_id = request.args.get('categoria', '').strip()
+    query = request.args.get('q', '')
+    categoria_id = request.args.get('categoria', type=int)
+    marca_id = request.args.get('marca', type=int)
+    modelo_id = request.args.get('modelo', type=int)
+    precio_min = request.args.get('precio_min', type=float)
+    precio_max = request.args.get('precio_max', type=float)
 
-    if not query:
-        flash('Debe ingresar un término de búsqueda', 'error')
-        return redirect(url_for('home'))
-
+    productos = controlador_producto.busqueda_avanzada(
+        query=query,
+        categoria_id=categoria_id,
+        precio_min=precio_min,
+        precio_max=precio_max,
+        id_marca=marca_id,
+        id_modelo=modelo_id
+    )
+    
     categorias = controlador_categorias.obtener_todas_categorias()
-    productos = controlador_producto.buscar_productos(query)
-
-    return render_template('resultados_busqueda.html', productos=productos, query=query, categorias=categorias)
+    marcas = controlador_marca.obtener_marcas()
+    modelos = controlador_modelo.obtener_modelos()
+    
+    return render_template('resultados_busqueda.html',
+                         productos=productos,
+                         query=query,
+                         categoria_seleccionada=categoria_id,
+                         marca_seleccionada=marca_id,
+                         modelo_seleccionado=modelo_id,
+                         precio_min=precio_min,
+                         precio_max=precio_max,
+                         categorias=categorias,
+                         marcas=marcas,
+                         modelos=modelos)
 
 @app.route('/mis-kits')
 @login_required
@@ -1081,8 +1103,8 @@ def admin_eliminar_pedido(id):
             flash('Error de integridad en la base de datos.', 'error')
             
     except Exception as e:
-        logger.error(f"Error inesperado al eliminar pedido {id}: {str(e)}")
-        flash('Ocurrió un error inesperado al intentar eliminar el pedido.', 'error')
+        logger.error(f"Error al eliminar pedido {id}: {str(e)}")
+        flash(f'Error al eliminar el pedido: {str(e)}', 'error')
         
     return redirect(url_for('admin.admin_pedidos'))
 
@@ -1327,6 +1349,1093 @@ def geocodificar_direccion():
         return jsonify({'error': 'No se pudo geocodificar la dirección'}), 400
     except Exception as e:
         logger.error(f"Error en geocodificación: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+# APIs para Ubicación
+@app.route('/api/ubicaciones/paises', methods=['GET'])
+def api_obtener_paises():
+    try:
+        from controlador_ubicacion import ControladorUbicacion
+        paises = ControladorUbicacion.obtener_paises()
+        return jsonify([{
+            'id': p.id,
+            'nombre': p.nombre,
+            'codigo': p.codigo
+        } for p in paises]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ubicaciones/paises/<int:pais_id>/estados', methods=['GET'])
+def api_obtener_estados_pais(pais_id):
+    try:
+        from controlador_ubicacion import ControladorUbicacion
+        estados = ControladorUbicacion.obtener_estados_por_pais(pais_id)
+        return jsonify([{
+            'id': e.id,
+            'nombre': e.nombre,
+            'pais_id': e.pais_id
+        } for e in estados]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ubicaciones/estados/<int:estado_id>/ciudades', methods=['GET'])
+def api_obtener_ciudades_estado(estado_id):
+    try:
+        from controlador_ubicacion import ControladorUbicacion
+        ciudades = ControladorUbicacion.obtener_ciudades_por_estado(estado_id)
+        return jsonify([{
+            'id': c.id,
+            'nombre': c.nombre,
+            'estado_id': c.estado_id
+        } for c in ciudades]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ubicaciones/ciudades/<int:ciudad_id>/distritos', methods=['GET'])
+def api_obtener_distritos_ciudad(ciudad_id):
+    try:
+        from controlador_ubicacion import ControladorUbicacion
+        distritos = ControladorUbicacion.obtener_distritos_por_ciudad(ciudad_id)
+        return jsonify([{
+            'id': d.id,
+            'nombre': d.nombre,
+            'ciudad_id': d.ciudad_id
+        } for d in distritos]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ubicaciones/geocodificar', methods=['POST'])
+def api_geocodificar_direccion():
+    try:
+        data = request.get_json()
+        from controlador_geocoding import ControladorGeocoding
+        resultado = ControladorGeocoding.geocodificar_direccion(
+            data['direccion'],
+            data.get('ciudad', ''),
+            data.get('estado', ''),
+            data.get('pais', '')
+        )
+        return jsonify(resultado), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# APIs para Dirección
+@app.route('/api/direcciones/usuario/<int:usuario_id>', methods=['GET'])
+def api_obtener_direcciones_usuario(usuario_id):
+    try:
+        from controlador_direcciones import ControladorDirecciones
+        direcciones = ControladorDirecciones.obtener_direcciones_usuario(usuario_id)
+        return jsonify([{
+            'id': d.id,
+            'usuario_id': d.usuario_id,
+            'calle': d.calle,
+            'numero': d.numero,
+            'distrito_id': d.distrito_id,
+            'ciudad_id': d.ciudad_id,
+            'estado_id': d.estado_id,
+            'pais_id': d.pais_id,
+            'codigo_postal': d.codigo_postal,
+            'referencias': d.referencias,
+            'predeterminada': d.predeterminada,
+            'latitud': d.latitud,
+            'longitud': d.longitud
+        } for d in direcciones]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/direcciones/<int:id>', methods=['GET'])
+def api_obtener_direccion(id):
+    try:
+        from controlador_direcciones import ControladorDirecciones
+        direccion = ControladorDirecciones.obtener_direccion_por_id(id)
+        if direccion:
+            return jsonify({
+                'id': direccion.id,
+                'usuario_id': direccion.usuario_id,
+                'calle': direccion.calle,
+                'numero': direccion.numero,
+                'distrito_id': direccion.distrito_id,
+                'ciudad_id': direccion.ciudad_id,
+                'estado_id': direccion.estado_id,
+                'pais_id': direccion.pais_id,
+                'codigo_postal': direccion.codigo_postal,
+                'referencias': direccion.referencias,
+                'predeterminada': direccion.predeterminada,
+                'latitud': direccion.latitud,
+                'longitud': direccion.longitud
+            }), 200
+        return jsonify({'error': 'Dirección no encontrada'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/direcciones', methods=['POST'])
+def api_crear_direccion():
+    try:
+        data = request.get_json()
+        from controlador_direcciones import ControladorDirecciones
+        nueva_direccion = ControladorDirecciones.crear_direccion(
+            data['usuario_id'],
+            data['calle'],
+            data['numero'],
+            data['distrito_id'],
+            data['ciudad_id'],
+            data['estado_id'],
+            data['pais_id'],
+            data.get('codigo_postal', ''),
+            data.get('referencias', ''),
+            data.get('predeterminada', False),
+            data.get('latitud'),
+            data.get('longitud')
+        )
+        return jsonify({
+            'mensaje': 'Dirección creada exitosamente',
+            'id': nueva_direccion.id
+        }), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/direcciones/<int:id>', methods=['PUT'])
+def api_actualizar_direccion(id):
+    try:
+        data = request.get_json()
+        from controlador_direcciones import ControladorDirecciones
+        ControladorDirecciones.actualizar_direccion(
+            id,
+            data.get('calle'),
+            data.get('numero'),
+            data.get('distrito_id'),
+            data.get('ciudad_id'),
+            data.get('estado_id'),
+            data.get('pais_id'),
+            data.get('codigo_postal'),
+            data.get('referencias'),
+            data.get('latitud'),
+            data.get('longitud')
+        )
+        return jsonify({'mensaje': 'Dirección actualizada exitosamente'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/direcciones/<int:id>/predeterminada', methods=['PUT'])
+def api_establecer_direccion_predeterminada(id):
+    try:
+        from controlador_direcciones import ControladorDirecciones
+        ControladorDirecciones.establecer_direccion_predeterminada(id)
+        return jsonify({'mensaje': 'Dirección establecida como predeterminada'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/direcciones/<int:id>', methods=['DELETE'])
+def api_eliminar_direccion(id):
+    try:
+        from controlador_direcciones import ControladorDirecciones
+        ControladorDirecciones.eliminar_direccion(id)
+        return jsonify({'mensaje': 'Dirección eliminada exitosamente'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# APIs para Usuario
+@app.route('/api/usuarios', methods=['GET'])
+def api_obtener_usuarios():
+    try:
+        from controlador_usuario import ControladorUsuario
+        usuarios = ControladorUsuario.obtener_usuarios()
+        return jsonify([{
+            'id': u.id,
+            'nombre': u.nombre,
+            'apellido': u.apellido,
+            'email': u.email,
+            'tipo': u.tipo,
+            'fecha_registro': u.fecha_registro
+        } for u in usuarios]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/usuarios/<int:id>', methods=['GET'])
+def api_obtener_usuario(id):
+    try:
+        from controlador_usuario import ControladorUsuario
+        usuario = ControladorUsuario.obtener_usuario_por_id(id)
+        if usuario:
+            return jsonify({
+                'id': usuario.id,
+                'nombre': usuario.nombre,
+                'apellido': usuario.apellido,
+                'email': usuario.email,
+                'tipo': usuario.tipo,
+                'fecha_registro': usuario.fecha_registro
+            }), 200
+        return jsonify({'error': 'Usuario no encontrado'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/usuarios', methods=['POST'])
+def api_crear_usuario():
+    try:
+        data = request.get_json()
+        from controlador_usuario import ControladorUsuario
+        nuevo_usuario = ControladorUsuario.crear_usuario(
+            data['nombre'],
+            data['apellido'],
+            data['email'],
+            data['contrasena'],
+            data.get('tipo', 'cliente')
+        )
+        return jsonify({
+            'mensaje': 'Usuario creado exitosamente',
+            'id': nuevo_usuario.id
+        }), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/usuarios/<int:id>', methods=['PUT'])
+def api_actualizar_usuario(id):
+    try:
+        data = request.get_json()
+        from controlador_usuario import ControladorUsuario
+        usuario = ControladorUsuario.actualizar_usuario(
+            id,
+            data.get('nombre'),
+            data.get('apellido'),
+            data.get('email'),
+            data.get('tipo')
+        )
+        return jsonify({'mensaje': 'Usuario actualizado exitosamente'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/usuarios/<int:id>', methods=['DELETE'])
+def api_eliminar_usuario(id):
+    try:
+        from controlador_usuario import ControladorUsuario
+        ControladorUsuario.eliminar_usuario(id)
+        return jsonify({'mensaje': 'Usuario eliminado exitosamente'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# APIs para Pedido
+@app.route('/api/pedidos', methods=['GET'])
+def api_obtener_pedidos():
+    try:
+        from controlador_pedido import ControladorPedido
+        pedidos = ControladorPedido.obtener_pedidos()
+        return jsonify([{
+            'id': p.id,
+            'usuario_id': p.usuario_id,
+            'fecha': p.fecha,
+            'estado': p.estado,
+            'total': p.total
+        } for p in pedidos]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/pedidos/<int:id>', methods=['GET'])
+def api_obtener_pedido(id):
+    try:
+        from controlador_pedido import ControladorPedido
+        pedido = ControladorPedido.obtener_pedido_por_id(id)
+        if pedido:
+            return jsonify({
+                'id': pedido.id,
+                'usuario_id': pedido.usuario_id,
+                'fecha': pedido.fecha,
+                'estado': pedido.estado,
+                'total': pedido.total
+            }), 200
+        return jsonify({'error': 'Pedido no encontrado'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/pedidos', methods=['POST'])
+def api_crear_pedido():
+    try:
+        data = request.get_json()
+        from controlador_pedido import ControladorPedido
+        nuevo_pedido = ControladorPedido.crear_pedido(
+            data['usuario_id'],
+            data['productos'],
+            data['direccion_id'],
+            data.get('metodo_pago_id')
+        )
+        return jsonify({
+            'mensaje': 'Pedido creado exitosamente',
+            'id': nuevo_pedido.id
+        }), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/pedidos/<int:id>/estado', methods=['PUT'])
+def api_actualizar_estado_pedido(id):
+    try:
+        data = request.get_json()
+        from controlador_pedido import ControladorPedido
+        ControladorPedido.actualizar_estado_pedido(id, data['estado'])
+        return jsonify({'mensaje': 'Estado del pedido actualizado exitosamente'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/pedidos/<int:id>', methods=['DELETE'])
+def api_eliminar_pedido(id):
+    try:
+        from controlador_pedido import ControladorPedido
+        ControladorPedido.eliminar_pedido(id)
+        return jsonify({'mensaje': 'Pedido eliminado exitosamente'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# APIs para Categorías
+@app.route('/api/categorias', methods=['GET'])
+def api_obtener_categorias():
+    try:
+        from controlador_categorias import ControladorCategorias
+        categorias = ControladorCategorias.obtener_categorias()
+        return jsonify([{
+            'id': c.id,
+            'nombre': c.nombre,
+            'descripcion': c.descripcion
+        } for c in categorias]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/categorias/<int:id>', methods=['GET'])
+def api_obtener_categoria(id):
+    try:
+        from controlador_categorias import ControladorCategorias
+        categoria = ControladorCategorias.obtener_categoria_por_id(id)
+        if categoria:
+            return jsonify({
+                'id': categoria.id,
+                'nombre': categoria.nombre,
+                'descripcion': categoria.descripcion
+            }), 200
+        return jsonify({'error': 'Categoría no encontrada'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/categorias', methods=['POST'])
+def api_crear_categoria():
+    try:
+        data = request.get_json()
+        from controlador_categorias import ControladorCategorias
+        nueva_categoria = ControladorCategorias.crear_categoria(
+            data['nombre'],
+            data.get('descripcion', '')
+        )
+        return jsonify({
+            'mensaje': 'Categoría creada exitosamente',
+            'id': nueva_categoria.id
+        }), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/categorias/<int:id>', methods=['PUT'])
+def api_actualizar_categoria(id):
+    try:
+        data = request.get_json()
+        from controlador_categorias import ControladorCategorias
+        ControladorCategorias.actualizar_categoria(
+            id,
+            data.get('nombre'),
+            data.get('descripcion')
+        )
+        return jsonify({'mensaje': 'Categoría actualizada exitosamente'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/categorias/<int:id>', methods=['DELETE'])
+def api_eliminar_categoria(id):
+    try:
+        from controlador_categorias import ControladorCategorias
+        ControladorCategorias.eliminar_categoria(id)
+        return jsonify({'mensaje': 'Categoría eliminada exitosamente'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# APIs para Producto
+@app.route('/api/productos', methods=['GET'])
+def api_obtener_productos():
+    try:
+        from controlador_producto import ControladorProducto
+        productos = ControladorProducto.obtener_productos()
+        return jsonify([{
+            'id': p.id,
+            'nombre': p.nombre,
+            'descripcion': p.descripcion,
+            'precio': p.precio,
+            'stock': p.stock,
+            'categoria_id': p.categoria_id
+        } for p in productos]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/productos/<int:id>', methods=['GET'])
+def api_obtener_producto(id):
+    try:
+        from controlador_producto import ControladorProducto
+        producto = ControladorProducto.obtener_producto_por_id(id)
+        if producto:
+            return jsonify({
+                'id': producto.id,
+                'nombre': producto.nombre,
+                'descripcion': producto.descripcion,
+                'precio': producto.precio,
+                'stock': producto.stock,
+                'categoria_id': producto.categoria_id
+            }), 200
+        return jsonify({'error': 'Producto no encontrado'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/productos', methods=['POST'])
+def api_crear_producto():
+    try:
+        data = request.get_json()
+        from controlador_producto import ControladorProducto
+        nuevo_producto = ControladorProducto.crear_producto(
+            data['nombre'],
+            data['descripcion'],
+            data['precio'],
+            data['stock'],
+            data['imagen'],
+            data['categoria_id']
+        )
+        return jsonify({
+            'mensaje': 'Producto creado exitosamente',
+            'id': nuevo_producto.id
+        }), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/productos/<int:id>', methods=['PUT'])
+def api_actualizar_producto(id):
+    try:
+        data = request.get_json()
+        from controlador_producto import ControladorProducto
+        ControladorProducto.actualizar_producto(
+            id,
+            data.get('nombre'),
+            data.get('descripcion'),
+            data.get('precio'),
+            data.get('stock'),
+            data.get('imagen'),
+            data.get('categoria_id')
+        )
+        return jsonify({'mensaje': 'Producto actualizado exitosamente'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/productos/<int:id>', methods=['DELETE'])
+def api_eliminar_producto(id):
+    try:
+        from controlador_producto import ControladorProducto
+        ControladorProducto.eliminar_producto(id)
+        return jsonify({'mensaje': 'Producto eliminado exitosamente'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# APIs para Opiniones
+@app.route('/api/opiniones', methods=['GET'])
+def api_obtener_opiniones():
+    try:
+        from controlador_opinion import ControladorOpinion
+        opiniones = ControladorOpinion.obtener_opiniones()
+        return jsonify([{
+            'id': o.id,
+            'usuario_id': o.usuario_id,
+            'producto_id': o.producto_id,
+            'calificacion': o.calificacion,
+            'comentario': o.comentario,
+            'fecha': o.fecha
+        } for o in opiniones]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/opiniones/<int:id>', methods=['GET'])
+def api_obtener_opinion(id):
+    try:
+        from controlador_opinion import ControladorOpinion
+        opinion = ControladorOpinion.obtener_opinion_por_id(id)
+        if opinion:
+            return jsonify({
+                'id': opinion.id,
+                'usuario_id': opinion.usuario_id,
+                'producto_id': opinion.producto_id,
+                'calificacion': opinion.calificacion,
+                'comentario': opinion.comentario,
+                'fecha': opinion.fecha
+            }), 200
+        return jsonify({'error': 'Opinión no encontrada'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/productos/<int:producto_id>/opiniones', methods=['GET'])
+def api_obtener_opiniones_producto(producto_id):
+    try:
+        from controlador_opinion import ControladorOpinion
+        opiniones = ControladorOpinion.obtener_opiniones_por_producto(producto_id)
+        return jsonify([{
+            'id': o.id,
+            'usuario_id': o.usuario_id,
+            'calificacion': o.calificacion,
+            'comentario': o.comentario,
+            'fecha': o.fecha
+        } for o in opiniones]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/opiniones', methods=['POST'])
+def api_crear_opinion():
+    try:
+        data = request.get_json()
+        from controlador_opinion import ControladorOpinion
+        nueva_opinion = ControladorOpinion.crear_opinion(
+            data['usuario_id'],
+            data['producto_id'],
+            data['calificacion'],
+            data.get('comentario', '')
+        )
+        return jsonify({
+            'mensaje': 'Opinión creada exitosamente',
+            'id': nueva_opinion.id
+        }), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/opiniones/<int:id>', methods=['PUT'])
+def api_actualizar_opinion(id):
+    try:
+        data = request.get_json()
+        from controlador_opinion import ControladorOpinion
+        ControladorOpinion.actualizar_opinion(
+            id,
+            data.get('calificacion'),
+            data.get('comentario')
+        )
+        return jsonify({'mensaje': 'Opinión actualizada exitosamente'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# APIs para Notificaciones
+@app.route('/api/notificaciones/usuario/<int:usuario_id>', methods=['GET'])
+def api_obtener_notificaciones_usuario(usuario_id):
+    try:
+        from controlador_notificaciones import ControladorNotificaciones
+        notificaciones = ControladorNotificaciones.obtener_notificaciones_usuario(usuario_id)
+        return jsonify([{
+            'id': n.id,
+            'usuario_id': n.usuario_id,
+            'mensaje': n.mensaje,
+            'tipo': n.tipo,
+            'fecha': n.fecha,
+            'leida': n.leida
+        } for n in notificaciones]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/notificaciones', methods=['POST'])
+def api_crear_notificacion():
+    try:
+        data = request.get_json()
+        from controlador_notificaciones import ControladorNotificaciones
+        nueva_notificacion = ControladorNotificaciones.crear_notificacion(
+            data['usuario_id'],
+            data['mensaje'],
+            data['tipo']
+        )
+        return jsonify({
+            'mensaje': 'Notificación creada exitosamente',
+            'id': nueva_notificacion.id
+        }), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/notificaciones/marcar-leida/<int:notificacion_id>', methods=['PUT'])
+def api_marcar_notificacion_leida(notificacion_id):
+    try:
+        from controlador_notificaciones import ControladorNotificaciones
+        ControladorNotificaciones.marcar_notificacion_como_leida(notificacion_id)
+        return jsonify({'mensaje': 'Notificación marcada como leída'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/notificaciones/eliminar-todas/<int:usuario_id>', methods=['DELETE'])
+def api_eliminar_todas_notificaciones(usuario_id):
+    try:
+        from controlador_notificaciones import ControladorNotificaciones
+        ControladorNotificaciones.eliminar_todas_notificaciones(usuario_id)
+        return jsonify({'mensaje': 'Todas las notificaciones eliminadas exitosamente'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/notificaciones/<int:id>', methods=['DELETE'])
+def api_eliminar_notificacion(id):
+    try:
+        from controlador_notificaciones import ControladorNotificaciones
+        ControladorNotificaciones.eliminar_notificacion(id)
+        return jsonify({'mensaje': 'Notificación eliminada exitosamente'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# APIs para Método de Pago
+@app.route('/api/metodos-pago/usuario/<int:usuario_id>', methods=['GET'])
+def api_obtener_metodos_pago_usuario(usuario_id):
+    try:
+        from controlador_metodo_pago import ControladorMetodoPago
+        metodos = ControladorMetodoPago.obtener_metodos_pago_usuario(usuario_id)
+        return jsonify([{
+            'id': m.id,
+            'usuario_id': m.usuario_id,
+            'tipo': m.tipo,
+            'numero': m.numero,
+            'titular': m.titular,
+            'fecha_vencimiento': m.fecha_vencimiento,
+            'predeterminado': m.predeterminado
+        } for m in metodos]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/metodos-pago/<int:id>', methods=['GET'])
+def api_obtener_metodo_pago(id):
+    try:
+        from controlador_metodo_pago import ControladorMetodoPago
+        metodo = ControladorMetodoPago.obtener_metodo_pago_por_id(id)
+        if metodo:
+            return jsonify({
+                'id': metodo.id,
+                'usuario_id': metodo.usuario_id,
+                'tipo': metodo.tipo,
+                'numero': metodo.numero,
+                'titular': metodo.titular,
+                'fecha_vencimiento': metodo.fecha_vencimiento,
+                'predeterminado': metodo.predeterminado
+            }), 200
+        return jsonify({'error': 'Método de pago no encontrado'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/metodos-pago', methods=['POST'])
+def api_crear_metodo_pago():
+    try:
+        data = request.get_json()
+        from controlador_metodo_pago import ControladorMetodoPago
+        nuevo_metodo = ControladorMetodoPago.crear_metodo_pago(
+            data['usuario_id'],
+            data['tipo'],
+            data['numero'],
+            data['titular'],
+            data['fecha_vencimiento'],
+            data.get('predeterminado', False)
+        )
+        return jsonify({
+            'mensaje': 'Método de pago creado exitosamente',
+            'id': nuevo_metodo.id
+        }), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/metodos-pago/<int:id>', methods=['PUT'])
+def api_actualizar_metodo_pago(id):
+    try:
+        data = request.get_json()
+        from controlador_metodo_pago import ControladorMetodoPago
+        ControladorMetodoPago.actualizar_metodo_pago(
+            id,
+            data.get('tipo'),
+            data.get('numero'),
+            data.get('titular'),
+            data.get('fecha_vencimiento')
+        )
+        return jsonify({'mensaje': 'Método de pago actualizado exitosamente'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/metodos-pago/<int:id>/predeterminado', methods=['PUT'])
+def api_establecer_metodo_pago_predeterminado(id):
+    try:
+        from controlador_metodo_pago import ControladorMetodoPago
+        ControladorMetodoPago.establecer_predeterminado(id)
+        return jsonify({'mensaje': 'Método de pago establecido como predeterminado'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# APIs para Kit
+@app.route('/api/kits/usuario/<int:usuario_id>', methods=['GET'])
+def api_obtener_kits_usuario(usuario_id):
+    try:
+        from controlador_kit import ControladorKit
+        kits = ControladorKit.obtener_kits_usuario(usuario_id)
+        return jsonify([{
+            'id': k.id,
+            'nombre': k.nombre,
+            'usuario_id': k.usuario_id,
+            'productos': k.productos,
+            'fecha_creacion': k.fecha_creacion
+        } for k in kits]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/kits/<int:id>', methods=['GET'])
+def api_obtener_kit(id):
+    try:
+        from controlador_kit import ControladorKit
+        kit = ControladorKit.obtener_kit_por_id(id)
+        if kit:
+            return jsonify({
+                'id': kit.id,
+                'nombre': kit.nombre,
+                'usuario_id': kit.usuario_id,
+                'productos': kit.productos,
+                'fecha_creacion': kit.fecha_creacion
+            }), 200
+        return jsonify({'error': 'Kit no encontrado'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/kits', methods=['POST'])
+def api_crear_kit():
+    try:
+        data = request.get_json()
+        from controlador_kit import ControladorKit
+        nuevo_kit = ControladorKit.crear_kit(
+            data['nombre'],
+            data['usuario_id'],
+            data['productos']
+        )
+        return jsonify({
+            'mensaje': 'Kit creado exitosamente',
+            'id': nuevo_kit.id
+        }), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/kits/<int:id>', methods=['PUT'])
+def api_actualizar_kit(id):
+    try:
+        data = request.get_json()
+        from controlador_kit import ControladorKit
+        ControladorKit.actualizar_kit(
+            id,
+            data.get('nombre'),
+            data.get('productos')
+        )
+        return jsonify({'mensaje': 'Kit actualizado exitosamente'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/kits/<int:id>', methods=['DELETE'])
+def api_eliminar_kit(id):
+    try:
+        from controlador_kit import ControladorKit
+        ControladorKit.eliminar_kit(id)
+        return jsonify({'mensaje': 'Kit eliminado exitosamente'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# APIs de Búsqueda y Filtrado
+@app.route('/api/productos/buscar', methods=['GET'])
+def api_buscar_productos():
+    try:
+        query = request.args.get('q', '')
+        categoria_id = request.args.get('categoria_id')
+        marca_id = request.args.get('marca_id')
+        modelo_id = request.args.get('modelo_id')
+        min_precio = request.args.get('min_precio')
+        max_precio = request.args.get('max_precio')
+        
+        from controlador_producto import ControladorProducto
+        productos = ControladorProducto.buscar_productos(
+            query,
+            categoria_id,
+            min_precio,
+            max_precio,
+            marca_id,
+            modelo_id
+        )
+        return jsonify([{
+            'id': p.id,
+            'nombre': p.nombre,
+            'descripcion': p.descripcion,
+            'precio': p.precio,
+            'stock': p.stock,
+            'categoria_id': p.categoria_id
+        } for p in productos]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/productos/destacados', methods=['GET'])
+def api_obtener_productos_destacados():
+    try:
+        from controlador_producto import ControladorProducto
+        productos = ControladorProducto.obtener_productos_destacados()
+        return jsonify([{
+            'id': p.id,
+            'nombre': p.nombre,
+            'descripcion': p.descripcion,
+            'precio': p.precio,
+            'stock': p.stock,
+            'categoria_id': p.categoria_id
+        } for p in productos]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/productos/mas-vendidos', methods=['GET'])
+def api_obtener_productos_mas_vendidos():
+    try:
+        from controlador_producto import ControladorProducto
+        productos = ControladorProducto.obtener_productos_mas_vendidos()
+        return jsonify([{
+            'id': p.id,
+            'nombre': p.nombre,
+            'descripcion': p.descripcion,
+            'precio': p.precio,
+            'stock': p.stock,
+            'categoria_id': p.categoria_id,
+            'ventas_totales': p.ventas_totales
+        } for p in productos]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# APIs de Estadísticas
+@app.route('/api/estadisticas/ventas', methods=['GET'])
+def api_obtener_estadisticas_ventas():
+    try:
+        periodo = request.args.get('periodo', 'mensual')
+        from controlador_pedido import ControladorPedido
+        estadisticas = ControladorPedido.obtener_estadisticas_ventas(periodo)
+        return jsonify(estadisticas), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/estadisticas/productos/populares', methods=['GET'])
+def api_obtener_productos_populares():
+    try:
+        from controlador_producto import ControladorProducto
+        productos = ControladorProducto.obtener_productos_populares()
+        return jsonify([{
+            'id': p.id,
+            'nombre': p.nombre,
+            'ventas': p.ventas,
+            'valoracion_promedio': p.valoracion_promedio
+        } for p in productos]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# APIs de Recomendaciones
+@app.route('/api/recomendaciones/usuario/<int:usuario_id>', methods=['GET'])
+def api_obtener_recomendaciones_usuario(usuario_id):
+    try:
+        from controlador_producto import ControladorProducto
+        recomendaciones = ControladorProducto.obtener_recomendaciones_usuario(usuario_id)
+        return jsonify([{
+            'id': p.id,
+            'nombre': p.nombre,
+            'descripcion': p.descripcion,
+            'precio': p.precio,
+            'score': p.score
+        } for p in recomendaciones]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/recomendaciones/producto/<int:producto_id>/similares', methods=['GET'])
+def api_obtener_productos_similares(producto_id):
+    try:
+        from controlador_producto import ControladorProducto
+        productos = ControladorProducto.obtener_productos_similares(producto_id)
+        return jsonify([{
+            'id': p.id,
+            'nombre': p.nombre,
+            'descripcion': p.descripcion,
+            'precio': p.precio,
+            'similitud': p.similitud
+        } for p in productos]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# APIs de Carrito
+@app.route('/api/carritos/<int:usuario_id>', methods=['GET'])
+def api_obtener_carrito(usuario_id):
+    try:
+        carrito = session.get('carrito', {})
+        return jsonify({
+            'usuario_id': usuario_id,
+            'items': carrito,
+            'total': sum(item['precio'] * item['cantidad'] for item in carrito.values())
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/carritos/<int:usuario_id>/items', methods=['POST'])
+def api_agregar_item_carrito(usuario_id):
+    try:
+        data = request.get_json()
+        carrito = session.get('carrito', {})
+        producto_id = str(data['producto_id'])
+        cantidad = data['cantidad']
+        
+        from controlador_producto import ControladorProducto
+        producto = ControladorProducto.obtener_producto_por_id(data['producto_id'])
+        
+        if producto_id in carrito:
+            carrito[producto_id]['cantidad'] += cantidad
+        else:
+            carrito[producto_id] = {
+                'id': producto.id,
+                'nombre': producto.nombre,
+                'precio': producto.precio,
+                'cantidad': cantidad
+            }
+        
+        session['carrito'] = carrito
+        return jsonify({'mensaje': 'Producto agregado al carrito'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/carritos/<int:usuario_id>/items/<int:producto_id>', methods=['DELETE'])
+def api_eliminar_item_carrito(usuario_id, producto_id):
+    try:
+        carrito = session.get('carrito', {})
+        producto_id_str = str(producto_id)
+        
+        if producto_id_str in carrito:
+            del carrito[producto_id_str]
+            session['carrito'] = carrito
+            return jsonify({'mensaje': 'Producto eliminado del carrito'}), 200
+        return jsonify({'error': 'Producto no encontrado en el carrito'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/carritos/<int:usuario_id>/vaciar', methods=['DELETE'])
+def api_vaciar_carrito(usuario_id):
+    try:
+        session['carrito'] = {}
+        return jsonify({'mensaje': 'Carrito vaciado exitosamente'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# APIs de Favoritos
+@app.route('/api/favoritos/<int:usuario_id>/productos', methods=['GET'])
+def api_obtener_favoritos_usuario(usuario_id):
+    try:
+        from controlador_favorito import ControladorFavorito
+        favoritos = ControladorFavorito.obtener_favoritos_usuario(usuario_id)
+        return jsonify([{
+            'id': f.id,
+            'usuario_id': f.usuario_id,
+            'producto_id': f.producto_id,
+            'fecha_agregado': f.fecha_agregado
+        } for f in favoritos]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/favoritos/<int:usuario_id>/productos/<int:producto_id>', methods=['POST'])
+def api_agregar_favorito(usuario_id, producto_id):
+    try:
+        from controlador_favorito import ControladorFavorito
+        ControladorFavorito.agregar_favorito(usuario_id, producto_id)
+        return jsonify({'mensaje': 'Producto agregado a favoritos'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/favoritos/<int:usuario_id>/productos/<int:producto_id>', methods=['DELETE'])
+def api_eliminar_favorito(usuario_id, producto_id):
+    try:
+        from controlador_favorito import ControladorFavorito
+        ControladorFavorito.eliminar_favorito(usuario_id, producto_id)
+        return jsonify({'mensaje': 'Producto eliminado de favoritos'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# APIs de Chatbot
+@app.route('/api/chatbot/consulta', methods=['POST'])
+def api_chatbot_consulta():
+    try:
+        data = request.get_json()
+        # Aquí iría la lógica del chatbot
+        respuesta = {
+            'mensaje': 'Lo siento, el chatbot está en mantenimiento.',
+            'sugerencias': [
+                'Revisa nuestras preguntas frecuentes',
+                'Contacta a servicio al cliente',
+                'Explora nuestro catálogo'
+            ]
+        }
+        return jsonify(respuesta), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/chatbot/feedback', methods=['POST'])
+def api_chatbot_feedback():
+    try:
+        data = request.get_json()
+        # Aquí se guardaría el feedback del chatbot
+        return jsonify({'mensaje': 'Gracias por tu feedback'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# APIs de Reportes
+@app.route('/api/reportes/ventas/diarias', methods=['GET'])
+def api_reporte_ventas_diarias():
+    try:
+        fecha_inicio = request.args.get('fecha_inicio')
+        fecha_fin = request.args.get('fecha_fin')
+        from controlador_pedido import ControladorPedido
+        reporte = ControladorPedido.generar_reporte_ventas_diarias(fecha_inicio, fecha_fin)
+        return jsonify(reporte), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/reportes/productos/stock-bajo', methods=['GET'])
+def api_reporte_productos_stock_bajo():
+    try:
+        limite = request.args.get('limite', 10)
+        from controlador_producto import ControladorProducto
+        productos = ControladorProducto.obtener_productos_stock_bajo(limite)
+        return jsonify([{
+            'id': p.id,
+            'nombre': p.nombre,
+            'stock_actual': p.stock,
+            'stock_minimo': p.stock_minimo
+        } for p in productos]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/reportes/usuarios/actividad', methods=['GET'])
+def api_reporte_actividad_usuarios():
+    try:
+        periodo = request.args.get('periodo', '7d')
+        from controlador_usuario import ControladorUsuario
+        reporte = ControladorUsuario.generar_reporte_actividad(periodo)
+        return jsonify(reporte), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# APIs de Exportación
+@app.route('/api/exportar/productos', methods=['GET'])
+def api_exportar_productos():
+    try:
+        formato = request.args.get('formato', 'csv')
+        from controlador_producto import ControladorProducto
+        datos = ControladorProducto.exportar_productos(formato)
+        return jsonify({
+            'datos': datos,
+            'formato': formato
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/exportar/pedidos', methods=['GET'])
+def api_exportar_pedidos():
+    try:
+        formato = request.args.get('formato', 'csv')
+        fecha_inicio = request.args.get('fecha_inicio')
+        fecha_fin = request.args.get('fecha_fin')
+        from controlador_pedido import ControladorPedido
+        datos = ControladorPedido.exportar_pedidos(formato, fecha_inicio, fecha_fin)
+        return jsonify({
+            'datos': datos,
+            'formato': formato
+        }), 200
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 # Iniciar el servidor

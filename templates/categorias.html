@@ -14,20 +14,21 @@ Categoría no encontrada - TecnoHub
     <h1 class="mb-6 text-3xl font-bold">{{ categoria.nombre }}</h1>
 
     {% if productos %}
-    <div class="grid grid-cols-1 gap-6 md:grid-cols-3 lg:grid-cols-4">
+    <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
         {% for producto in productos %}
-        <div class="overflow-hidden bg-gray-800 rounded-lg shadow-lg">
-            <div class="flex items-center justify-center w-full h-64 bg-white">
-                <img src="{{ url_for('static', filename='img/' + producto.imagen) }}" alt="{{ producto.nombre }}"
-                    class="object-contain w-full h-full p-4">
+        <div class="overflow-hidden bg-gray-800 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105">
+            <div class="flex justify-center items-center w-full h-64">
+                <div class="flex justify-center items-center w-full h-64 bg-white">
+                    <img src="{{ url_for('static', filename='img/' + producto.imagen) }}"
+                        alt="{{ producto.nombre }}" class="object-contain p-4 w-full h-full">
+                </div>
             </div>
             <div class="p-4">
-                <h2 class="mb-2 text-xl font-semibold">{{ producto.nombre }}</h2>
-                <p class="mb-4 text-gray-400">{{ producto.descripcion[:100] }}...</p>
-                <p class="mb-4 text-2xl font-bold text-blue-500">S/.{{ producto.precio }}</p>
+                <h3 class="mb-2 text-xl font-semibold">{{ producto.nombre }}</h3>
+                <p class="mb-4 text-lg font-bold text-blue-500">S/.{{ producto.precio }}</p>
                 <a href="{{ url_for('producto', id=producto.id) }}"
-                    class="block px-4 py-2 font-bold text-center text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700">
-                    Ver detalles
+                    class="inline-block px-4 py-2 w-full font-bold text-center text-white bg-blue-600 rounded-full transition-colors duration-300 hover:bg-blue-700">
+                    Ver Detalles
                 </a>
             </div>
         </div>
