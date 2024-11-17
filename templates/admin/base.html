@@ -15,37 +15,49 @@
         <!-- Sidebar -->
         <aside class="hidden md:flex md:flex-shrink-0">
             <div class="flex flex-col w-64">
-                <div class="flex items-center justify-center h-16 bg-blue-600">
+                <div class="flex justify-center items-center h-16 bg-blue-600">
                     <span class="text-lg font-semibold text-white">TecnoHub Admin</span>
                 </div>
-                <div class="flex flex-col flex-grow overflow-y-auto text-white bg-blue-800">
+                <div class="flex overflow-y-auto flex-col flex-grow text-white bg-blue-800">
                     <nav class="flex-1 px-2 py-4 space-y-1">
                         <a href="{{ url_for('admin.admin_dashboard') }}" class="flex items-center px-4 py-2 rounded-md hover:bg-blue-700">
-                            <svg class="w-6 h-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg class="mr-3 w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                             </svg>
                             Dashboard
                         </a>
                         <a href="{{ url_for('admin.admin_productos') }}" class="flex items-center px-4 py-2 rounded-md hover:bg-blue-700">
-                            <svg class="w-6 h-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg class="mr-3 w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                             </svg>
                             Productos
                         </a>
-                        <a href="{{ url_for('admin.admin_pedidos') }}" class="flex items-center px-4 py-2 rounded-md hover:bg-blue-700">
-                            <svg class="w-6 h-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                            </svg>
-                            Pedidos
-                        </a>
                         <a href="{{ url_for('admin.admin_categorias') }}" class="flex items-center px-4 py-2 rounded-md hover:bg-blue-700">
-                            <svg class="w-6 h-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg class="mr-3 w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                             </svg>
                             Categorías
                         </a>
+                        <a href="{{ url_for('admin.admin_marcas') }}" class="flex items-center px-4 py-2 rounded-md hover:bg-blue-700">
+                            <svg class="mr-3 w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 3h5m0 0v5m0-5l-6 6M5 3a2 2 0 00-2 2v1c0 8.284 6.716 15 15 15h1a2 2 0 002-2v-3.28a1 1 0 00-.684-.948l-4.493-1.498a1 1 0 00-1.21.502l-1.13 2.257a11.042 11.042 0 01-5.516-5.517l2.257-1.128a1 1 0 00.502-1.21L9.228 3.683A1 1 0 008.279 3H5z"></path>
+                            </svg>
+                            Marcas
+                        </a>
+                        <a href="{{ url_for('admin.admin_modelos') }}" class="flex items-center px-4 py-2 rounded-md hover:bg-blue-700">
+                            <svg class="mr-3 w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            Modelos
+                        </a>
+                        <a href="{{ url_for('admin.admin_pedidos') }}" class="flex items-center px-4 py-2 rounded-md hover:bg-blue-700">
+                            <svg class="mr-3 w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                            </svg>
+                            Pedidos
+                        </a>
                         <a href="{{ url_for('admin.admin_usuarios') }}" class="flex items-center px-4 py-2 rounded-md hover:bg-blue-700">
-                            <svg class="w-6 h-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg class="mr-3 w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                             </svg>
                             Usuarios
@@ -53,7 +65,7 @@
                     </nav>
                 </div>
                 <div class="flex flex-shrink-0 p-4 border-t border-blue-700">
-                    <a href="{{ url_for('home') }}" class="flex-shrink-0 block w-full group">
+                    <a href="{{ url_for('home') }}" class="block flex-shrink-0 w-full group">
                         <div class="flex items-center">
                             <div>
                                 <svg class="w-8 h-8 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -72,7 +84,7 @@
         </aside>
 
         <!-- Main content -->
-        <div class="flex flex-col flex-1 overflow-hidden">
+        <div class="flex overflow-hidden flex-col flex-1">
             <header class="bg-white shadow-sm">
                 <div class="px-4 py-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <h1 class="text-lg font-semibold leading-6 text-gray-900">
@@ -80,7 +92,7 @@
                     </h1>
                 </div>
             </header>
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
+            <main class="overflow-y-auto overflow-x-hidden flex-1 bg-gray-100">
                 <div class="py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
                     {% block content %}{% endblock %}
                 </div>
@@ -93,14 +105,14 @@
         {% if messages %}
             {% for category, message in messages %}
                 <div id="flashMessage" class="fixed bottom-4 right-4 z-50 p-4 rounded-lg shadow-lg slide-in {% if category == 'error' %}bg-red-100 border border-red-400 text-red-700{% else %}bg-green-100 border border-green-400 text-green-700{% endif %}" style="max-width: 24rem;">
-                    <div class="flex items-center justify-between">
+                    <div class="flex justify-between items-center">
                         <div class="flex items-center">
                             {% if category == 'error' %}
-                                <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="mr-3 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                                 </svg>
                             {% else %}
-                                <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="mr-3 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                 </svg>
                             {% endif %}

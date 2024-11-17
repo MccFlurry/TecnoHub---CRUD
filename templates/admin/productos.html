@@ -19,12 +19,12 @@
                 <tr>
                     <th scope="col" class="px-6 py-3 text-xs font-medium text-left text-gray-500 uppercase">ID</th>
                     <th scope="col" class="px-6 py-3 text-xs font-medium text-left text-gray-500 uppercase">Nombre</th>
-                    <th scope="col" class="px-6 py-3 text-xs font-medium text-left text-gray-500 uppercase">Categoría
-                    </th>
+                    <th scope="col" class="px-6 py-3 text-xs font-medium text-left text-gray-500 uppercase">Categoría</th>
+                    <th scope="col" class="px-6 py-3 text-xs font-medium text-left text-gray-500 uppercase">Marca</th>
+                    <th scope="col" class="px-6 py-3 text-xs font-medium text-left text-gray-500 uppercase">Modelo</th>
                     <th scope="col" class="px-6 py-3 text-xs font-medium text-left text-gray-500 uppercase">Precio</th>
                     <th scope="col" class="px-6 py-3 text-xs font-medium text-left text-gray-500 uppercase">Stock</th>
-                    <th scope="col" class="px-6 py-3 text-xs font-medium text-left text-gray-500 uppercase">Acciones
-                    </th>
+                    <th scope="col" class="px-6 py-3 text-xs font-medium text-left text-gray-500 uppercase">Acciones</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -32,10 +32,11 @@
                 <tr>
                     <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{{ producto.id }}</td>
                     <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{{ producto.nombre }}</td>
-                    <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{{
-                        producto.categoria_nombre }}</td>
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{{ producto.categoria_nombre }}</td>
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{{ producto.marca_nombre if producto.marca_nombre else '-' }}</td>
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{{ producto.modelo_nombre if producto.modelo_nombre else '-' }}</td>
                     <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">S/.{{ producto.precio }}</td>
-                    <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{{ producto.stock }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{{ producto.stock if producto.stock is not none else 0 }}</td>
                     <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
                         <a href="{{ url_for('admin.admin_editar_producto', id=producto.id) }}"
                             class="mr-2 text-blue-600 hover:text-blue-900 editar-producto-btn">Editar</a>

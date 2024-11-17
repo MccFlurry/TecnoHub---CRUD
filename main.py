@@ -921,6 +921,8 @@ def admin_productos():
 @admin_required
 def admin_nuevo_producto():
     categorias = controlador_categorias.obtener_todas_categorias()
+    marcas = controlador_marca.obtener_marcas()
+    modelos = controlador_modelo.obtener_modelos()
 
     if request.method == 'POST':
         nombre = request.form['nombre']
@@ -928,6 +930,8 @@ def admin_nuevo_producto():
         categoria_id = request.form['categoria_id']
         precio = request.form['precio']
         stock = request.form['stock']
+        id_marca = request.form.get('id_marca')  # Puede ser None
+        id_modelo = request.form.get('id_modelo')  # Puede ser None
         destacado = 1 if 'destacado' in request.form else 0
 
         # Verificar si se subió una imagen
@@ -935,20 +939,26 @@ def admin_nuevo_producto():
             flash('La imagen es obligatoria', 'error')
             return render_template('admin/editar_nuevo_producto.html', 
                                 producto=None, 
-                                categorias=categorias)
+                                categorias=categorias,
+                                marcas=marcas,
+                                modelos=modelos)
 
         imagen = request.files['imagen']
         if imagen.filename == '':
             flash('Debe seleccionar una imagen', 'error')
             return render_template('admin/editar_nuevo_producto.html', 
                                 producto=None, 
-                                categorias=categorias)
+                                categorias=categorias,
+                                marcas=marcas,
+                                modelos=modelos)
 
         if not allowed_file(imagen.filename):
             flash('Formato de imagen no permitido. Use: png, jpg, jpeg, gif', 'error')
             return render_template('admin/editar_nuevo_producto.html', 
                                 producto=None, 
-                                categorias=categorias)
+                                categorias=categorias,
+                                marcas=marcas,
+                                modelos=modelos)
 
         try:
             imagen_filename = secure_filename(imagen.filename)
@@ -960,7 +970,8 @@ def admin_nuevo_producto():
                 categoria_id=categoria_id,
                 precio=precio,
                 stock=stock,
-                destacado=destacado,
+                id_marca=id_marca,
+                id_modelo=id_modelo,
                 imagen=imagen_filename
             )
             flash('Producto creado con éxito', 'success')
@@ -975,15 +986,23 @@ def admin_nuevo_producto():
             flash(f'Error al crear el producto: {str(e)}', 'error')
             return render_template('admin/editar_nuevo_producto.html', 
                                 producto=None, 
-                                categorias=categorias)
+                                categorias=categorias,
+                                marcas=marcas,
+                                modelos=modelos)
 
-    return render_template('admin/editar_nuevo_producto.html', producto=None, categorias=categorias)
+    return render_template('admin/editar_nuevo_producto.html', 
+                         producto=None, 
+                         categorias=categorias,
+                         marcas=marcas,
+                         modelos=modelos)
 
 @admin_bp.route('/editar_producto/<int:id>', methods=['GET', 'POST'])
 @admin_required
 def admin_editar_producto(id):
     producto = controlador_producto.obtener_producto_por_id(id)
     categorias = controlador_categorias.obtener_todas_categorias()
+    marcas = controlador_marca.obtener_marcas()
+    modelos = controlador_modelo.obtener_modelos()
     
     if request.method == 'POST':
         nombre = request.form['nombre']
@@ -991,6 +1010,8 @@ def admin_editar_producto(id):
         categoria_id = request.form['categoria_id']
         precio = request.form['precio']
         stock = request.form['stock']
+        id_marca = request.form.get('id_marca')  # Puede ser None
+        id_modelo = request.form.get('id_modelo')  # Puede ser None
         destacado = 1 if 'destacado' in request.form else 0
 
         imagen = request.files['imagen']
@@ -998,29 +1019,50 @@ def admin_editar_producto(id):
         
         if imagen and allowed_file(imagen.filename):
             try:
+                # Eliminar imagen anterior si existe
+                if producto.imagen:
+                    try:
+                        os.remove(os.path.join(UPLOAD_FOLDER, producto.imagen))
+                    except Exception:
+                        pass
+                
                 imagen_filename = secure_filename(imagen.filename)
                 imagen.save(os.path.join(UPLOAD_FOLDER, imagen_filename))
             except Exception as e:
-                flash(f'Error al cargar la imagen: {str(e)}', 'error')
-                return redirect(url_for('admin.admin_editar_producto', id=id))
+                flash(f'Error al guardar la imagen: {str(e)}', 'error')
+                return render_template('admin/editar_nuevo_producto.html', 
+                                    producto=producto,
+                                    categorias=categorias,
+                                    marcas=marcas,
+                                    modelos=modelos)
 
         try:
             controlador_producto.actualizar_producto(
                 id=id,
                 nombre=nombre,
                 descripcion=descripcion,
+                categoria_id=categoria_id,
                 precio=precio,
                 stock=stock,
-                categoria_id=categoria_id,
+                id_marca=id_marca,
+                id_modelo=id_modelo,
                 imagen=imagen_filename
             )
             flash('Producto actualizado con éxito', 'success')
+            return redirect(url_for('admin.admin_productos'))
         except Exception as e:
             flash(f'Error al actualizar el producto: {str(e)}', 'error')
+            return render_template('admin/editar_nuevo_producto.html', 
+                                producto=producto,
+                                categorias=categorias,
+                                marcas=marcas,
+                                modelos=modelos)
 
-        return redirect(url_for('admin.admin_productos'))
-
-    return render_template('admin/editar_nuevo_producto.html', producto=producto, categorias=categorias)
+    return render_template('admin/editar_nuevo_producto.html', 
+                         producto=producto,
+                         categorias=categorias,
+                         marcas=marcas,
+                         modelos=modelos)
 
 @admin_bp.route('/producto/eliminar/<int:id>', methods=['POST'])
 @admin_required
@@ -1261,6 +1303,109 @@ def admin_eliminar_usuario(id):
         flash(f'Error al eliminar el usuario: {str(e)}', 'error')
         
     return redirect(url_for('admin.admin_usuarios'))
+
+# Rutas para Marcas
+@admin_bp.route('/marcas')
+@admin_required
+def admin_marcas():
+    marcas = controlador_marca.obtener_marcas()
+    return render_template('admin/marcas.html', marcas=marcas)
+
+@admin_bp.route('/marcas/nueva', methods=['GET', 'POST'])
+@admin_required
+def admin_nueva_marca():
+    if request.method == 'POST':
+        nombre = request.form.get('nombre')
+        try:
+            controlador_marca.insertar_marca(nombre)
+            flash('Marca agregada exitosamente', 'success')
+            return redirect(url_for('admin.admin_marcas'))
+        except Exception as e:
+            flash(f'Error al agregar la marca: {str(e)}', 'error')
+    return render_template('admin/editar_nueva_marca.html', marca=None)
+
+@admin_bp.route('/marcas/editar/<int:id>', methods=['GET', 'POST'])
+@admin_required
+def admin_editar_marca(id):
+    marca = controlador_marca.obtener_marca_por_id(id)
+    if not marca:
+        flash('Marca no encontrada', 'error')
+        return redirect(url_for('admin.admin_marcas'))
+    
+    if request.method == 'POST':
+        nombre = request.form.get('nombre')
+        try:
+            controlador_marca.actualizar_marca(id, nombre)
+            flash('Marca actualizada exitosamente', 'success')
+            return redirect(url_for('admin.admin_marcas'))
+        except Exception as e:
+            flash(f'Error al actualizar la marca: {str(e)}', 'error')
+    
+    return render_template('admin/editar_nueva_marca.html', marca=marca)
+
+@admin_bp.route('/marcas/eliminar/<int:id>', methods=['POST'])
+@admin_required
+def admin_eliminar_marca(id):
+    try:
+        controlador_marca.eliminar_marca(id)
+        flash('Marca eliminada exitosamente', 'success')
+    except Exception as e:
+        flash(f'Error al eliminar la marca: {str(e)}', 'error')
+    return redirect(url_for('admin.admin_marcas'))
+
+# Rutas para Modelos
+@admin_bp.route('/modelos')
+@admin_required
+def admin_modelos():
+    modelos = controlador_modelo.obtener_modelos()
+    return render_template('admin/modelos.html', modelos=modelos)
+
+@admin_bp.route('/modelos/nuevo', methods=['GET', 'POST'])
+@admin_required
+def admin_nuevo_modelo():
+    marcas = controlador_marca.obtener_marcas()
+    if request.method == 'POST':
+        nombre = request.form.get('nombre')
+        try:
+            modelo = Modelo(nombre=nombre)
+            controlador_modelo.insertar_modelo(modelo)
+            flash('Modelo agregado exitosamente', 'success')
+            return redirect(url_for('admin.admin_modelos'))
+        except Exception as e:
+            flash(f'Error al agregar el modelo: {str(e)}', 'error')
+    return render_template('admin/editar_nuevo_modelo.html', modelo=None, marcas=marcas)
+
+@admin_bp.route('/modelos/editar/<int:id>', methods=['GET', 'POST'])
+@admin_required
+def admin_editar_modelo(id):
+    modelo = controlador_modelo.obtener_modelo_por_id(id)
+    marcas = controlador_marca.obtener_marcas()
+    
+    if not modelo:
+        flash('Modelo no encontrado', 'error')
+        return redirect(url_for('admin.admin_modelos'))
+    
+    if request.method == 'POST':
+        nombre = request.form.get('nombre')
+        try:
+            modelo.nombre = nombre
+            controlador_modelo.actualizar_modelo(modelo)
+            flash('Modelo actualizado exitosamente', 'success')
+            return redirect(url_for('admin.admin_modelos'))
+        except Exception as e:
+            flash(f'Error al actualizar el modelo: {str(e)}', 'error')
+    
+    return render_template('admin/editar_nuevo_modelo.html', modelo=modelo, marcas=marcas)
+
+@admin_bp.route('/modelos/eliminar/<int:id>', methods=['POST'])
+@admin_required
+def admin_eliminar_modelo(id):
+    try:
+        controlador_modelo.eliminar_modelo(id)
+        flash('Modelo eliminado exitosamente', 'success')
+    except Exception as e:
+        flash(f'Error al eliminar el modelo: {str(e)}', 'error')
+    return redirect(url_for('admin.admin_modelos'))
 
 # Notificaciones PUSH
 @admin_bp.route('/notificaciones', methods=['GET'])

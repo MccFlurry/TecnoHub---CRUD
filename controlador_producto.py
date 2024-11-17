@@ -7,16 +7,18 @@ import logging
 logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
 
-def insertar_producto(nombre, descripcion, categoria_id, precio, imagen, id_marca=None, id_modelo=None):
+def insertar_producto(nombre, descripcion, categoria_id, precio, imagen, stock=0, id_marca=None, id_modelo=None):
     conexion = None
     try:
         conexion = obtener_conexion()
         with conexion.cursor() as cursor:
             sql = """
-            INSERT INTO productos (nombre, descripcion, categoria_id, precio, imagen, id_marca, id_modelo)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO productos (nombre, descripcion, categoria_id, precio, imagen, stock, id_marca, id_modelo)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """
-            cursor.execute(sql, (nombre, descripcion, categoria_id, precio, imagen, id_marca, id_modelo))
+            # Asegurarse de que stock sea un entero y no None
+            stock = 0 if stock is None else int(stock)
+            cursor.execute(sql, (nombre, descripcion, categoria_id, precio, imagen, stock, id_marca, id_modelo))
         conexion.commit()
     except Exception as e:
         if conexion:
@@ -100,7 +102,7 @@ def obtener_productos_por_ids(ids):
         if conexion:
             conexion.close()
 
-def actualizar_producto(id, nombre, descripcion, precio, categoria_id, imagen, id_marca=None, id_modelo=None):
+def actualizar_producto(id, nombre, descripcion, precio, categoria_id, imagen, stock=0, id_marca=None, id_modelo=None):
     conexion = None
     try:
         conexion = obtener_conexion()
@@ -108,10 +110,12 @@ def actualizar_producto(id, nombre, descripcion, precio, categoria_id, imagen, i
             sql = """
             UPDATE productos 
             SET nombre = %s, descripcion = %s, precio = %s, 
-                categoria_id = %s, imagen = %s, id_marca = %s, id_modelo = %s
+                categoria_id = %s, imagen = %s, stock = %s, id_marca = %s, id_modelo = %s
             WHERE id = %s
             """
-            cursor.execute(sql, (nombre, descripcion, precio, categoria_id, imagen, id_marca, id_modelo, id))
+            # Asegurarse de que stock sea un entero y no None
+            stock = 0 if stock is None else int(stock)
+            cursor.execute(sql, (nombre, descripcion, precio, categoria_id, imagen, stock, id_marca, id_modelo, id))
         conexion.commit()
         return True
     except Exception as e:
@@ -196,29 +200,59 @@ def obtener_todos_productos():
         productos = []
         with conexion.cursor(DictCursor) as cursor:
             sql = """
-            SELECT p.id, p.nombre, p.descripcion, p.precio, p.imagen, p.categoria_id, c.nombre AS categoria_nombre, p.id_marca, p.id_modelo
+            SELECT p.*, c.nombre as categoria_nombre, 
+                   m.nombre as marca_nombre, mo.nombre as modelo_nombre
             FROM productos p
-            JOIN categorias c ON p.categoria_id = c.id
-            ORDER BY p.id ASC
+            LEFT JOIN categorias c ON p.categoria_id = c.id
+            LEFT JOIN marcas m ON p.id_marca = m.id
+            LEFT JOIN modelos mo ON p.id_modelo = mo.id
+            ORDER BY p.id DESC
             """
             cursor.execute(sql)
-            rows = cursor.fetchall()
-            for row in rows:
-                producto = Producto(
-                    id=row['id'],
-                    nombre=row['nombre'],
-                    descripcion=row['descripcion'],
-                    precio=row['precio'],
-                    imagen=row['imagen'],
-                    categoria_id=row['categoria_id'],
-                    id_marca=row['id_marca'],
-                    id_modelo=row['id_modelo']
-                )
-                producto.categoria_nombre = row['categoria_nombre']
+            productos_data = cursor.fetchall()
+            for producto_data in productos_data:
+                producto = Producto(**{k: v for k, v in producto_data.items() if k in Producto.__init__.__code__.co_varnames})
+                producto.categoria_nombre = producto_data['categoria_nombre']
+                producto.marca_nombre = producto_data['marca_nombre']
+                producto.modelo_nombre = producto_data['modelo_nombre']
                 productos.append(producto)
         return productos
     except Exception as e:
-        logger.error(f"Error al obtener todos los productos: {str(e)}")
+        logger.error(f"Error al obtener productos: {str(e)}")
+        raise
+    finally:
+        if conexion:
+            conexion.close()
+
+def obtener_todas_marcas():
+    conexion = None
+    try:
+        conexion = obtener_conexion()
+        marcas = []
+        with conexion.cursor(DictCursor) as cursor:
+            sql = "SELECT id, nombre FROM marcas ORDER BY nombre"
+            cursor.execute(sql)
+            marcas = cursor.fetchall()
+        return marcas
+    except Exception as e:
+        logger.error(f"Error al obtener marcas: {str(e)}")
+        raise
+    finally:
+        if conexion:
+            conexion.close()
+
+def obtener_todos_modelos():
+    conexion = None
+    try:
+        conexion = obtener_conexion()
+        modelos = []
+        with conexion.cursor(DictCursor) as cursor:
+            sql = "SELECT id, nombre, id_marca FROM modelos ORDER BY nombre"
+            cursor.execute(sql)
+            modelos = cursor.fetchall()
+        return modelos
+    except Exception as e:
+        logger.error(f"Error al obtener modelos: {str(e)}")
         raise
     finally:
         if conexion:
@@ -397,6 +431,49 @@ def obtener_productos_destacados(limite=4):
         return productos
     except Exception as e:
         logger.error(f"Error al obtener productos destacados: {str(e)}")
+        raise
+    finally:
+        if conexion:
+            conexion.close()
+
+def actualizar_stock(id_producto, cantidad):
+    """
+    Actualiza el stock de un producto. Resta la cantidad especificada del stock actual.
+    Retorna True si la actualización fue exitosa, False si no hay suficiente stock.
+    """
+    conexion = None
+    try:
+        conexion = obtener_conexion()
+        with conexion.cursor() as cursor:
+            # Primero verificamos el stock actual
+            sql_verificar = "SELECT stock FROM productos WHERE id = %s"
+            cursor.execute(sql_verificar, (id_producto,))
+            resultado = cursor.fetchone()
+            
+            if not resultado:
+                logger.error(f"Producto con ID {id_producto} no encontrado")
+                return False
+                
+            stock_actual = resultado[0]
+            if stock_actual is None:
+                stock_actual = 0
+                
+            # Verificar si hay suficiente stock
+            if stock_actual < cantidad:
+                logger.error(f"Stock insuficiente para producto {id_producto}")
+                return False
+                
+            # Actualizar el stock
+            nuevo_stock = stock_actual - cantidad
+            sql_actualizar = "UPDATE productos SET stock = %s WHERE id = %s"
+            cursor.execute(sql_actualizar, (nuevo_stock, id_producto))
+            conexion.commit()
+            return True
+            
+    except Exception as e:
+        if conexion:
+            conexion.rollback()
+        logger.error(f"Error al actualizar stock: {str(e)}")
         raise
     finally:
         if conexion:

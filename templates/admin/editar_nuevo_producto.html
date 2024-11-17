@@ -75,6 +75,40 @@
                     </div>
 
                     <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
+                        <label for="id_marca" class="block pl-10 text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
+                            Marca
+                        </label>
+                        <div class="mt-1 sm:mt-0 sm:col-span-2">
+                            <select id="id_marca" name="id_marca"
+                                class="block w-full max-w-lg border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:max-w-xs sm:text-sm">
+                                <option value="">Seleccione una marca</option>
+                                {% for marca in marcas %}
+                                <option value="{{ marca.id }}" {% if producto and producto.id_marca==marca.id %}selected{% endif %}>
+                                    {{ marca.nombre }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
+                        <label for="id_modelo" class="block pl-10 text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
+                            Modelo
+                        </label>
+                        <div class="mt-1 sm:mt-0 sm:col-span-2">
+                            <select id="id_modelo" name="id_modelo"
+                                class="block w-full max-w-lg border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:max-w-xs sm:text-sm">
+                                <option value="">Seleccione un modelo</option>
+                                {% for modelo in modelos %}
+                                <option value="{{ modelo.id }}" data-marca="{{ modelo.id_marca }}" {% if producto and producto.id_modelo==modelo.id %}selected{% endif %}>
+                                    {{ modelo.nombre }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
                         <label for="imagen" class="block pl-10 text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
                             Imagen <span class="text-red-500">*</span>
                         </label>
@@ -103,4 +137,34 @@
         </div>
     </form>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const marcaSelect = document.getElementById('id_marca');
+    const modeloSelect = document.getElementById('id_modelo');
+    const modeloOptions = Array.from(modeloSelect.options);
+
+    function filtrarModelos() {
+        const marcaSeleccionada = marcaSelect.value;
+        
+        // Limpiar el select de modelos
+        modeloSelect.innerHTML = '<option value="">Seleccione un modelo</option>';
+        
+        // Filtrar y agregar solo los modelos de la marca seleccionada
+        modeloOptions.forEach(option => {
+            if (!marcaSeleccionada || option.dataset.marca === marcaSeleccionada) {
+                modeloSelect.add(option.cloneNode(true));
+            }
+        });
+    }
+
+    // Filtrar modelos cuando cambie la marca
+    marcaSelect.addEventListener('change', filtrarModelos);
+    
+    // Filtrar modelos al cargar la página
+    filtrarModelos();
+});
+</script>
 {% endblock %}

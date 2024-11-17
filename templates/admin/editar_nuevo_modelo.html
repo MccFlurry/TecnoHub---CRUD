@@ -1,0 +1,47 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'Editar' if modelo else 'Nuevo' }} Modelo{% endblock %}
+
+{% block header %}{{ 'Editar' if modelo else 'Nuevo' }} Modelo{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow sm:rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+        <form id="modelo-form"
+            action="{{ url_for('admin.admin_editar_modelo', id=modelo.id) if modelo is not none else url_for('admin.admin_nuevo_modelo') }}"
+            method="post" class="space-y-6" onsubmit="return validateForm()">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div>
+                <label for="nombre" class="block text-sm font-medium text-gray-700">
+                    Nombre del Modelo <span class="text-red-500">*</span>
+                </label>
+                <div class="mt-1">
+                    <input type="text" 
+                           name="nombre" 
+                           id="nombre" 
+                           value="{{ modelo.nombre if modelo else '' }}"
+                           class="block w-full border-gray-300 rounded-md shadow-sm sm:text-sm focus:ring-blue-500 focus:border-blue-500" 
+                           required
+                           minlength="1"
+                           maxlength="100"
+                           placeholder="Ingrese el nombre del modelo">
+                    <p class="hidden mt-1 text-sm text-red-600" id="nombre-error">
+                        El nombre del modelo es obligatorio
+                    </p>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button type="reset" 
+                        class="px-4 py-2 font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                    Restablecer
+                </button>
+                <button id="btn-guardar-modelo" 
+                        type="submit"
+                        class="px-4 py-2 font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    {{ 'Actualizar' if modelo else 'Crear' }} Modelo
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

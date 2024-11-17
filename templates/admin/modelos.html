@@ -1,0 +1,52 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Gestión de Modelos{% endblock %}
+
+{% block header %}Gestión de Modelos{% endblock %}
+
+{% block content %}
+<div class="overflow-hidden bg-white shadow sm:rounded-lg">
+    <div class="flex items-center justify-between px-4 py-5 sm:px-6">
+        <h2 class="text-lg font-medium leading-6 text-gray-900">Modelos</h2>
+        <a id="btn-nuevo-modelo" href="{{ url_for('admin.admin_nuevo_modelo') }}"
+            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            Añadir Nuevo Modelo
+        </a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col"
+                        class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">ID</th>
+                    <th scope="col"
+                        class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Nombre
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Acciones
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for modelo in modelos %}
+                <tr>
+                    <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{{ modelo.id }}</td>
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{{ modelo.nombre }}</td>
+                    <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
+                        <a href="{{ url_for('admin.admin_editar_modelo', id=modelo.id) }}"
+                            class="mr-2 text-blue-600 hover:text-blue-900 editar-modelo-btn">Editar</a>
+                        <form action="{{ url_for('admin.admin_eliminar_modelo', id=modelo.id) }}" method="post"
+                            class="inline eliminar-modelo-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="text-red-600 hover:text-red-900 eliminar-modelo-btn">
+                                Eliminar
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
