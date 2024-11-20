@@ -22,6 +22,8 @@ import controlador_notificaciones
 import controlador_ubicacion
 import controlador_metodo_pago
 from clase.clase_metodo_pago import MetodoPago
+from clase.clase_marca import Marca
+from clase.clase_modelo import Modelo
 import controlador_modelo
 import controlador_marca
 
@@ -1317,7 +1319,8 @@ def admin_nueva_marca():
     if request.method == 'POST':
         nombre = request.form.get('nombre')
         try:
-            controlador_marca.insertar_marca(nombre)
+            marca = Marca(nombre=nombre)
+            controlador_marca.insertar_marca(marca)
             flash('Marca agregada exitosamente', 'success')
             return redirect(url_for('admin.admin_marcas'))
         except Exception as e:
@@ -1335,7 +1338,8 @@ def admin_editar_marca(id):
     if request.method == 'POST':
         nombre = request.form.get('nombre')
         try:
-            controlador_marca.actualizar_marca(id, nombre)
+            marca.nombre = nombre
+            controlador_marca.actualizar_marca(id, marca)
             flash('Marca actualizada exitosamente', 'success')
             return redirect(url_for('admin.admin_marcas'))
         except Exception as e:

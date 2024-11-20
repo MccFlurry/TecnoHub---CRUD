@@ -3,11 +3,16 @@ from clase.clase_marca import Marca
 
 def insertar_marca(marca):
     conexion = obtener_conexion()
-    with conexion.cursor() as cursor:
-        cursor.execute("INSERT INTO marcas (nombre) VALUES (%s)",
-                      (marca.nombre,))
-    conexion.commit()
-    conexion.close()
+    try:
+        with conexion.cursor() as cursor:
+            cursor.execute("INSERT INTO marcas (nombre) VALUES (%s)",
+                         (marca.nombre,))
+        conexion.commit()
+    except Exception as e:
+        conexion.rollback()
+        raise Exception(f"Error al insertar la marca: {str(e)}")
+    finally:
+        conexion.close()
 
 def obtener_marca_por_id(id):
     conexion = obtener_conexion()
@@ -35,10 +40,20 @@ def obtener_marcas():
 
 def eliminar_marca(id):
     conexion = obtener_conexion()
-    with conexion.cursor() as cursor:
-        cursor.execute("DELETE FROM marcas WHERE id = %s", (id,))
-    conexion.commit()
-    conexion.close()
+    try:
+        # Primero verificamos si hay productos asociados
+        cantidad_productos = contar_productos_por_marca(id)
+        if cantidad_productos > 0:
+            raise Exception("Esta marca esta asociada a un producto")
+            
+        with conexion.cursor() as cursor:
+            cursor.execute("DELETE FROM marcas WHERE id = %s", (id,))
+        conexion.commit()
+    except Exception as e:
+        conexion.rollback()
+        raise e
+    finally:
+        conexion.close()
 
 def actualizar_marca(marca):
     conexion = obtener_conexion()

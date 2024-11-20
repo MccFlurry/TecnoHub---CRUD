@@ -3,11 +3,16 @@ from clase.clase_modelo import Modelo
 
 def insertar_modelo(modelo):
     conexion = obtener_conexion()
-    with conexion.cursor() as cursor:
-        cursor.execute("INSERT INTO modelos (nombre) VALUES (%s)",
-                      (modelo.nombre,))
-    conexion.commit()
-    conexion.close()
+    try:
+        with conexion.cursor() as cursor:
+            cursor.execute("INSERT INTO modelos (nombre) VALUES (%s)",
+                         (modelo.nombre,))
+        conexion.commit()
+    except Exception as e:
+        conexion.rollback()
+        raise Exception(f"Error al insertar el modelo: {str(e)}")
+    finally:
+        conexion.close()
 
 def obtener_modelo_por_id(id):
     conexion = obtener_conexion()
@@ -35,10 +40,20 @@ def obtener_modelos():
 
 def eliminar_modelo(id):
     conexion = obtener_conexion()
-    with conexion.cursor() as cursor:
-        cursor.execute("DELETE FROM modelos WHERE id = %s", (id,))
-    conexion.commit()
-    conexion.close()
+    try:
+        # Primero verificamos si hay productos asociados
+        cantidad_productos = contar_productos_por_modelo(id)
+        if cantidad_productos > 0:
+            raise Exception("Este modelo esta asociado a un producto")
+            
+        with conexion.cursor() as cursor:
+            cursor.execute("DELETE FROM modelos WHERE id = %s", (id,))
+        conexion.commit()
+    except Exception as e:
+        conexion.rollback()
+        raise e
+    finally:
+        conexion.close()
 
 def actualizar_modelo(modelo):
     conexion = obtener_conexion()
