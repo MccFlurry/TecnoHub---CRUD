@@ -257,23 +257,19 @@ def mis_favoritos():
 def agregar_direccion():
     if request.method == 'POST':
         try:
-            # Recoger datos del formulario
             direccion = request.form.get('direccion')
             ciudad_id = request.form.get('ciudad_id')
             estado_id = request.form.get('estado_id')
             pais_id = request.form.get('pais_id')
             codigo_postal = request.form.get('codigo_postal')
             
-            # Validar campos requeridos
             campos_requeridos = ['direccion', 'ciudad_id', 'estado_id', 'pais_id', 'codigo_postal']
             if not all(request.form.get(campo) for campo in campos_requeridos):
                 flash('Por favor complete todos los campos requeridos.', 'error')
                 return redirect(url_for('agregar_direccion'))
 
-            # Obtener el ID del usuario de la sesión
             usuario_id = session.get('usuario_id')
             
-            # Llamar a la función del controlador
             controlador_direcciones.agregar_direccion(
                 usuario_id=usuario_id,
                 direccion=direccion,
@@ -293,7 +289,12 @@ def agregar_direccion():
             flash('Error al agregar la dirección', 'error')
             return redirect(url_for('agregar_direccion'))
 
-    return render_template('agregar_direccion.html')
+    try:
+        paises = controlador_ubicacion.obtener_todos_paises()
+        return render_template('agregar_direccion.html', paises=paises)
+    except Exception as e:
+        flash('Error al cargar los datos de ubicación', 'error')
+        return redirect(url_for('mis_direcciones'))
 
 @app.route('/editar-direccion/<int:direccion_id>', methods=['GET', 'POST'])
 @login_required
@@ -305,7 +306,6 @@ def editar_direccion(direccion_id):
             return redirect(url_for('mis_direcciones'))
 
         if request.method == 'POST':
-            # Recoger datos del formulario
             datos = {
                 'direccion': request.form.get('direccion'),
                 'ciudad_id': request.form.get('ciudad_id'),
@@ -314,7 +314,6 @@ def editar_direccion(direccion_id):
                 'codigo_postal': request.form.get('codigo_postal')
             }
 
-            # Validar campos requeridos
             campos_requeridos = ['direccion', 'ciudad_id', 'estado_id', 'pais_id', 'codigo_postal']
             if not all(datos.get(campo) for campo in campos_requeridos):
                 flash('Por favor complete todos los campos requeridos.', 'error')
@@ -324,7 +323,16 @@ def editar_direccion(direccion_id):
             flash('Dirección actualizada con éxito', 'success')
             return redirect(url_for('mis_direcciones'))
 
-        return render_template('editar_direccion.html', direccion=direccion)
+        # GET: Obtener datos para los combo boxes
+        paises = controlador_ubicacion.obtener_todos_paises()
+        estados = controlador_ubicacion.obtener_estados_por_pais(direccion['pais_id']) if direccion.get('pais_id') else []
+        ciudades = controlador_ubicacion.obtener_ciudades_por_estado(direccion['estado_id']) if direccion.get('estado_id') else []
+        
+        return render_template('editar_direccion.html', 
+                             direccion=direccion,
+                             paises=paises,
+                             estados=estados,
+                             ciudades=ciudades)
 
     except Exception as e:
         flash(f'Error al procesar la dirección: {str(e)}', 'error')
@@ -510,7 +518,6 @@ def carrito():
 @login_required
 def actualizar_carrito():
     try:
-        # Cambiar de request.get_json() a request.form
         producto_id = int(request.form.get('producto_id'))
         nueva_cantidad = int(request.form.get('cantidad'))
         
@@ -565,21 +572,17 @@ def eliminar_del_carrito(producto_id):
 def realizar_pedido():
     try:
         if request.method == 'POST':
-            # Verificar si el carrito está vacío
             if 'carrito' not in session or not session['carrito']:
                 flash('Tu carrito está vacío', 'error')
                 return redirect(url_for('carrito'))
 
-            # Obtener la dirección de envío seleccionada
             direccion_id = request.form.get('direccion_id')
             if not direccion_id:
                 flash('Debes seleccionar una dirección de envío', 'error')
                 return redirect(url_for('realizar_pedido'))
 
-            # Obtener el método de pago seleccionado (opcional)
             metodo_pago_id = request.form.get('metodo_pago_id')
 
-            # Crear el pedido
             usuario_id = session.get('usuario_id')
             if not usuario_id:
                 flash('No se pudo identificar al usuario. Por favor, inicia sesión nuevamente.', 'error')
@@ -592,7 +595,6 @@ def realizar_pedido():
             )
             total = 0
 
-            # Agregar los detalles del pedido
             for item in session['carrito']:
                 try:
                     producto_id = item.get('producto_id')
@@ -602,18 +604,15 @@ def realizar_pedido():
                     controlador_pedido.agregar_detalle_pedido(pedido_id, producto_id, cantidad, precio)
                     total += cantidad * precio
 
-                    # Actualizar el stock del producto
                     controlador_producto.actualizar_stock(producto_id, -cantidad)
                 except Exception as detalle_error:
                     app.logger.error(f'Error al agregar detalle del pedido: {str(detalle_error)}')
                     flash('Ocurrió un error al agregar un producto al pedido.', 'error')
                     return redirect(url_for('realizar_pedido'))
 
-            # Limpiar el carrito de la sesión después de completar el pedido
             session.pop('carrito', None)
             flash('Pedido realizado con éxito', 'success')
 
-            # Enviar notificación al administrador
             usuario_nombre = session.get('usuario_nombre', 'Un usuario')
             mensaje = f'El usuario "{usuario_nombre}" acaba de realizar una compra por S/. {total:.2f}'
             controlador_notificaciones.agregar_notificacion(usuario_id, pedido_id, mensaje)
@@ -621,16 +620,13 @@ def realizar_pedido():
             if 'usuario_tipo' in session and session['usuario_tipo'] == 'administrador':
                 flash('Alguien realizó una compra!', 'notification')
 
-            # Redirigir a la página de confirmación del pedido
             return redirect(url_for('confirmacion_pedido', pedido_id=pedido_id))
 
     except Exception as e:
-        # Manejo de errores generales
         app.logger.error(f'Error inesperado al realizar el pedido: {str(e)}')
         flash('Ocurrió un error inesperado al realizar tu pedido. Por favor, inténtalo nuevamente.', 'error')
         return redirect(url_for('realizar_pedido'))
 
-    # Si es una solicitud GET, mostrar la página para seleccionar la dirección de envío
     try:
         direcciones = controlador_direcciones.obtener_direcciones_usuario(session['usuario_id'])
         metodos_pago = controlador_metodo_pago.listar_metodos_pago(session['usuario_id'])
@@ -639,7 +635,6 @@ def realizar_pedido():
         flash('Ocurrió un error al cargar tus datos. Por favor, inténtalo nuevamente.', 'error')
         return redirect(url_for('home'))
 
-    # Calcular el total del pedido para mostrarlo en la página
     total = 0
     if 'carrito' in session:
         for item in session['carrito']:
@@ -820,7 +815,6 @@ def actualizar_cuenta():
         foto_filename = usuario.foto
 
     controlador_usuario.actualizar_usuario(usuario_id, nombre, apellido, email, tipo, foto_filename)
-    # Redirigir a la página de direcciones
     session['usuario_nombre'] = nombre.split()[0] if nombre else ""
     session['usuario_apellido'] = apellido.split()[0] if apellido else ""
     flash('Tu cuenta ha sido actualizada exitosamente', 'success')
@@ -912,15 +906,6 @@ def admin_nuevo_producto():
         id_modelo = request.form.get('id_modelo')  # Puede ser None
         destacado = 1 if 'destacado' in request.form else 0
 
-        # Verificar si se subió una imagen
-        if 'imagen' not in request.files:
-            flash('La imagen es obligatoria', 'error')
-            return render_template('admin/editar_nuevo_producto.html', 
-                                producto=None, 
-                                categorias=categorias,
-                                marcas=marcas,
-                                modelos=modelos)
-
         imagen = request.files['imagen']
         if imagen.filename == '':
             flash('Debe seleccionar una imagen', 'error')
@@ -997,7 +982,6 @@ def admin_editar_producto(id):
         
         if imagen and allowed_file(imagen.filename):
             try:
-                # Eliminar imagen anterior si existe
                 if producto.imagen:
                     try:
                         os.remove(os.path.join(UPLOAD_FOLDER, producto.imagen))
@@ -1109,7 +1093,6 @@ def admin_editar_pedido(id):
 @admin_required
 def admin_eliminar_pedido(id):
     try:
-        # Intentamos eliminar el pedido
         if controlador_pedido.eliminar_pedido(id):
             flash('Pedido eliminado con éxito.', 'success')
         else:
@@ -1477,72 +1460,21 @@ def geocodificar_direccion():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # APIs para Ubicación
-@app.route('/api/ubicaciones/paises', methods=['GET'])
-def api_obtener_paises():
+@app.route('/api/estados/<int:pais_id>', methods=['GET'])
+def api_obtener_estados(pais_id):
     try:
-        from controlador_ubicacion import ControladorUbicacion
-        paises = ControladorUbicacion.obtener_paises()
-        return jsonify([{
-            'id': p.id,
-            'nombre': p.nombre,
-            'codigo': p.codigo
-        } for p in paises]), 200
+        estados = controlador_ubicacion.obtener_estados_por_pais(pais_id)
+        return jsonify({"status": "success", "data": estados}), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
 
-@app.route('/api/ubicaciones/paises/<int:pais_id>/estados', methods=['GET'])
-def api_obtener_estados_pais(pais_id):
+@app.route('/api/ciudades/<int:estado_id>', methods=['GET'])
+def api_obtener_ciudades(estado_id):
     try:
-        from controlador_ubicacion import ControladorUbicacion
-        estados = ControladorUbicacion.obtener_estados_por_pais(pais_id)
-        return jsonify([{
-            'id': e.id,
-            'nombre': e.nombre,
-            'pais_id': e.pais_id
-        } for e in estados]), 200
+        ciudades = controlador_ubicacion.obtener_ciudades_por_estado(estado_id)
+        return jsonify({"status": "success", "data": ciudades}), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/ubicaciones/estados/<int:estado_id>/ciudades', methods=['GET'])
-def api_obtener_ciudades_estado(estado_id):
-    try:
-        from controlador_ubicacion import ControladorUbicacion
-        ciudades = ControladorUbicacion.obtener_ciudades_por_estado(estado_id)
-        return jsonify([{
-            'id': c.id,
-            'nombre': c.nombre,
-            'estado_id': c.estado_id
-        } for c in ciudades]), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/ubicaciones/ciudades/<int:ciudad_id>/distritos', methods=['GET'])
-def api_obtener_distritos_ciudad(ciudad_id):
-    try:
-        from controlador_ubicacion import ControladorUbicacion
-        distritos = ControladorUbicacion.obtener_distritos_por_ciudad(ciudad_id)
-        return jsonify([{
-            'id': d.id,
-            'nombre': d.nombre,
-            'ciudad_id': d.ciudad_id
-        } for d in distritos]), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/ubicaciones/geocodificar', methods=['POST'])
-def api_geocodificar_direccion():
-    try:
-        data = request.get_json()
-        from controlador_geocoding import ControladorGeocoding
-        resultado = ControladorGeocoding.geocodificar_direccion(
-            data['direccion'],
-            data.get('ciudad', ''),
-            data.get('estado', ''),
-            data.get('pais', '')
-        )
-        return jsonify(resultado), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 # APIs para Dirección
 @app.route('/api/usuarios/<int:usuario_id>/direcciones', methods=['GET'])
@@ -1576,7 +1508,6 @@ def api_crear_direccion():
                 "message": f"Datos incompletos. Se requieren los campos: {', '.join(required_fields)}"
             }), 400
 
-        # Validar campos numéricos
         try:
             datos['usuario_id'] = int(datos['usuario_id'])
             datos['ciudad_id'] = int(datos['ciudad_id'])
@@ -1606,24 +1537,15 @@ def api_actualizar_direccion(id):
         if not datos:
             return jsonify({"status": "error", "message": "No se proporcionaron datos para actualizar"}), 400
 
-        # Validar campos numéricos si están presentes
-        if 'ciudad_id' in datos:
-            try:
-                datos['ciudad_id'] = int(datos['ciudad_id'])
-            except ValueError:
-                return jsonify({
-                    "status": "error",
-                    "message": "El ID de ciudad debe ser un número válido"
-                }), 400
-
-        if 'distrito_id' in datos:
-            try:
+        try:
+            datos['ciudad_id'] = int(datos['ciudad_id'])
+            if 'distrito_id' in datos:
                 datos['distrito_id'] = int(datos['distrito_id'])
-            except ValueError:
-                return jsonify({
-                    "status": "error",
-                    "message": "El ID de distrito debe ser un número válido"
-                }), 400
+        except ValueError:
+            return jsonify({
+                "status": "error",
+                "message": "Los campos numéricos deben ser valores válidos"
+            }), 400
 
         resultado = controlador_direcciones.actualizar_direccion(id, datos)
         if resultado:
@@ -1635,7 +1557,6 @@ def api_actualizar_direccion(id):
 @app.route('/api/direcciones/<int:id>/predeterminada', methods=['PUT'])
 def api_establecer_direccion_predeterminada(id):
     try:
-        # Validar que la dirección existe
         direccion = controlador_direcciones.obtener_direccion_por_id(id)
         if not direccion:
             return jsonify({"status": "error", "message": "Dirección no encontrada"}), 404
@@ -1652,7 +1573,6 @@ def api_establecer_direccion_predeterminada(id):
 @app.route('/api/direcciones/<int:id>', methods=['DELETE'])
 def api_eliminar_direccion(id):
     try:
-        # Validar que la dirección existe
         direccion = controlador_direcciones.obtener_direccion_por_id(id)
         if not direccion:
             return jsonify({"status": "error", "message": "Dirección no encontrada"}), 404
@@ -1785,7 +1705,6 @@ def api_actualizar_pedido(id):
         if not datos:
             return jsonify({"status": "error", "message": "Datos incompletos"}), 400
         
-        # Verificar si el pedido existe
         pedido_actual = controlador_pedido.obtener_pedido_por_id(id)
         if not pedido_actual:
             return jsonify({"status": "error", "message": "Pedido no encontrado"}), 404
@@ -1894,7 +1813,6 @@ def api_eliminar_categoria(id):
 @app.route('/api/productos', methods=['GET'])
 def api_obtener_productos():
     try:
-        # Parámetros de paginación y filtrado
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
         categoria_id = request.args.get('categoria_id', type=int)
@@ -1929,7 +1847,6 @@ def api_crear_producto():
                 "message": f"Datos incompletos. Se requieren los campos: {', '.join(required_fields)}"
             }), 400
 
-        # Validar tipos de datos
         try:
             datos['precio'] = float(datos['precio'])
             datos['stock'] = int(datos['stock'])
@@ -1962,12 +1879,10 @@ def api_actualizar_producto(id):
         if not datos:
             return jsonify({"status": "error", "message": "No se proporcionaron datos para actualizar"}), 400
 
-        # Validar que el producto existe
         producto_existente = controlador_producto.obtener_producto_por_id(id)
         if not producto_existente:
             return jsonify({"status": "error", "message": "Producto no encontrado"}), 404
 
-        # Validar tipos de datos si están presentes
         try:
             if 'precio' in datos:
                 datos['precio'] = float(datos['precio'])
@@ -1995,7 +1910,6 @@ def api_actualizar_producto(id):
 @app.route('/api/productos/<int:id>', methods=['DELETE'])
 def api_eliminar_producto(id):
     try:
-        # Validar que el producto existe
         producto = controlador_producto.obtener_producto_por_id(id)
         if not producto:
             return jsonify({"status": "error", "message": "Producto no encontrado"}), 404
@@ -2010,7 +1924,6 @@ def api_eliminar_producto(id):
 @app.route('/api/productos/buscar', methods=['GET'])
 def api_buscar_productos():
     try:
-        # Obtener y validar parámetros de búsqueda
         query = request.args.get('q', '')
         categoria_id = request.args.get('categoria_id', type=int)
         precio_min = request.args.get('precio_min', type=float)
@@ -2060,7 +1973,6 @@ def api_obtener_favoritos_usuario(usuario_id):
 @app.route('/api/usuarios/<int:usuario_id>/favoritos/<int:producto_id>', methods=['POST'])
 def api_agregar_favorito(usuario_id, producto_id):
     try:
-        # Validar que el producto existe
         producto = controlador_producto.obtener_producto_por_id(producto_id)
         if not producto:
             return jsonify({"status": "error", "message": "Producto no encontrado"}), 404
@@ -2087,7 +1999,6 @@ def api_eliminar_favorito(usuario_id, producto_id):
 def api_chatbot_consulta():
     try:
         data = request.get_json()
-        # Aquí iría la lógica del chatbot
         respuesta = {
             'mensaje': 'Lo siento, el chatbot está en mantenimiento.',
             'sugerencias': [
@@ -2104,7 +2015,6 @@ def api_chatbot_consulta():
 def api_chatbot_feedback():
     try:
         data = request.get_json()
-        # Aquí se guardaría el feedback del chatbot
         return jsonify({'mensaje': 'Gracias por tu feedback'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500

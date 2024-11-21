@@ -166,9 +166,9 @@ def actualizar_direccion(id, datos):
                 raise ValueError("Dirección no encontrada")
 
             # Obtener nombres de ubicaciones
-            ciudad_data = controlador_ubicacion.obtener_ciudad_por_id(datos['ciudad'])
-            estado_data = controlador_ubicacion.obtener_estado_por_id(datos['estado'])
-            pais_data = controlador_ubicacion.obtener_pais_por_id(datos['pais'])
+            ciudad_data = controlador_ubicacion.obtener_ciudad_por_id(datos['ciudad_id'])
+            estado_data = controlador_ubicacion.obtener_estado_por_id(datos['estado_id'])
+            pais_data = controlador_ubicacion.obtener_pais_por_id(datos['pais_id'])
 
             if not all([ciudad_data, estado_data, pais_data]):
                 raise ValueError("No se encontraron todos los datos de ubicación")
@@ -176,6 +176,10 @@ def actualizar_direccion(id, datos):
             ciudad_nombre = ciudad_data['nombre']
             estado_nombre = estado_data['nombre']
             pais_nombre = pais_data['nombre']
+
+            # Geocodificar dirección
+            direccion_completa = f"{datos['direccion']}, {ciudad_nombre}, {estado_nombre}, {pais_nombre}"
+            coordenadas = geocodificar_direccion(direccion_completa)
 
             # Si es dirección predeterminada, actualizar las demás
             if datos.get('direccion_predeterminada'):
@@ -193,7 +197,9 @@ def actualizar_direccion(id, datos):
                 estado = %s, 
                 pais = %s, 
                 codigo_postal = %s,
-                direccion_predeterminada = %s
+                latitud = %s,
+                longitud = %s,
+                direccion_completa = %s
             WHERE id = %s
             """
             cursor.execute(sql, (
@@ -202,16 +208,58 @@ def actualizar_direccion(id, datos):
                 estado_nombre,
                 pais_nombre,
                 datos['codigo_postal'],
-                datos.get('direccion_predeterminada', False),
+                coordenadas['latitud'] if coordenadas else None,
+                coordenadas['longitud'] if coordenadas else None,
+                direccion_completa,
                 id
             ))
             
-        conexion.commit()
-        logger.info(f"Dirección {id} actualizada con éxito.")
+            conexion.commit()
+            return True
     except Exception as e:
-        logger.error(f"Error al actualizar la dirección con id {id}: {e}")
+        logger.error(f"Error al actualizar la dirección con id {id}: {str(e)}")
         conexion.rollback()
         raise
+    finally:
+        conexion.close()
+
+def obtener_direccion_por_id(direccion_id):
+    conexion = obtener_conexion()
+    try:
+        with conexion.cursor() as cursor:
+            sql = """
+            SELECT d.*, 
+                   c.id as ciudad_id, 
+                   e.id as estado_id, 
+                   p.id as pais_id
+            FROM direcciones d
+            LEFT JOIN ciudades c ON c.nombre = d.ciudad
+            LEFT JOIN estados e ON e.nombre = d.estado
+            LEFT JOIN paises p ON p.nombre = d.pais
+            WHERE d.id = %s
+            """
+            cursor.execute(sql, (direccion_id,))
+            row = cursor.fetchone()
+            if row:
+                return {
+                    'id': row[0],
+                    'usuario_id': row[1],
+                    'direccion': row[2],
+                    'ciudad': row[3],
+                    'estado': row[4],
+                    'pais': row[5],
+                    'codigo_postal': row[6],
+                    'latitud': float(row[7]) if row[7] else None,
+                    'longitud': float(row[8]) if row[8] else None,
+                    'direccion_completa': row[9],
+                    'ciudad_id': row[11],
+                    'estado_id': row[12],
+                    'pais_id': row[13]
+                }
+            return None
+    except Exception as e:
+        logger.error(f"Error al obtener dirección por ID {direccion_id}: {str(e)}")
+        return None
     finally:
         conexion.close()
 
@@ -245,36 +293,6 @@ def eliminar_direccion(usuario_id, direccion_id):
         logger.error(f"Error al eliminar dirección: {e}")
         conexion.rollback()
         return False
-    finally:
-        conexion.close()
-
-def obtener_direccion_por_id(direccion_id):
-    conexion = obtener_conexion()
-    try:
-        with conexion.cursor() as cursor:
-            sql = """
-            SELECT id, usuario_id, direccion, ciudad, estado, pais, 
-                   codigo_postal, direccion_predeterminada
-            FROM direcciones 
-            WHERE id = %s
-            """
-            cursor.execute(sql, (direccion_id,))
-            row = cursor.fetchone()
-            if row:
-                return {
-                    'id': row[0],
-                    'usuario_id': row[1],
-                    'direccion': row[2],
-                    'ciudad': row[3],
-                    'estado': row[4],
-                    'pais': row[5],
-                    'codigo_postal': row[6],
-                    'direccion_predeterminada': bool(row[7])
-                }
-            return None
-    except Exception as e:
-        logger.error(f"Error al obtener dirección: {str(e)}")
-        return None
     finally:
         conexion.close()
 
