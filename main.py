@@ -37,6 +37,7 @@ app.config['WTF_CSRF_METHODS'] = ['POST', 'PUT', 'PATCH', 'DELETE']
 app.config['WTF_CSRF_FIELD_NAME'] = 'csrf_token'
 app.config['WTF_CSRF_HEADERS'] = ['X-CSRF-Token', 'X-CSRFToken', 'X-XSRF-Token']
 app.config['WTF_CSRF_ENABLED'] = True
+app.config['WTF_CSRF_SSL_STRICT'] = False  # CLAVE PARA PYTHONANYWHERE
 app.config['SECRET_KEY'] = 'tu-clave-secreta-aqui'
 
 # Decorador login_required
