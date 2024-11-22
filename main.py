@@ -9,21 +9,19 @@ import logging
 from bd import obtener_conexion
 from pymysql.err import IntegrityError
 from flask_wtf import CSRFProtect
-import controlador_direcciones
-
-# Importar controladores directamente
-import controlador_usuario
-import controlador_categorias
-import controlador_producto
-import controlador_pedido
-import controlador_kit
-import controlador_favorito
-import controlador_opinion
-import controlador_notificaciones
-import controlador_ubicacion
-import controlador_metodo_pago
-import controlador_marca
-import controlador_modelo
+from controllers import controlador_direcciones
+from controllers import controlador_usuario
+from controllers import controlador_categorias
+from controllers import controlador_producto
+from controllers import controlador_pedido
+from controllers import controlador_kit
+from controllers import controlador_favorito
+from controllers import controlador_opinion
+from controllers import controlador_notificaciones
+from controllers import controlador_ubicacion
+from controllers import controlador_metodo_pago
+from controllers import controlador_marca
+from controllers import controlador_modelo
 
 app = Flask(__name__)
 csrf = CSRFProtect()
