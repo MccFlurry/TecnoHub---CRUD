@@ -263,8 +263,9 @@ def agregar_direccion():
             estado_id = request.form.get('estado_id')
             pais_id = request.form.get('pais_id')
             codigo_postal = request.form.get('codigo_postal')
+            distrito_id = request.form.get('distrito_id')  # Agregado distrito_id
             
-            campos_requeridos = ['direccion', 'ciudad_id', 'estado_id', 'pais_id', 'codigo_postal']
+            campos_requeridos = ['direccion', 'ciudad_id', 'estado_id', 'pais_id', 'codigo_postal', 'distrito_id']
             if not all(request.form.get(campo) for campo in campos_requeridos):
                 flash('Por favor complete todos los campos requeridos.', 'error')
                 return redirect(url_for('agregar_direccion'))
@@ -277,7 +278,8 @@ def agregar_direccion():
                 ciudad_id=ciudad_id,
                 estado_id=estado_id,
                 pais_id=pais_id,
-                codigo_postal=codigo_postal
+                codigo_postal=codigo_postal,
+                distrito_id=distrito_id  # Agregado distrito_id
             )
             
             flash('Dirección agregada con éxito', 'success')
@@ -312,10 +314,11 @@ def editar_direccion(direccion_id):
                 'ciudad_id': request.form.get('ciudad_id'),
                 'estado_id': request.form.get('estado_id'),
                 'pais_id': request.form.get('pais_id'),
-                'codigo_postal': request.form.get('codigo_postal')
+                'codigo_postal': request.form.get('codigo_postal'),
+                'distrito_id': request.form.get('distrito_id')  # Agregado distrito_id
             }
 
-            campos_requeridos = ['direccion', 'ciudad_id', 'estado_id', 'pais_id', 'codigo_postal']
+            campos_requeridos = ['direccion', 'ciudad_id', 'estado_id', 'pais_id', 'codigo_postal', 'distrito_id']
             if not all(datos.get(campo) for campo in campos_requeridos):
                 flash('Por favor complete todos los campos requeridos.', 'error')
                 return redirect(url_for('editar_direccion', direccion_id=direccion_id))
@@ -328,12 +331,14 @@ def editar_direccion(direccion_id):
         paises = controlador_ubicacion.obtener_todos_paises()
         estados = controlador_ubicacion.obtener_estados_por_pais(direccion['pais_id']) if direccion.get('pais_id') else []
         ciudades = controlador_ubicacion.obtener_ciudades_por_estado(direccion['estado_id']) if direccion.get('estado_id') else []
+        distritos = controlador_ubicacion.obtener_distritos_por_ciudad(direccion['ciudad_id']) if direccion.get('ciudad_id') else []
         
         return render_template('editar_direccion.html', 
                              direccion=direccion,
                              paises=paises,
                              estados=estados,
-                             ciudades=ciudades)
+                             ciudades=ciudades,
+                             distritos=distritos)
 
     except Exception as e:
         flash(f'Error al procesar la dirección: {str(e)}', 'error')
@@ -1442,7 +1447,7 @@ def obtener_distritos(ciudad_id):
         return jsonify({"status": "success", "data": distritos}), 200
     except Exception as e:
         logger.error(f"Error al obtener distritos: {str(e)}")
-        return jsonify({"status": "error", "message": "Error al obtener distritos"}), 500
+        return jsonify({"status": "error", "message": "Error al obtener distritos", "error_detail": str(e)}), 500
 
 @app.route('/api/direccion/geocodificar', methods=['POST'])
 @login_required
@@ -1502,7 +1507,7 @@ def api_obtener_direccion(id):
 def api_crear_direccion():
     try:
         datos = request.get_json()
-        required_fields = ['usuario_id', 'calle', 'numero', 'codigo_postal', 'ciudad_id']
+        required_fields = ['usuario_id', 'calle', 'numero', 'codigo_postal', 'ciudad_id', 'distrito_id']  # Agregado distrito_id
         if not datos or not all(field in datos for field in required_fields):
             return jsonify({
                 "status": "error",
@@ -1512,15 +1517,23 @@ def api_crear_direccion():
         try:
             datos['usuario_id'] = int(datos['usuario_id'])
             datos['ciudad_id'] = int(datos['ciudad_id'])
-            if 'distrito_id' in datos:
-                datos['distrito_id'] = int(datos['distrito_id'])
+            datos['distrito_id'] = int(datos['distrito_id'])  # Agregado distrito_id
         except ValueError:
             return jsonify({
                 "status": "error",
                 "message": "Los campos numéricos deben ser valores válidos"
             }), 400
 
-        resultado = controlador_direcciones.agregar_direccion(datos)
+        resultado = controlador_direcciones.agregar_direccion(
+            usuario_id=datos['usuario_id'],
+            direccion=datos['calle'] + ' ' + datos['numero'],
+            ciudad_id=datos['ciudad_id'],
+            estado_id=None,
+            pais_id=None,
+            codigo_postal=datos['codigo_postal'],
+            distrito_id=datos['distrito_id']  # Agregado distrito_id
+        )
+        
         if resultado:
             return jsonify({
                 "status": "success",
@@ -1540,8 +1553,7 @@ def api_actualizar_direccion(id):
 
         try:
             datos['ciudad_id'] = int(datos['ciudad_id'])
-            if 'distrito_id' in datos:
-                datos['distrito_id'] = int(datos['distrito_id'])
+            datos['distrito_id'] = int(datos['distrito_id'])  # Agregado distrito_id
         except ValueError:
             return jsonify({
                 "status": "error",

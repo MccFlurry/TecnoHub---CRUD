@@ -69,7 +69,7 @@ def geocodificar_direccion(direccion_completa):
     finally:
         conexion.close()
 
-def agregar_direccion(usuario_id, direccion, ciudad_id, estado_id, pais_id, codigo_postal):
+def agregar_direccion(usuario_id, direccion, ciudad_id, estado_id, pais_id, codigo_postal, distrito_id):
     conexion = obtener_conexion()
     try:
         with conexion.cursor() as cursor:
@@ -85,31 +85,35 @@ def agregar_direccion(usuario_id, direccion, ciudad_id, estado_id, pais_id, codi
             ciudad_data = controlador_ubicacion.obtener_ciudad_por_id(ciudad_id)
             estado_data = controlador_ubicacion.obtener_estado_por_id(estado_id)
             pais_data = controlador_ubicacion.obtener_pais_por_id(pais_id)
+            distrito_data = controlador_ubicacion.obtener_distrito_por_id(distrito_id)
 
-            if not all([ciudad_data, estado_data, pais_data]):
+            if not all([ciudad_data, estado_data, pais_data, distrito_data]):
                 raise ValueError("No se encontraron todos los datos de ubicación")
 
             ciudad_nombre = ciudad_data['nombre']
             estado_nombre = estado_data['nombre']
             pais_nombre = pais_data['nombre']
+            distrito_nombre = distrito_data['nombre']
 
             # Geocodificar dirección
-            direccion_completa = f"{direccion}, {ciudad_nombre}, {estado_nombre}, {pais_nombre}"
+            direccion_completa = f"{direccion}, {distrito_nombre}, {ciudad_nombre}, {estado_nombre}, {pais_nombre}"
             coordenadas = geocodificar_direccion(direccion_completa)
 
-            # SQL modificado para incluir nuevos campos
+            # SQL para insertar dirección (solo con distrito_id)
             sql = """
             INSERT INTO direcciones (
                 usuario_id, direccion, ciudad, estado, pais, 
-                codigo_postal, latitud, longitud, direccion_completa
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                codigo_postal, latitud, longitud, direccion_completa,
+                distrito_id
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             cursor.execute(sql, (
                 usuario_id, direccion, ciudad_nombre, estado_nombre, pais_nombre, 
                 codigo_postal,
                 coordenadas['latitud'] if coordenadas else None,
                 coordenadas['longitud'] if coordenadas else None,
-                direccion_completa
+                direccion_completa,
+                distrito_id
             ))
             
             conexion.commit()
@@ -128,12 +132,13 @@ def obtener_direcciones_usuario(usuario_id):
         with conexion.cursor() as cursor:
             sql = """
             SELECT 
-                id, usuario_id, direccion, ciudad, estado, pais, 
-                codigo_postal, latitud, longitud, direccion_completa,
-                direccion_predeterminada
-            FROM direcciones 
-            WHERE usuario_id = %s
-            ORDER BY direccion_predeterminada DESC, id DESC
+                d.id, d.usuario_id, d.direccion, d.ciudad, d.estado, d.pais, 
+                d.codigo_postal, d.latitud, d.longitud, d.direccion_completa,
+                d.direccion_predeterminada, d.distrito_id, di.nombre as distrito_nombre
+            FROM direcciones d
+            LEFT JOIN distritos di ON di.id = d.distrito_id
+            WHERE d.usuario_id = %s
+            ORDER BY d.direccion_predeterminada DESC, d.id DESC
             """
             cursor.execute(sql, (usuario_id,))
             for row in cursor.fetchall():
@@ -148,7 +153,9 @@ def obtener_direcciones_usuario(usuario_id):
                     'latitud': float(row[7]) if row[7] else None,
                     'longitud': float(row[8]) if row[8] else None,
                     'direccion_completa': row[9],
-                    'direccion_predeterminada': bool(row[10])
+                    'direccion_predeterminada': bool(row[10]),
+                    'distrito_id': row[11],
+                    'distrito': row[12]  # Nombre del distrito obtenido del JOIN
                 })
     except Exception as e:
         logger.error(f"Error al obtener direcciones del usuario {usuario_id}: {e}")
@@ -160,46 +167,39 @@ def actualizar_direccion(id, datos):
     conexion = obtener_conexion()
     try:
         with conexion.cursor() as cursor:
-            # Verificar que la dirección existe
-            cursor.execute("SELECT id FROM direcciones WHERE id = %s", (id,))
-            if not cursor.fetchone():
-                raise ValueError("Dirección no encontrada")
+            logger.info(f"Actualizando dirección ID: {id}")
 
-            # Obtener nombres de ubicaciones
+            # Validar y obtener datos de ubicación
             ciudad_data = controlador_ubicacion.obtener_ciudad_por_id(datos['ciudad_id'])
             estado_data = controlador_ubicacion.obtener_estado_por_id(datos['estado_id'])
             pais_data = controlador_ubicacion.obtener_pais_por_id(datos['pais_id'])
+            distrito_data = controlador_ubicacion.obtener_distrito_por_id(datos['distrito_id'])
 
-            if not all([ciudad_data, estado_data, pais_data]):
+            if not all([ciudad_data, estado_data, pais_data, distrito_data]):
                 raise ValueError("No se encontraron todos los datos de ubicación")
 
             ciudad_nombre = ciudad_data['nombre']
             estado_nombre = estado_data['nombre']
             pais_nombre = pais_data['nombre']
+            distrito_nombre = distrito_data['nombre']
 
-            # Geocodificar dirección
-            direccion_completa = f"{datos['direccion']}, {ciudad_nombre}, {estado_nombre}, {pais_nombre}"
+            # Construir dirección completa
+            direccion_completa = f"{datos['direccion']}, {distrito_nombre}, {ciudad_nombre}, {estado_nombre}, {pais_nombre}"
+
+            # Obtener coordenadas
             coordenadas = geocodificar_direccion(direccion_completa)
 
-            # Si es dirección predeterminada, actualizar las demás
-            if datos.get('direccion_predeterminada'):
-                cursor.execute("""
-                    UPDATE direcciones 
-                    SET direccion_predeterminada = false 
-                    WHERE usuario_id = (SELECT usuario_id FROM direcciones WHERE id = %s)
-                """, (id,))
-
-            # Actualizar la dirección
             sql = """
-            UPDATE direcciones 
-            SET direccion = %s, 
-                ciudad = %s, 
-                estado = %s, 
-                pais = %s, 
+            UPDATE direcciones SET
+                direccion = %s,
+                ciudad = %s,
+                estado = %s,
+                pais = %s,
                 codigo_postal = %s,
                 latitud = %s,
                 longitud = %s,
-                direccion_completa = %s
+                direccion_completa = %s,
+                distrito_id = %s
             WHERE id = %s
             """
             cursor.execute(sql, (
@@ -211,13 +211,14 @@ def actualizar_direccion(id, datos):
                 coordenadas['latitud'] if coordenadas else None,
                 coordenadas['longitud'] if coordenadas else None,
                 direccion_completa,
+                datos['distrito_id'],
                 id
             ))
             
             conexion.commit()
             return True
     except Exception as e:
-        logger.error(f"Error al actualizar la dirección con id {id}: {str(e)}")
+        logger.error(f"Error al actualizar dirección: {str(e)}")
         conexion.rollback()
         raise
     finally:
@@ -231,11 +232,14 @@ def obtener_direccion_por_id(direccion_id):
             SELECT d.*, 
                    c.id as ciudad_id, 
                    e.id as estado_id, 
-                   p.id as pais_id
+                   p.id as pais_id,
+                   d.distrito_id,
+                   di.nombre as distrito_nombre
             FROM direcciones d
             LEFT JOIN ciudades c ON c.nombre = d.ciudad
             LEFT JOIN estados e ON e.nombre = d.estado
             LEFT JOIN paises p ON p.nombre = d.pais
+            LEFT JOIN distritos di ON di.id = d.distrito_id
             WHERE d.id = %s
             """
             cursor.execute(sql, (direccion_id,))
@@ -254,7 +258,9 @@ def obtener_direccion_por_id(direccion_id):
                     'direccion_completa': row[9],
                     'ciudad_id': row[11],
                     'estado_id': row[12],
-                    'pais_id': row[13]
+                    'pais_id': row[13],
+                    'distrito_id': row[14] if row[14] else None,
+                    'distrito': row[15] if row[15] else None
                 }
             return None
     except Exception as e:

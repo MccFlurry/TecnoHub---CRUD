@@ -6,12 +6,12 @@
 <div class="container px-4 py-8 mx-auto">
     <h1 class="mb-6 text-3xl font-bold">Editar Dirección</h1>
 
-    <form action="{{ url_for('editar_direccion', direccion_id=direccion.id) }}" method="POST" class="max-w-xl mx-auto">
+    <form action="{{ url_for('editar_direccion', direccion_id=direccion.id) }}" method="POST" class="mx-auto max-w-xl">
         <div class="p-6 mb-8 bg-gray-800 rounded-lg shadow-lg">
             <div class="mb-4">
                 <label for="pais" class="block mb-2 text-sm font-medium">País</label>
                 <select id="pais" name="pais_id" required 
-                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="px-3 py-2 w-full bg-gray-700 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Seleccione un país</option>
                     {% for pais in paises %}
                         <option value="{{ pais.id }}" {% if pais.id == direccion.pais_id %}selected{% endif %}>
@@ -24,7 +24,7 @@
             <div class="mb-4">
                 <label for="estado" class="block mb-2 text-sm font-medium">Estado/Departamento</label>
                 <select id="estado" name="estado_id" required 
-                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="px-3 py-2 w-full bg-gray-700 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Seleccione un estado</option>
                     {% for estado in estados %}
                         <option value="{{ estado.id }}" {% if estado.id == direccion.estado_id %}selected{% endif %}>
@@ -37,7 +37,7 @@
             <div class="mb-4">
                 <label for="ciudad" class="block mb-2 text-sm font-medium">Ciudad</label>
                 <select id="ciudad" name="ciudad_id" required 
-                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="px-3 py-2 w-full bg-gray-700 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Seleccione una ciudad</option>
                     {% for ciudad in ciudades %}
                         <option value="{{ ciudad.id }}" {% if ciudad.id == direccion.ciudad_id %}selected{% endif %}>
@@ -48,11 +48,24 @@
             </div>
 
             <div class="mb-4">
+                <label for="distrito" class="block mb-2 text-sm font-medium">Distrito</label>
+                <select id="distrito" name="distrito_id" 
+                        class="px-3 py-2 w-full bg-gray-700 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Seleccione un distrito</option>
+                    {% for distrito in distritos %}
+                        <option value="{{ distrito.id }}" {% if distrito.id == direccion.distrito_id %}selected{% endif %}>
+                            {{ distrito.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-4">
                 <label for="direccion" class="block mb-2 text-sm font-medium">Dirección</label>
                 <input type="text" id="direccion" name="direccion" 
                        value="{{ direccion.direccion }}" required 
                        placeholder="Ingrese la dirección completa"
-                       class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                       class="px-3 py-2 w-full bg-gray-700 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div class="mb-4">
@@ -60,17 +73,17 @@
                 <input type="text" id="codigo_postal" name="codigo_postal" 
                        value="{{ direccion.codigo_postal }}" required 
                        placeholder="Ingrese el código postal"
-                       class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                       class="px-3 py-2 w-full bg-gray-700 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
         </div>
 
         <div class="flex justify-between">
             <a href="{{ url_for('mis_direcciones') }}" 
-               class="px-4 py-2 font-bold text-white transition-colors duration-300 bg-gray-600 rounded-full hover:bg-gray-700">
+               class="px-4 py-2 font-bold text-white bg-gray-600 rounded-full transition-colors duration-300 hover:bg-gray-700">
                 Cancelar
             </a>
             <button type="submit" 
-                    class="px-4 py-2 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700">
+                    class="px-4 py-2 font-bold text-white bg-blue-600 rounded-full transition-colors duration-300 hover:bg-blue-700">
                 Guardar Cambios
             </button>
         </div>
@@ -82,74 +95,77 @@ document.addEventListener('DOMContentLoaded', async function() {
     const paisSelect = document.getElementById('pais');
     const estadoSelect = document.getElementById('estado');
     const ciudadSelect = document.getElementById('ciudad');
+    const distritoSelect = document.getElementById('distrito');
 
-    async function cargarOpciones(url, select, valorSeleccionado = null) {
+    async function cargarOpciones(url, select) {
+        select.disabled = true;
         try {
-            select.disabled = true;
             const response = await fetch(url);
             const data = await response.json();
             
-            select.innerHTML = '<option value="">Seleccione una opción</option>';
+            select.innerHTML = select.id === 'distrito' ? 
+                '<option value="">Seleccione un distrito</option>' : 
+                '<option value="">Seleccione una opción</option>';
+            
             if (data.data) {
                 data.data.forEach(item => {
                     const option = document.createElement('option');
                     option.value = item.id;
                     option.textContent = item.nombre;
-                    if (valorSeleccionado && item.id === parseInt(valorSeleccionado)) {
-                        option.selected = true;
-                    }
                     select.appendChild(option);
                 });
             }
             select.disabled = false;
         } catch (error) {
             console.error('Error al cargar opciones:', error);
-            select.disabled = false;
+            select.innerHTML = select.id === 'distrito' ? 
+                '<option value="">Error al cargar distritos</option>' : 
+                '<option value="">Error al cargar opciones</option>';
         }
     }
 
-    // Cargar estados cuando cambia el país
+    // Event listeners
     paisSelect.addEventListener('change', async function() {
         if (this.value) {
-            await cargarOpciones(`/api/estados/${this.value}`, estadoSelect);
+            await cargarOpciones(`/api/ubicacion/estados/${this.value}`, estadoSelect);
             ciudadSelect.innerHTML = '<option value="">Seleccione una ciudad</option>';
             ciudadSelect.disabled = true;
+            distritoSelect.innerHTML = '<option value="">Seleccione un distrito</option>';
+            distritoSelect.disabled = true;
         }
     });
 
-    // Cargar ciudades cuando cambia el estado
     estadoSelect.addEventListener('change', async function() {
         if (this.value) {
-            await cargarOpciones(`/api/ciudades/${this.value}`, ciudadSelect);
+            await cargarOpciones(`/api/ubicacion/ciudades/${this.value}`, ciudadSelect);
+            distritoSelect.innerHTML = '<option value="">Seleccione un distrito</option>';
+            distritoSelect.disabled = true;
         }
     });
 
-    // Cargar valores iniciales si existen
+    ciudadSelect.addEventListener('change', async function() {
+        if (this.value) {
+            await cargarOpciones(`/api/ubicacion/distritos/${this.value}`, distritoSelect);
+            distritoSelect.disabled = false;
+        } else {
+            distritoSelect.innerHTML = '<option value="">Seleccione un distrito</option>';
+            distritoSelect.disabled = true;
+        }
+    });
+
+    // Cargar valores iniciales
     async function cargarValoresIniciales() {
-        const pais_id = "{{ direccion.pais_id }}";
-        const estado_id = "{{ direccion.estado_id }}";
-        const ciudad_id = "{{ direccion.ciudad_id }}";
-
-        if (pais_id) {
-            // Asegurarse de que el país esté seleccionado
-            const paisOption = Array.from(paisSelect.options).find(opt => opt.value === pais_id);
-            if (paisOption) {
-                paisOption.selected = true;
-            }
-
-            // Cargar estados
-            if (estado_id) {
-                await cargarOpciones(`/api/estados/${pais_id}`, estadoSelect, estado_id);
-                
-                // Cargar ciudades
-                if (ciudad_id) {
-                    await cargarOpciones(`/api/ciudades/${estado_id}`, ciudadSelect, ciudad_id);
+        if (paisSelect.value) {
+            await cargarOpciones(`/api/ubicacion/estados/${paisSelect.value}`, estadoSelect);
+            if (estadoSelect.value) {
+                await cargarOpciones(`/api/ubicacion/ciudades/${estadoSelect.value}`, ciudadSelect);
+                if (ciudadSelect.value) {
+                    await cargarOpciones(`/api/ubicacion/distritos/${ciudadSelect.value}`, distritoSelect);
                 }
             }
         }
     }
 
-    // Iniciar la carga de valores
     cargarValoresIniciales();
 });
 </script>

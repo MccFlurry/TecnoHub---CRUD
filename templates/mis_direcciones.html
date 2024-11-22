@@ -6,11 +6,11 @@
 <div class="container px-4 py-8 mx-auto">
     <h1 class="mb-8 text-3xl font-bold text-center">Mis Direcciones</h1>
 
-    <div class="max-w-3xl mx-auto">
+    <div class="mx-auto max-w-3xl">
         {% if direcciones %}
         {% for direccion in direcciones %}
         <div class="p-6 mb-4 bg-gray-800 rounded-lg shadow-lg">
-            <div class="flex items-start justify-between">
+            <div class="flex justify-between items-start">
                 <div class="flex-grow">
                     <div class="flex items-center mb-2">
                         <p class="text-lg font-semibold">
@@ -27,7 +27,7 @@
                         {% endif %}
                     </div>
                     <p class="text-sm text-gray-400">
-                        {{ direccion['ciudad'] }}, {{ direccion['estado'] }}, {{ direccion['pais'] }}
+                        {% if direccion['distrito'] %}{{ direccion['distrito'] }}, {% endif %}{{ direccion['ciudad'] }}, {{ direccion['estado'] }}, {{ direccion['pais'] }}
                         {% if direccion['codigo_postal'] %}
                         - CP: {{ direccion['codigo_postal'] }}
                         {% endif %}
@@ -39,20 +39,20 @@
                         method="post" class="inline">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit"
-                            class="px-3 py-2 text-sm text-white transition-colors duration-300 bg-green-600 rounded-full hover:bg-green-700">
+                            class="px-3 py-2 text-sm text-white bg-green-600 rounded-full transition-colors duration-300 hover:bg-green-700">
                             Establecer predeterminada
                         </button>
                     </form>
-                    {% endif %}
+              {% endif %}
                     <a href="{{ url_for('editar_direccion', direccion_id=direccion['id']) }}"
-                        class="px-3 py-2 text-sm text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700">
+                        class="px-3 py-2 text-sm text-white bg-blue-600 rounded-full transition-colors duration-300 hover:bg-blue-700">
                         Editar
                     </a>
                     <form action="{{ url_for('eliminar_direccion', direccion_id=direccion['id']) }}" method="post"
                         class="inline"
                         onsubmit="return confirm('¿Estás seguro de que quieres eliminar esta dirección?');">
                         <button type="submit"
-                            class="px-3 py-2 text-sm text-white transition-colors duration-300 bg-red-600 rounded-full hover:bg-red-700">
+                            class="px-3 py-2 text-sm text-white bg-red-600 rounded-full transition-colors duration-300 hover:bg-red-700">
                             Eliminar
                         </button>
                     </form>
@@ -69,7 +69,7 @@
 
         <div class="mt-8 text-center">
             <a href="{{ url_for('agregar_direccion') }}"
-                class="inline-block px-6 py-2 font-bold text-white transition-colors duration-300 bg-green-600 rounded-full hover:bg-green-700">
+                class="inline-block px-6 py-2 font-bold text-white bg-green-600 rounded-full transition-colors duration-300 hover:bg-green-700">
                 Agregar Nueva Dirección
             </a>
         </div>

@@ -6,11 +6,11 @@
 <div class="container px-4 py-8 mx-auto">
     <h1 class="mb-8 text-3xl font-bold text-center">Agregar Nueva Dirección</h1>
     
-    <form action="{{ url_for('agregar_direccion') }}" method="post" class="max-w-xl mx-auto">
+    <form action="{{ url_for('agregar_direccion') }}" method="post" class="mx-auto max-w-xl">
         <div class="p-6 mb-8 bg-gray-800 rounded-lg shadow-lg">
             <div class="mb-4">
                 <label for="pais" class="block mb-2 text-sm font-medium">País</label>
-                <select id="pais" name="pais_id" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select id="pais" name="pais_id" required class="px-3 py-2 w-full bg-gray-700 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Seleccione un país</option>
                     {% for pais in paises %}
                         <option value="{{ pais.id }}">{{ pais.nombre }}</option>
@@ -20,34 +20,41 @@
             
             <div class="mb-4">
                 <label for="estado" class="block mb-2 text-sm font-medium">Estado/Departamento</label>
-                <select id="estado" name="estado_id" required disabled class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select id="estado" name="estado_id" required disabled class="px-3 py-2 w-full bg-gray-700 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Seleccione un estado</option>
                 </select>
             </div>
             
             <div class="mb-4">
                 <label for="ciudad" class="block mb-2 text-sm font-medium">Ciudad</label>
-                <select id="ciudad" name="ciudad_id" required disabled class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select id="ciudad" name="ciudad_id" required disabled class="px-3 py-2 w-full bg-gray-700 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Seleccione una ciudad</option>
                 </select>
             </div>
 
             <div class="mb-4">
+                <label for="distrito" class="block mb-2 text-sm font-medium">Distrito</label>
+                <select id="distrito" name="distrito_id" class="px-3 py-2 w-full bg-gray-700 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Seleccione un distrito</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
                 <label for="direccion" class="block mb-2 text-sm font-medium">Dirección</label>
-                <input type="text" id="direccion" name="direccion" required placeholder="Ingrese la dirección completa" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" id="direccion" name="direccion" required placeholder="Ingrese la dirección completa" class="px-3 py-2 w-full bg-gray-700 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div class="mb-4">
                 <label for="codigo_postal" class="block mb-2 text-sm font-medium">Código Postal</label>
-                <input type="text" id="codigo_postal" name="codigo_postal" required placeholder="Ingrese el código postal" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" id="codigo_postal" name="codigo_postal" required placeholder="Ingrese el código postal" class="px-3 py-2 w-full bg-gray-700 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
         </div>
         
         <div class="flex justify-between">
-            <a href="{{ url_for('mis_direcciones') }}" class="px-4 py-2 font-bold text-white transition-colors duration-300 bg-gray-600 rounded-full hover:bg-gray-700">
+            <a href="{{ url_for('mis_direcciones') }}" class="px-4 py-2 font-bold text-white bg-gray-600 rounded-full transition-colors duration-300 hover:bg-gray-700">
                 Cancelar
             </a>
-            <button type="submit" class="px-4 py-2 font-bold text-white transition-colors duration-300 bg-blue-600 rounded-full hover:bg-blue-700">
+            <button type="submit" class="px-4 py-2 font-bold text-white bg-blue-600 rounded-full transition-colors duration-300 hover:bg-blue-700">
                 Guardar Dirección
             </button>
         </div>
@@ -59,6 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const paisSelect = document.getElementById('pais');
     const estadoSelect = document.getElementById('estado');
     const ciudadSelect = document.getElementById('ciudad');
+    const distritoSelect = document.getElementById('distrito');
 
     // Función para cargar opciones en un select
     async function cargarOpciones(url, select) {
@@ -67,7 +75,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(url);
             const data = await response.json();
             
-            select.innerHTML = '<option value="">Seleccione una opción</option>';
+            select.innerHTML = select.id === 'distrito' ? 
+                '<option value="">Seleccione un distrito </option>' : 
+                '<option value="">Seleccione una opción</option>';
+            
             if (data.data) {
                 data.data.forEach(item => {
                     const option = document.createElement('option');
@@ -79,21 +90,38 @@ document.addEventListener('DOMContentLoaded', function() {
             select.disabled = false;
         } catch (error) {
             console.error('Error al cargar opciones:', error);
+            select.innerHTML = select.id === 'distrito' ? 
+                '<option value="">Error al cargar distritos</option>' : 
+                '<option value="">Error al cargar opciones</option>';
         }
     }
 
     // Event listeners
     paisSelect.addEventListener('change', function() {
         if (this.value) {
-            cargarOpciones(`/api/estados/${this.value}`, estadoSelect);
+            cargarOpciones(`/api/ubicacion/estados/${this.value}`, estadoSelect);
             ciudadSelect.innerHTML = '<option value="">Seleccione una ciudad</option>';
             ciudadSelect.disabled = true;
+            distritoSelect.innerHTML = '<option value="">Seleccione un distrito</option>';
+            distritoSelect.disabled = true;
         }
     });
 
     estadoSelect.addEventListener('change', function() {
         if (this.value) {
-            cargarOpciones(`/api/ciudades/${this.value}`, ciudadSelect);
+            cargarOpciones(`/api/ubicacion/ciudades/${this.value}`, ciudadSelect);
+            distritoSelect.innerHTML = '<option value="">Seleccione un distrito</option>';
+            distritoSelect.disabled = true;
+        }
+    });
+
+    ciudadSelect.addEventListener('change', function() {
+        if (this.value) {
+            cargarOpciones(`/api/ubicacion/distritos/${this.value}`, distritoSelect);
+            distritoSelect.disabled = false;
+        } else {
+            distritoSelect.innerHTML = '<option value="">Seleccione un distrito</option>';
+            distritoSelect.disabled = true;
         }
     });
 });
