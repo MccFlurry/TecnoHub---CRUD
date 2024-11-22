@@ -55,11 +55,10 @@ def eliminar_marca(id):
     finally:
         conexion.close()
 
-def actualizar_marca(marca):
+def actualizar_marca(id, nombre):
     conexion = obtener_conexion()
     with conexion.cursor() as cursor:
-        cursor.execute("UPDATE marcas SET nombre = %s WHERE id = %s",
-                      (marca.nombre, marca.id))
+        cursor.execute("UPDATE marcas SET nombre = %s WHERE id = %s", (nombre, id))
     conexion.commit()
     conexion.close()
 

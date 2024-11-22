@@ -26,8 +26,30 @@ from controllers import controlador_modelo
 app = Flask(__name__)
 csrf = CSRFProtect()
 app.secret_key = 'tu_clave_secreta'
-UPLOAD_FOLDER = 'static/img'
+
+# Configuración de carga de archivos
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    """
+    Verifica si la extensión del archivo está permitida
+    """
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Configuración de rutas de archivos
+if 'PYTHONANYWHERE_DOMAIN' in os.environ:
+    # Estamos en PythonAnywhere
+    UPLOAD_FOLDER = '/home/Grupo5DAW/TecnoHub---CRUD/static/img'
+else:
+    # Estamos en desarrollo local
+    UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'img')
+
+# Asegurarse de que el directorio de carga existe
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Configurar Flask para usar el UPLOAD_FOLDER
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 logger = logging.getLogger(__name__)
 
 # Agregar la configuración de CSRF para evitar el KeyError
@@ -1301,8 +1323,7 @@ def admin_editar_marca(id):
     if request.method == 'POST':
         nombre = request.form.get('nombre')
         try:
-            marca.nombre = nombre
-            controlador_marca.actualizar_marca(id, marca)
+            controlador_marca.actualizar_marca(id, nombre)
             flash('Marca actualizada exitosamente', 'success')
             return redirect(url_for('admin.admin_marcas'))
         except Exception as e:
