@@ -5,7 +5,7 @@ import requests
 import logging
 from datetime import datetime, timedelta
 import json
-import controlador_ubicacion
+from . import controlador_ubicacion
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
