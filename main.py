@@ -614,26 +614,45 @@ def realizar_pedido():
                 flash('No se pudo identificar al usuario. Por favor, inicia sesión nuevamente.', 'error')
                 return redirect(url_for('login'))
 
+            # Verificar stock antes de crear el pedido
+            for item in session['carrito']:
+                producto_id = item.get('producto_id')
+                cantidad = int(item.get('cantidad'))
+                stock_actual = controlador_producto.obtener_stock(producto_id)
+                
+                if stock_actual is None:
+                    flash(f'El producto {item.get("nombre")} ya no está disponible', 'error')
+                    return redirect(url_for('carrito'))
+                    
+                if stock_actual < cantidad:
+                    flash(f'Stock insuficiente para {item.get("nombre")}. Stock disponible: {stock_actual}', 'error')
+                    return redirect(url_for('carrito'))
+
+            # Crear el pedido
             pedido_id = controlador_pedido.crear_pedido(
                 usuario_id=usuario_id,
                 direccion_id=int(direccion_id),
                 metodo_pago_id=int(metodo_pago_id) if metodo_pago_id else None
             )
+            
             total = 0
-
+            # Procesar cada item del carrito
             for item in session['carrito']:
                 try:
                     producto_id = item.get('producto_id')
                     cantidad = int(item.get('cantidad'))
                     precio = float(item.get('precio'))
 
+                    # Actualizar stock (usando cantidad positiva para reducir)
+                    if not controlador_producto.actualizar_stock(producto_id, cantidad):
+                        raise Exception(f'No se pudo actualizar el stock del producto {item.get("nombre")}')
+
                     controlador_pedido.agregar_detalle_pedido(pedido_id, producto_id, cantidad, precio)
                     total += cantidad * precio
 
-                    controlador_producto.actualizar_stock(producto_id, -cantidad)
                 except Exception as detalle_error:
-                    app.logger.error(f'Error al agregar detalle del pedido: {str(detalle_error)}')
-                    flash('Ocurrió un error al agregar un producto al pedido.', 'error')
+                    app.logger.error(f'Error al procesar producto en pedido: {str(detalle_error)}')
+                    flash('Ocurrió un error al procesar tu pedido', 'error')
                     return redirect(url_for('realizar_pedido'))
 
             session.pop('carrito', None)
@@ -1703,9 +1722,9 @@ def api_obtener_pedidos():
 def api_obtener_pedido(id):
     try:
         pedido = controlador_pedido.obtener_pedido_por_id(id)
-        if pedido:
-            return jsonify({"status": "success", "data": pedido}), 200
-        return jsonify({"status": "error", "message": "Pedido no encontrado"}), 404
+        if not pedido:
+            return jsonify({"status": "error", "message": "Pedido no encontrado"}), 404
+        return jsonify({"status": "success", "data": pedido}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -1715,7 +1734,10 @@ def api_crear_pedido():
         datos = request.get_json()
         required_fields = ['usuario_id', 'productos', 'direccion_id']
         if not datos or not all(field in datos for field in required_fields):
-            return jsonify({"status": "error", "message": "Datos incompletos"}), 400
+            return jsonify({
+                "status": "error",
+                "message": f"Datos incompletos. Se requieren los campos: {', '.join(required_fields)}"
+            }), 400
         
         resultado = controlador_pedido.crear_pedido(
             datos['usuario_id'],

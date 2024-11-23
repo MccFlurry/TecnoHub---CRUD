@@ -438,14 +438,18 @@ def obtener_productos_destacados(limite=4):
 
 def actualizar_stock(id_producto, cantidad):
     """
-    Actualiza el stock de un producto. Resta la cantidad especificada del stock actual.
-    Retorna True si la actualización fue exitosa, False si no hay suficiente stock.
+    Actualiza el stock de un producto.
+    Args:
+        id_producto: ID del producto a actualizar
+        cantidad: Cantidad a reducir del stock (positiva o negativa)
+    Returns:
+        bool: True si la actualización fue exitosa, False en caso contrario
     """
     conexion = None
     try:
         conexion = obtener_conexion()
         with conexion.cursor() as cursor:
-            # Primero verificamos el stock actual
+            # Verificar existencia y stock actual del producto
             sql_verificar = "SELECT stock FROM productos WHERE id = %s"
             cursor.execute(sql_verificar, (id_producto,))
             resultado = cursor.fetchone()
@@ -454,19 +458,24 @@ def actualizar_stock(id_producto, cantidad):
                 logger.error(f"Producto con ID {id_producto} no encontrado")
                 return False
                 
-            stock_actual = resultado[0]
-            if stock_actual is None:
-                stock_actual = 0
+            stock_actual = resultado[0] if resultado[0] is not None else 0
+            
+            # Convertir la cantidad a un valor positivo para la reducción
+            cantidad_reducir = abs(cantidad)
                 
             # Verificar si hay suficiente stock
-            if stock_actual < cantidad:
-                logger.error(f"Stock insuficiente para producto {id_producto}")
+            if stock_actual < cantidad_reducir:
+                logger.error(f"Stock insuficiente para producto {id_producto}. Stock actual: {stock_actual}, Cantidad requerida: {cantidad_reducir}")
                 return False
                 
             # Actualizar el stock
-            nuevo_stock = stock_actual - cantidad
+            nuevo_stock = stock_actual - cantidad_reducir
             sql_actualizar = "UPDATE productos SET stock = %s WHERE id = %s"
             cursor.execute(sql_actualizar, (nuevo_stock, id_producto))
+            
+            # Registrar el movimiento de stock
+            logger.info(f"Stock actualizado para producto {id_producto}: {stock_actual} -> {nuevo_stock}")
+            
             conexion.commit()
             return True
             
@@ -474,6 +483,29 @@ def actualizar_stock(id_producto, cantidad):
         if conexion:
             conexion.rollback()
         logger.error(f"Error al actualizar stock: {str(e)}")
+        raise
+    finally:
+        if conexion:
+            conexion.close()
+
+def obtener_stock(id_producto):
+    """
+    Obtiene el stock actual de un producto.
+    Args:
+        id_producto: ID del producto
+    Returns:
+        int: Cantidad en stock, o None si el producto no existe
+    """
+    conexion = None
+    try:
+        conexion = obtener_conexion()
+        with conexion.cursor() as cursor:
+            sql = "SELECT stock FROM productos WHERE id = %s"
+            cursor.execute(sql, (id_producto,))
+            resultado = cursor.fetchone()
+            return resultado[0] if resultado else None
+    except Exception as e:
+        logger.error(f"Error al obtener stock: {str(e)}")
         raise
     finally:
         if conexion:
