@@ -2,10 +2,190 @@ from bd import obtener_conexion
 from clase.clase_producto import Producto
 from pymysql.cursors import DictCursor
 import logging
+import time
+import os
+from functools import wraps
+from datetime import datetime
 
-# Configuración básica de logging
-logging.basicConfig(level=logging.ERROR)
-logger = logging.getLogger(__name__)
+# Configuración de logging
+def setup_logging():
+    """Configura el sistema de logging para el manejo de stock"""
+    log_dir = os.path.join(os.path.dirname(__file__), '..', 'logs')
+    os.makedirs(log_dir, exist_ok=True)
+    
+    log_file = os.path.join(log_dir, f'stock_{datetime.now().strftime("%Y%m")}.log')
+    
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - [%(name)s] - %(message)s',
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler()
+        ]
+    )
+    return logging.getLogger(__name__)
+
+logger = setup_logging()
+
+def retry_on_error(max_attempts=3, initial_delay=0.1, max_delay=2.0, backoff_factor=2):
+    """
+    Decorador para reintentar operaciones con backoff exponencial
+    
+    Args:
+        max_attempts (int): Número máximo de intentos
+        initial_delay (float): Retraso inicial entre intentos en segundos
+        max_delay (float): Retraso máximo entre intentos en segundos
+        backoff_factor (float): Factor de incremento del retraso
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            last_exception = None
+            delay = initial_delay
+
+            for attempt in range(max_attempts):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    last_exception = e
+                    if attempt < max_attempts - 1:
+                        sleep_time = min(delay, max_delay)
+                        logger.warning(
+                            f"Intento {attempt + 1} fallido para {func.__name__}. "
+                            f"Reintentando en {sleep_time:.2f}s. Error: {str(e)}"
+                        )
+                        time.sleep(sleep_time)
+                        delay *= backoff_factor
+                    else:
+                        logger.error(
+                            f"Todos los intentos fallidos para {func.__name__}. "
+                            f"Error final: {str(e)}"
+                        )
+            
+            raise last_exception
+        return wrapper
+    return decorator
+
+class StockError(Exception):
+    """Clase base para errores relacionados con el stock"""
+    pass
+
+class StockInsuficienteError(StockError):
+    """Error que indica que no hay suficiente stock"""
+    pass
+
+class ProductoNoEncontradoError(StockError):
+    """Error que indica que el producto no existe"""
+    pass
+
+@retry_on_error(max_attempts=3, initial_delay=0.1, max_delay=2.0)
+def actualizar_stock(id_producto, cantidad, conexion=None, timeout=10):
+    """
+    Actualiza el stock de un producto de manera segura y concurrente
+    
+    Args:
+        id_producto (int): ID del producto a actualizar
+        cantidad (int): Cantidad a reducir del stock
+        conexion (Connection, optional): Conexión a la base de datos
+        timeout (int): Tiempo máximo de espera para la transacción en segundos
+    
+    Returns:
+        bool: True si la actualización fue exitosa
+    
+    Raises:
+        ValueError: Si los parámetros son inválidos
+        StockInsuficienteError: Si no hay suficiente stock
+        ProductoNoEncontradoError: Si el producto no existe
+        Exception: Para otros errores inesperados
+    """
+    # Validación de parámetros
+    if not isinstance(id_producto, int) or id_producto <= 0:
+        raise ValueError(f"ID de producto inválido: {id_producto}")
+    
+    if not isinstance(cantidad, int) or cantidad <= 0:
+        raise ValueError(f"Cantidad inválida: {cantidad}")
+
+    start_time = time.time()
+    close_connection = False
+
+    try:
+        # Obtener conexión si no se proporcionó una
+        if conexion is None:
+            conexion = obtener_conexion()
+            close_connection = True
+
+        with conexion.cursor() as cursor:
+            # Configurar timeout y nivel de aislamiento
+            cursor.execute(f"SET SESSION innodb_lock_wait_timeout = {timeout}")
+            cursor.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
+            conexion.begin()
+
+            # Verificar y bloquear el producto
+            cursor.execute("""
+                SELECT stock 
+                FROM productos 
+                WHERE id = %s 
+                FOR UPDATE
+            """, (id_producto,))
+            
+            resultado = cursor.fetchone()
+            
+            if not resultado:
+                raise ProductoNoEncontradoError(f"Producto {id_producto} no encontrado")
+
+            stock_actual = resultado[0] or 0
+            
+            # Verificar stock suficiente
+            if stock_actual < cantidad:
+                raise StockInsuficienteError(
+                    f"Stock insuficiente para producto {id_producto}. "
+                    f"Disponible: {stock_actual}, Solicitado: {cantidad}"
+                )
+
+            # Verificar timeout
+            if time.time() - start_time > timeout:
+                logger.warning(f"Timeout alcanzado para producto {id_producto}")
+                conexion.rollback()
+                return False
+
+            # Actualizar stock
+            cursor.execute("""
+                UPDATE productos 
+                SET stock = stock - %s
+                WHERE id = %s
+            """, (cantidad, id_producto))
+
+            if cursor.rowcount != 1:
+                raise Exception(f"Error al actualizar stock del producto {id_producto}")
+
+            # Registrar actualización exitosa
+            logger.info(
+                f"Stock actualizado exitosamente - "
+                f"Producto: {id_producto}, "
+                f"Cantidad: -{cantidad}, "
+                f"Stock restante: {stock_actual - cantidad}"
+            )
+
+            conexion.commit()
+            return True
+
+    except StockError as e:
+        # Errores esperados de negocio
+        if conexion:
+            conexion.rollback()
+        logger.warning(str(e))
+        raise
+
+    except Exception as e:
+        # Errores inesperados
+        if conexion:
+            conexion.rollback()
+        logger.error(f"Error crítico actualizando stock: {str(e)}")
+        raise
+
+    finally:
+        if close_connection and conexion:
+            conexion.close()
 
 def insertar_producto(nombre, descripcion, categoria_id, precio, imagen, stock=0, id_marca=None, id_modelo=None):
     conexion = None
@@ -431,58 +611,6 @@ def obtener_productos_destacados(limite=4):
         return productos
     except Exception as e:
         logger.error(f"Error al obtener productos destacados: {str(e)}")
-        raise
-    finally:
-        if conexion:
-            conexion.close()
-
-def actualizar_stock(id_producto, cantidad):
-    """
-    Actualiza el stock de un producto.
-    Args:
-        id_producto: ID del producto a actualizar
-        cantidad: Cantidad a reducir del stock (positiva o negativa)
-    Returns:
-        bool: True si la actualización fue exitosa, False en caso contrario
-    """
-    conexion = None
-    try:
-        conexion = obtener_conexion()
-        with conexion.cursor() as cursor:
-            # Verificar existencia y stock actual del producto
-            sql_verificar = "SELECT stock FROM productos WHERE id = %s"
-            cursor.execute(sql_verificar, (id_producto,))
-            resultado = cursor.fetchone()
-            
-            if not resultado:
-                logger.error(f"Producto con ID {id_producto} no encontrado")
-                return False
-                
-            stock_actual = resultado[0] if resultado[0] is not None else 0
-            
-            # Convertir la cantidad a un valor positivo para la reducción
-            cantidad_reducir = abs(cantidad)
-                
-            # Verificar si hay suficiente stock
-            if stock_actual < cantidad_reducir:
-                logger.error(f"Stock insuficiente para producto {id_producto}. Stock actual: {stock_actual}, Cantidad requerida: {cantidad_reducir}")
-                return False
-                
-            # Actualizar el stock
-            nuevo_stock = stock_actual - cantidad_reducir
-            sql_actualizar = "UPDATE productos SET stock = %s WHERE id = %s"
-            cursor.execute(sql_actualizar, (nuevo_stock, id_producto))
-            
-            # Registrar el movimiento de stock
-            logger.info(f"Stock actualizado para producto {id_producto}: {stock_actual} -> {nuevo_stock}")
-            
-            conexion.commit()
-            return True
-            
-    except Exception as e:
-        if conexion:
-            conexion.rollback()
-        logger.error(f"Error al actualizar stock: {str(e)}")
         raise
     finally:
         if conexion:

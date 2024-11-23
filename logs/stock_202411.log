@@ -1,0 +1,86 @@
+2024-11-23 17:04:03,447 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 1, Cantidad: -2, Stock restante: 8
+2024-11-23 17:04:03,448 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 1, Cantidad: -2, Stock restante: 6
+2024-11-23 17:04:03,449 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 1, Cantidad: -2, Stock restante: 4
+2024-11-23 17:04:03,449 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 1, Cantidad: -2, Stock restante: 2
+2024-11-23 17:04:03,449 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 1, Cantidad: -2, Stock restante: 0
+2024-11-23 17:04:03,450 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 1. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:03,450 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 1. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:03,450 - WARNING - [controllers.controlador_producto] - Intento 1 fallido para actualizar_stock. Reintentando en 0.10s. Error: Stock insuficiente para producto 1. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:03,450 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 1. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:03,450 - WARNING - [controllers.controlador_producto] - Intento 1 fallido para actualizar_stock. Reintentando en 0.10s. Error: Stock insuficiente para producto 1. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:03,450 - WARNING - [controllers.controlador_producto] - Intento 1 fallido para actualizar_stock. Reintentando en 0.10s. Error: Stock insuficiente para producto 1. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:03,552 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 1. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:03,553 - WARNING - [controllers.controlador_producto] - Intento 2 fallido para actualizar_stock. Reintentando en 0.20s. Error: Stock insuficiente para producto 1. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:03,553 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 1. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:03,553 - WARNING - [controllers.controlador_producto] - Intento 2 fallido para actualizar_stock. Reintentando en 0.20s. Error: Stock insuficiente para producto 1. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:03,553 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 1. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:03,553 - WARNING - [controllers.controlador_producto] - Intento 2 fallido para actualizar_stock. Reintentando en 0.20s. Error: Stock insuficiente para producto 1. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:03,755 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 1. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:03,755 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 1. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:03,756 - ERROR - [controllers.controlador_producto] - Todos los intentos fallidos para actualizar_stock. Error final: Stock insuficiente para producto 1. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:03,756 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 1. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:03,756 - ERROR - [controllers.controlador_producto] - Todos los intentos fallidos para actualizar_stock. Error final: Stock insuficiente para producto 1. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:03,756 - ERROR - [controllers.controlador_producto] - Todos los intentos fallidos para actualizar_stock. Error final: Stock insuficiente para producto 1. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:03,776 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 1, Cantidad: -2, Stock restante: 8
+2024-11-23 17:04:03,777 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 1, Cantidad: -2, Stock restante: 6
+2024-11-23 17:04:03,777 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 1, Cantidad: -2, Stock restante: 4
+2024-11-23 17:04:03,778 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 1, Cantidad: -2, Stock restante: 2
+2024-11-23 17:04:03,778 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 1, Cantidad: -2, Stock restante: 0
+2024-11-23 17:04:03,800 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 2, Cantidad: -3, Stock restante: 7
+2024-11-23 17:04:03,801 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 3, Cantidad: -3, Stock restante: 7
+2024-11-23 17:04:03,803 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 3, Cantidad: -3, Stock restante: 4
+2024-11-23 17:04:03,803 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 2, Cantidad: -1, Stock restante: 6
+2024-11-23 17:04:03,804 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 1, Cantidad: -2, Stock restante: 8
+2024-11-23 17:04:03,805 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 3, Cantidad: -3, Stock restante: 1
+2024-11-23 17:04:03,806 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 2, Cantidad: -1, Stock restante: 5
+2024-11-23 17:04:03,806 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 1, Cantidad: -2, Stock restante: 6
+2024-11-23 17:04:03,807 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 2, Cantidad: -1, Stock restante: 4
+2024-11-23 17:04:03,807 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 1, Cantidad: -1, Stock restante: 5
+2024-11-23 17:04:03,807 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 3, Cantidad: -1, Stock restante: 0
+2024-11-23 17:04:03,808 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 3. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:03,808 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 1, Cantidad: -2, Stock restante: 3
+2024-11-23 17:04:03,808 - WARNING - [controllers.controlador_producto] - Intento 1 fallido para actualizar_stock. Reintentando en 0.10s. Error: Stock insuficiente para producto 3. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:03,809 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 1, Cantidad: -3, Stock restante: 0
+2024-11-23 17:04:03,809 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 1. Disponible: 0, Solicitado: 3
+2024-11-23 17:04:03,809 - WARNING - [controllers.controlador_producto] - Intento 1 fallido para actualizar_stock. Reintentando en 0.10s. Error: Stock insuficiente para producto 1. Disponible: 0, Solicitado: 3
+2024-11-23 17:04:03,911 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 3. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:03,911 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 1. Disponible: 0, Solicitado: 3
+2024-11-23 17:04:03,912 - WARNING - [controllers.controlador_producto] - Intento 2 fallido para actualizar_stock. Reintentando en 0.20s. Error: Stock insuficiente para producto 3. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:03,912 - WARNING - [controllers.controlador_producto] - Intento 2 fallido para actualizar_stock. Reintentando en 0.20s. Error: Stock insuficiente para producto 1. Disponible: 0, Solicitado: 3
+2024-11-23 17:04:04,114 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 1. Disponible: 0, Solicitado: 3
+2024-11-23 17:04:04,115 - ERROR - [controllers.controlador_producto] - Todos los intentos fallidos para actualizar_stock. Error final: Stock insuficiente para producto 1. Disponible: 0, Solicitado: 3
+2024-11-23 17:04:04,115 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 3. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:04,115 - ERROR - [controllers.controlador_producto] - Todos los intentos fallidos para actualizar_stock. Error final: Stock insuficiente para producto 3. Disponible: 0, Solicitado: 2
+2024-11-23 17:04:04,127 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 1, Cantidad: -3, Stock restante: 7
+2024-11-23 17:04:04,128 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 1, Cantidad: -2, Stock restante: 5
+2024-11-23 17:04:04,129 - INFO - [controllers.controlador_producto] - Stock actualizado exitosamente - Producto: 1, Cantidad: -5, Stock restante: 0
+2024-11-23 17:04:04,129 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 1. Disponible: 0, Solicitado: 4
+2024-11-23 17:04:04,129 - WARNING - [controllers.controlador_producto] - Intento 1 fallido para actualizar_stock. Reintentando en 0.10s. Error: Stock insuficiente para producto 1. Disponible: 0, Solicitado: 4
+2024-11-23 17:04:04,130 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 1. Disponible: 0, Solicitado: 1
+2024-11-23 17:04:04,130 - WARNING - [controllers.controlador_producto] - Intento 1 fallido para actualizar_stock. Reintentando en 0.10s. Error: Stock insuficiente para producto 1. Disponible: 0, Solicitado: 1
+2024-11-23 17:04:04,232 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 1. Disponible: 0, Solicitado: 4
+2024-11-23 17:04:04,232 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 1. Disponible: 0, Solicitado: 1
+2024-11-23 17:04:04,232 - WARNING - [controllers.controlador_producto] - Intento 2 fallido para actualizar_stock. Reintentando en 0.20s. Error: Stock insuficiente para producto 1. Disponible: 0, Solicitado: 4
+2024-11-23 17:04:04,232 - WARNING - [controllers.controlador_producto] - Intento 2 fallido para actualizar_stock. Reintentando en 0.20s. Error: Stock insuficiente para producto 1. Disponible: 0, Solicitado: 1
+2024-11-23 17:04:04,435 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 1. Disponible: 0, Solicitado: 1
+2024-11-23 17:04:04,435 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 1. Disponible: 0, Solicitado: 4
+2024-11-23 17:04:04,435 - ERROR - [controllers.controlador_producto] - Todos los intentos fallidos para actualizar_stock. Error final: Stock insuficiente para producto 1. Disponible: 0, Solicitado: 1
+2024-11-23 17:04:04,435 - ERROR - [controllers.controlador_producto] - Todos los intentos fallidos para actualizar_stock. Error final: Stock insuficiente para producto 1. Disponible: 0, Solicitado: 4
+2024-11-23 17:04:04,451 - WARNING - [controllers.controlador_producto] - Intento 1 fallido para actualizar_stock. Reintentando en 0.10s. Error: ID de producto inválido: -1
+2024-11-23 17:04:04,552 - WARNING - [controllers.controlador_producto] - Intento 2 fallido para actualizar_stock. Reintentando en 0.20s. Error: ID de producto inválido: -1
+2024-11-23 17:04:04,752 - ERROR - [controllers.controlador_producto] - Todos los intentos fallidos para actualizar_stock. Error final: ID de producto inválido: -1
+2024-11-23 17:04:04,753 - WARNING - [controllers.controlador_producto] - Intento 1 fallido para actualizar_stock. Reintentando en 0.10s. Error: Cantidad inválida: -1
+2024-11-23 17:04:04,853 - WARNING - [controllers.controlador_producto] - Intento 2 fallido para actualizar_stock. Reintentando en 0.20s. Error: Cantidad inválida: -1
+2024-11-23 17:04:05,054 - ERROR - [controllers.controlador_producto] - Todos los intentos fallidos para actualizar_stock. Error final: Cantidad inválida: -1
+2024-11-23 17:04:05,056 - WARNING - [controllers.controlador_producto] - Producto 9999 no encontrado
+2024-11-23 17:04:05,056 - WARNING - [controllers.controlador_producto] - Intento 1 fallido para actualizar_stock. Reintentando en 0.10s. Error: Producto 9999 no encontrado
+2024-11-23 17:04:05,158 - WARNING - [controllers.controlador_producto] - Producto 9999 no encontrado
+2024-11-23 17:04:05,158 - WARNING - [controllers.controlador_producto] - Intento 2 fallido para actualizar_stock. Reintentando en 0.20s. Error: Producto 9999 no encontrado
+2024-11-23 17:04:05,361 - WARNING - [controllers.controlador_producto] - Producto 9999 no encontrado
+2024-11-23 17:04:05,361 - ERROR - [controllers.controlador_producto] - Todos los intentos fallidos para actualizar_stock. Error final: Producto 9999 no encontrado
+2024-11-23 17:04:05,362 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 1. Disponible: 10, Solicitado: 11
+2024-11-23 17:04:05,362 - WARNING - [controllers.controlador_producto] - Intento 1 fallido para actualizar_stock. Reintentando en 0.10s. Error: Stock insuficiente para producto 1. Disponible: 10, Solicitado: 11
+2024-11-23 17:04:05,465 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 1. Disponible: 10, Solicitado: 11
+2024-11-23 17:04:05,465 - WARNING - [controllers.controlador_producto] - Intento 2 fallido para actualizar_stock. Reintentando en 0.20s. Error: Stock insuficiente para producto 1. Disponible: 10, Solicitado: 11
+2024-11-23 17:04:05,667 - WARNING - [controllers.controlador_producto] - Stock insuficiente para producto 1. Disponible: 10, Solicitado: 11
+2024-11-23 17:04:05,668 - ERROR - [controllers.controlador_producto] - Todos los intentos fallidos para actualizar_stock. Error final: Stock insuficiente para producto 1. Disponible: 10, Solicitado: 11
