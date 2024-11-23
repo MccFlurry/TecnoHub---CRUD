@@ -334,46 +334,99 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // Manejo de favoritos
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
     const favButton = document.getElementById('fav-button');
-    const favIcon = document.getElementById('fav-icon');
-
     if (favButton) {
-        favButton.addEventListener('click', function () {
-            const productoId = favButton.getAttribute('data-producto-id');
-            const isFavorito = favIcon.classList.contains('text-red-500');
-            const url = isFavorito ? `/eliminar-favorito/${productoId}` : `/agregar-favorito/${productoId}`;
-
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ producto_id: productoId })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        if (isFavorito) {
-                            favIcon.classList.remove('text-red-500');
-                            favIcon.classList.add('text-gray-500');
-                            mostrarNotificacion('Producto eliminado de favoritos', 'success');
-                        } else {
-                            favIcon.classList.remove('text-gray-500');
-                            favIcon.classList.add('text-red-500');
-                            mostrarNotificacion('Producto añadido a favoritos', 'success');
-                        }
-                    } else {
-                        mostrarNotificacion(data.message || 'Error al procesar la solicitud', 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    mostrarNotificacion('Error al procesar la solicitud', 'error');
-                });
-        });
+        favButton.addEventListener('click', manejarFavorito);
     }
 });
+
+function manejarFavorito(event) {
+    event.preventDefault();
+    const button = event.currentTarget;
+    const productoId = button.dataset.productoId;
+    const icon = button.querySelector('#fav-icon');
+    const esFavorito = icon.classList.contains('text-red-500');
+
+    // Añadir efecto de pulsación
+    button.classList.add('scale-90');
+    setTimeout(() => button.classList.remove('scale-90'), 150);
+
+    // Realizar la petición al servidor
+    fetch(`/${esFavorito ? 'eliminar' : 'agregar'}-favorito/${productoId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (esFavorito) {
+                // Cambiar a corazón vacío
+                icon.classList.remove('text-red-500', 'animate-favorite');
+                icon.classList.add('text-gray-400', 'hover:text-red-500');
+                mostrarNotificacion('Eliminado de favoritos', 'info');
+            } else {
+                // Cambiar a corazón lleno
+                icon.classList.remove('text-gray-400', 'hover:text-red-500');
+                icon.classList.add('text-red-500', 'animate-favorite');
+                mostrarNotificacion('Agregado a favoritos', 'success');
+                animarCorazon(icon);
+            }
+        } else {
+            mostrarNotificacion(data.message || 'Error al procesar la solicitud', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mostrarNotificacion('Error al procesar la solicitud', 'error');
+    });
+}
+
+function animarCorazon(icon) {
+    icon.animate([
+        { transform: 'scale(1)' },
+        { transform: 'scale(1.3)' },
+        { transform: 'scale(1)' }
+    ], {
+        duration: 500,
+        easing: 'ease-in-out'
+    });
+}
+
+function mostrarNotificacion(mensaje, tipo) {
+    const notificacion = document.createElement('div');
+    notificacion.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg transition-all transform translate-y-0 z-50 ${
+        tipo === 'success' ? 'bg-green-500' :
+        tipo === 'error' ? 'bg-red-500' :
+        'bg-blue-500'
+    } text-white`;
+    
+    notificacion.textContent = mensaje;
+    document.body.appendChild(notificacion);
+
+    // Entrada con animación
+    notificacion.animate([
+        { transform: 'translateY(-100%)', opacity: 0 },
+        { transform: 'translateY(0)', opacity: 1 }
+    ], {
+        duration: 300,
+        easing: 'ease-out'
+    });
+
+    // Remover después de 3 segundos
+    setTimeout(() => {
+        notificacion.animate([
+            { transform: 'translateY(0)', opacity: 1 },
+            { transform: 'translateY(-100%)', opacity: 0 }
+        ], {
+            duration: 300,
+            easing: 'ease-in'
+        }).onfinish = () => notificacion.remove();
+    }, 3000);
+}
 
 // Funcionalidad Arma tu Kit
 document.addEventListener('DOMContentLoaded', function () {

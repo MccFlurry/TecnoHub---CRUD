@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: localhost
--- Tiempo de generación: 17-11-2024 a las 02:16:17
+-- Tiempo de generación: 23-11-2024 a las 22:24:07
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -29,19 +29,20 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `categorias` (
   `id` int(11) NOT NULL,
-  `nombre` varchar(50) NOT NULL
+  `nombre` varchar(50) NOT NULL,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `categorias`
 --
 
-INSERT INTO `categorias` (`id`, `nombre`) VALUES
-(1, 'Celulares'),
-(2, 'Smartwatch'),
-(3, 'Accesorios'),
-(4, 'Consolas'),
-(5, 'Videojuegos');
+INSERT INTO `categorias` (`id`, `nombre`, `fecha_creacion`) VALUES
+(1, 'Celulares', '2024-11-23 19:19:53'),
+(2, 'Smartwatch', '2024-11-23 19:19:53'),
+(3, 'Accesorios', '2024-11-23 19:19:53'),
+(4, 'Consolas', '2024-11-23 19:19:53'),
+(5, 'Videojuegos', '2024-11-23 19:19:53');
 
 -- --------------------------------------------------------
 
@@ -90,91 +91,93 @@ CREATE TABLE `detalles_pedido` (
   `pedido_id` int(11) DEFAULT NULL,
   `producto_id` int(11) DEFAULT NULL,
   `cantidad` int(11) DEFAULT NULL,
-  `precio_unitario` decimal(10,2) DEFAULT NULL
+  `precio_unitario` decimal(10,2) DEFAULT NULL,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `detalles_pedido`
 --
 
-INSERT INTO `detalles_pedido` (`id`, `pedido_id`, `producto_id`, `cantidad`, `precio_unitario`) VALUES
-(1, 1, 1, 1, 3500.00),
-(5, 9, 1, 3, 3500.00),
-(6, 9, 3, 1, 1200.00),
-(7, 9, 4, 1, 2500.00),
-(8, 9, 2, 1, 2500.00),
-(9, 10, 1, 1, 3500.00),
-(16, 13, 5, 1, 2000.00),
-(17, 14, 3, 2, 1200.00),
-(18, 15, 2, 1, 2500.00),
-(19, 16, 3, 1, 1200.00),
-(20, 17, 2, 1, 2500.00),
-(21, 18, 3, 1, 1200.00),
-(22, 19, 4, 1, 2500.00),
-(23, 20, 3, 1, 1200.00),
-(24, 21, 2, 1, 2500.00),
-(25, 22, 4, 1, 2500.00),
-(27, 24, 3, 1, 1200.00),
-(28, 25, 3, 1, 1200.00),
-(29, 26, 3, 1, 1200.00),
-(30, 27, 7, 2, 200.00),
-(31, 28, 2, 1, 2300.00),
-(32, 28, 3, 1, 1200.00),
-(33, 28, 4, 1, 2500.00),
-(34, 29, 3, 1, 1200.00),
-(35, 29, 2, 1, 2300.00),
-(36, 29, 3, 1, 1200.00),
-(37, 29, 4, 1, 2500.00),
-(38, 30, 2, 1, 2300.00),
-(39, 30, 3, 1, 1200.00),
-(40, 30, 4, 1, 2500.00),
-(41, 31, 1, 1, 3000.00),
-(42, 31, 3, 1, 1200.00),
-(43, 31, 4, 1, 2500.00),
-(44, 32, 5, 16, 2000.00),
-(45, 33, 2, 1, 2300.00),
-(46, 33, 3, 1, 1200.00),
-(47, 33, 4, 1, 2500.00),
-(48, 34, 2, 1, 2300.00),
-(49, 34, 3, 1, 1200.00),
-(50, 34, 4, 1, 2500.00),
-(51, 35, 2, 1, 2300.00),
-(52, 35, 3, 1, 1200.00),
-(53, 35, 4, 1, 2500.00),
-(54, 36, 2, 1, 2300.00),
-(55, 36, 3, 1, 1200.00),
-(56, 36, 4, 1, 2500.00),
-(57, 36, 2, 1, 2300.00),
-(58, 36, 3, 1, 1200.00),
-(59, 36, 4, 1, 2500.00),
-(60, 37, 10, 1, 800.99),
-(61, 38, 5, 1, 2000.00),
-(62, 38, 6, 1, 200.00),
-(63, 39, 11, 2, 100.00),
-(64, 40, 3, 1, 1200.00),
-(65, 41, 3, 1, 1200.00),
-(66, 42, 3, 1, 1200.00),
-(67, 43, 1, 1, 3000.00),
-(68, 43, 3, 1, 1200.00),
-(69, 43, 4, 1, 2500.00),
-(70, 44, 3, 1, 1200.00),
-(71, 45, 7, 1, 200.00),
-(72, 46, 4, 1, 2500.00),
-(73, 47, 6, 1, 200.00),
-(74, 48, 1, 1, 3000.00),
-(75, 49, 4, 1, 2500.00),
-(76, 50, 4, 1, 2500.00),
-(77, 51, 3, 1, 1200.00),
-(78, 52, 3, 1, 1200.00),
-(79, 53, 11, 1, 100.00),
-(80, 54, 10, 1, 800.99),
-(81, 55, 1, 1, 3000.00),
-(82, 56, 4, 1, 2500.00),
-(83, 57, 5, 1, 2000.00),
-(84, 58, 1, 1, 3000.00),
-(85, 59, 1, 1, 3000.00),
-(86, 59, 3, 1, 1200.00),
-(87, 59, 4, 1, 2500.00);
+INSERT INTO `detalles_pedido` (`id`, `pedido_id`, `producto_id`, `cantidad`, `precio_unitario`, `fecha_creacion`) VALUES
+(1, 1, 1, 1, 3500.00, '2024-11-23 19:19:53'),
+(5, 9, 1, 3, 3500.00, '2024-11-23 19:19:53'),
+(6, 9, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(7, 9, 4, 1, 2500.00, '2024-11-23 19:19:53'),
+(8, 9, 2, 1, 2500.00, '2024-11-23 19:19:53'),
+(9, 10, 1, 1, 3500.00, '2024-11-23 19:19:53'),
+(16, 13, 5, 1, 2000.00, '2024-11-23 19:19:53'),
+(17, 14, 3, 2, 1200.00, '2024-11-23 19:19:53'),
+(18, 15, 2, 1, 2500.00, '2024-11-23 19:19:53'),
+(19, 16, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(20, 17, 2, 1, 2500.00, '2024-11-23 19:19:53'),
+(21, 18, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(22, 19, 4, 1, 2500.00, '2024-11-23 19:19:53'),
+(23, 20, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(24, 21, 2, 1, 2500.00, '2024-11-23 19:19:53'),
+(25, 22, 4, 1, 2500.00, '2024-11-23 19:19:53'),
+(27, 24, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(28, 25, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(29, 26, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(30, 27, 7, 2, 200.00, '2024-11-23 19:19:53'),
+(31, 28, 2, 1, 2300.00, '2024-11-23 19:19:53'),
+(32, 28, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(33, 28, 4, 1, 2500.00, '2024-11-23 19:19:53'),
+(34, 29, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(35, 29, 2, 1, 2300.00, '2024-11-23 19:19:53'),
+(36, 29, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(37, 29, 4, 1, 2500.00, '2024-11-23 19:19:53'),
+(38, 30, 2, 1, 2300.00, '2024-11-23 19:19:53'),
+(39, 30, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(40, 30, 4, 1, 2500.00, '2024-11-23 19:19:53'),
+(41, 31, 1, 1, 3000.00, '2024-11-23 19:19:53'),
+(42, 31, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(43, 31, 4, 1, 2500.00, '2024-11-23 19:19:53'),
+(44, 32, 5, 16, 2000.00, '2024-11-23 19:19:53'),
+(45, 33, 2, 1, 2300.00, '2024-11-23 19:19:53'),
+(46, 33, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(47, 33, 4, 1, 2500.00, '2024-11-23 19:19:53'),
+(48, 34, 2, 1, 2300.00, '2024-11-23 19:19:53'),
+(49, 34, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(50, 34, 4, 1, 2500.00, '2024-11-23 19:19:53'),
+(51, 35, 2, 1, 2300.00, '2024-11-23 19:19:53'),
+(52, 35, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(53, 35, 4, 1, 2500.00, '2024-11-23 19:19:53'),
+(54, 36, 2, 1, 2300.00, '2024-11-23 19:19:53'),
+(55, 36, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(56, 36, 4, 1, 2500.00, '2024-11-23 19:19:53'),
+(57, 36, 2, 1, 2300.00, '2024-11-23 19:19:53'),
+(58, 36, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(59, 36, 4, 1, 2500.00, '2024-11-23 19:19:53'),
+(60, 37, 10, 1, 800.99, '2024-11-23 19:19:53'),
+(61, 38, 5, 1, 2000.00, '2024-11-23 19:19:53'),
+(62, 38, 6, 1, 200.00, '2024-11-23 19:19:53'),
+(63, 39, 11, 2, 100.00, '2024-11-23 19:19:53'),
+(64, 40, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(65, 41, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(66, 42, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(67, 43, 1, 1, 3000.00, '2024-11-23 19:19:53'),
+(68, 43, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(69, 43, 4, 1, 2500.00, '2024-11-23 19:19:53'),
+(70, 44, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(71, 45, 7, 1, 200.00, '2024-11-23 19:19:53'),
+(72, 46, 4, 1, 2500.00, '2024-11-23 19:19:53'),
+(73, 47, 6, 1, 200.00, '2024-11-23 19:19:53'),
+(74, 48, 1, 1, 3000.00, '2024-11-23 19:19:53'),
+(75, 49, 4, 1, 2500.00, '2024-11-23 19:19:53'),
+(76, 50, 4, 1, 2500.00, '2024-11-23 19:19:53'),
+(77, 51, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(78, 52, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(79, 53, 11, 1, 100.00, '2024-11-23 19:19:53'),
+(80, 54, 10, 1, 800.99, '2024-11-23 19:19:53'),
+(81, 55, 1, 1, 3000.00, '2024-11-23 19:19:53'),
+(82, 56, 4, 1, 2500.00, '2024-11-23 19:19:53'),
+(83, 57, 5, 1, 2000.00, '2024-11-23 19:19:53'),
+(84, 58, 1, 1, 3000.00, '2024-11-23 19:19:53'),
+(85, 59, 1, 1, 3000.00, '2024-11-23 19:19:53'),
+(86, 59, 3, 1, 1200.00, '2024-11-23 19:19:53'),
+(87, 59, 4, 1, 2500.00, '2024-11-23 19:19:53'),
+(88, 60, 11, 3, 100.00, '2024-11-23 19:42:16');
 
 -- --------------------------------------------------------
 
@@ -197,19 +200,20 @@ CREATE TABLE `direcciones` (
   `numero` varchar(20) DEFAULT NULL,
   `departamento` varchar(50) DEFAULT NULL,
   `direccion_predeterminada` tinyint(1) DEFAULT 0,
-  `cached_ubicacion_id` int(11) DEFAULT NULL
+  `cached_ubicacion_id` int(11) DEFAULT NULL,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `direcciones`
 --
 
-INSERT INTO `direcciones` (`id`, `usuario_id`, `direccion`, `ciudad`, `estado`, `pais`, `codigo_postal`, `distrito_id`, `latitud`, `longitud`, `direccion_completa`, `numero`, `departamento`, `direccion_predeterminada`, `cached_ubicacion_id`) VALUES
-(1, 1, 'Av. Elvira Garcia y Garcia 455', 'Chiclayo', 'Lambayeque', 'Perú', '140117', NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL),
-(7, 3, '355 East Primm Boulevard', 'Jean', 'NV', 'United States', '89019', NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL),
-(12, 3, 'Av. Elvira Garcia y Garcia 455', 'Chiclayo', 'Lambayeque', 'Perú', '14011', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
-(13, 3, 'Av. Argentina', 'Lima', 'MIraflores', 'Perú', '14000', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
-(14, 1, 'Av Gran Chimu 1624', 'Benito Juárez', 'Ciudad de México', 'México', '13012', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL);
+INSERT INTO `direcciones` (`id`, `usuario_id`, `direccion`, `ciudad`, `estado`, `pais`, `codigo_postal`, `distrito_id`, `latitud`, `longitud`, `direccion_completa`, `numero`, `departamento`, `direccion_predeterminada`, `cached_ubicacion_id`, `fecha_creacion`) VALUES
+(1, 1, 'Av. Elvira Garcia y Garcia 455', 'Lima', 'Lima', 'Perú', '140117', 1, NULL, NULL, 'Av. Elvira Garcia y Garcia 455, Miraflores, Lima, Lima, Perú', NULL, NULL, 1, NULL, '2024-11-23 19:21:42'),
+(7, 3, '355 East Primm Boulevard', 'Jean', 'NV', 'United States', '89019', NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, '2024-11-23 19:21:42'),
+(12, 3, 'Av. Elvira Garcia y Garcia 455', 'Chiclayo', 'Lambayeque', 'Perú', '14011', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, '2024-11-23 19:21:42'),
+(13, 3, 'Av. Argentina', 'Lima', 'MIraflores', 'Perú', '14000', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, '2024-11-23 19:21:42'),
+(14, 1, 'Av Gran Chimu 1624', 'Benito Juárez', 'Ciudad de México', 'México', '13012', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, '2024-11-23 19:21:42');
 
 -- --------------------------------------------------------
 
@@ -292,8 +296,16 @@ INSERT INTO `estados` (`id`, `pais_id`, `nombre`, `codigo`, `activo`, `fecha_cre
 CREATE TABLE `favoritos` (
   `id` int(11) NOT NULL,
   `usuario_id` int(11) DEFAULT NULL,
-  `producto_id` int(11) DEFAULT NULL
+  `producto_id` int(11) DEFAULT NULL,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `favoritos`
+--
+
+INSERT INTO `favoritos` (`id`, `usuario_id`, `producto_id`, `fecha_creacion`) VALUES
+(15, 3, 4, '2024-11-23 19:35:51');
 
 -- --------------------------------------------------------
 
@@ -343,19 +355,20 @@ INSERT INTO `kits` (`id`, `usuario_id`, `celular_id`, `smartwatch_id`, `accesori
 
 CREATE TABLE `marcas` (
   `id` int(10) NOT NULL,
-  `nombre` varchar(100) NOT NULL
+  `nombre` varchar(100) NOT NULL,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `marcas`
 --
 
-INSERT INTO `marcas` (`id`, `nombre`) VALUES
-(1, 'Apple'),
-(2, 'Samsung'),
-(3, 'Sony'),
-(4, 'Microsoft'),
-(5, 'Nintendo');
+INSERT INTO `marcas` (`id`, `nombre`, `fecha_creacion`) VALUES
+(1, 'Apple', '2024-11-23 19:19:53'),
+(2, 'Samsung', '2024-11-23 19:19:53'),
+(3, 'Sony', '2024-11-23 19:19:53'),
+(4, 'Microsoft', '2024-11-23 19:19:53'),
+(5, 'Nintendo', '2024-11-23 19:19:53');
 
 -- --------------------------------------------------------
 
@@ -381,7 +394,8 @@ CREATE TABLE `metodos_pago` (
 --
 
 INSERT INTO `metodos_pago` (`id`, `usuario_id`, `tipo`, `numero_tarjeta`, `titular`, `fecha_vencimiento`, `cvv`, `predeterminado`, `fecha_registro`, `activo`) VALUES
-(1, 1, 'mastercard', '1231241241414144', 'Roger Zavaleta', '2029-06-01', '$2b$12$dAfPROgACCcIne25jGCB1eDZW4z0FOoJN.Qsl2hCZRQjg7Zrf9vYO', 1, '2024-11-16 19:29:23', 1);
+(1, 1, 'mastercard', '1231241241414144', 'Roger Zavaleta', '2029-06-01', '$2b$12$dAfPROgACCcIne25jGCB1eDZW4z0FOoJN.Qsl2hCZRQjg7Zrf9vYO', 1, '2024-11-16 19:29:23', 1),
+(2, 3, 'visa', '1111111111111111', 'Abraham Viduarre', '2028-11-01', '$2b$12$i7uzRtZo2DP2ZNn971e5MOksI4Rjtl.3DLnye3mW63TED5FxVEwN6', 1, '2024-11-23 19:42:09', 1);
 
 -- --------------------------------------------------------
 
@@ -391,24 +405,25 @@ INSERT INTO `metodos_pago` (`id`, `usuario_id`, `tipo`, `numero_tarjeta`, `titul
 
 CREATE TABLE `modelos` (
   `id` int(10) NOT NULL,
-  `nombre` varchar(255) NOT NULL
+  `nombre` varchar(255) NOT NULL,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `modelos`
 --
 
-INSERT INTO `modelos` (`id`, `nombre`) VALUES
-(1, 'iPhone 15'),
-(2, 'iPhone 12'),
-(3, 'Apple Watch SE'),
-(4, 'AirPods Max'),
-(5, 'PlayStation 5 Slim'),
-(6, 'Xbox Series X'),
-(7, 'Nintendo Switch'),
-(8, 'Galaxy S23'),
-(9, 'Galaxy Watch 6'),
-(10, 'WH-1000XM4');
+INSERT INTO `modelos` (`id`, `nombre`, `fecha_creacion`) VALUES
+(1, 'iPhone 15', '2024-11-23 19:19:53'),
+(2, 'iPhone 12', '2024-11-23 19:19:53'),
+(3, 'Apple Watch SE', '2024-11-23 19:19:53'),
+(4, 'AirPods Max', '2024-11-23 19:19:53'),
+(5, 'PlayStation 5 Slim', '2024-11-23 19:19:53'),
+(6, 'Xbox Series X', '2024-11-23 19:19:53'),
+(7, 'Nintendo Switch', '2024-11-23 19:19:53'),
+(8, 'Galaxy S23', '2024-11-23 19:19:53'),
+(9, 'Galaxy Watch 6', '2024-11-23 19:19:53'),
+(10, 'WH-1000XM4', '2024-11-23 19:19:53');
 
 -- --------------------------------------------------------
 
@@ -447,7 +462,8 @@ INSERT INTO `notificaciones` (`id`, `usuario_id`, `pedido_id`, `mensaje`, `fecha
 (31, 1, 55, 'El usuario \"Roger\" acaba de realizar una compra por S/. 3000.00', '2024-11-16 20:03:54', 0),
 (32, 1, 56, 'El usuario \"Roger\" acaba de realizar una compra por S/. 2500.00', '2024-11-16 20:06:41', 0),
 (33, 1, 57, 'El usuario \"Roger\" acaba de realizar una compra por S/. 2000.00', '2024-11-16 20:09:33', 0),
-(34, 1, 59, 'El usuario \"Roger\" acaba de realizar una compra por S/. 6700.00', '2024-11-17 01:14:16', 0);
+(34, 1, 59, 'El usuario \"Roger\" acaba de realizar una compra por S/. 6700.00', '2024-11-17 01:14:16', 0),
+(35, 3, 60, 'El usuario \"Abraham\" acaba de realizar una compra por S/. 300.00', '2024-11-23 19:42:16', 0);
 
 -- --------------------------------------------------------
 
@@ -577,7 +593,8 @@ INSERT INTO `pedidos` (`id`, `usuario_id`, `direccion_id`, `fecha_pedido`, `esta
 (56, 1, 1, '2024-11-16 15:06:41', 'pendiente', 1),
 (57, 1, 1, '2024-11-16 15:09:33', 'pendiente', 1),
 (58, 1, 14, '2024-11-16 20:12:47', 'pendiente', 1),
-(59, 1, 1, '2024-11-16 20:14:16', 'pendiente', 1);
+(59, 1, 1, '2024-11-16 20:14:16', 'pendiente', 1),
+(60, 3, 7, '2024-11-23 14:42:16', 'pendiente', 2);
 
 -- --------------------------------------------------------
 
@@ -595,23 +612,24 @@ CREATE TABLE `productos` (
   `id_marca` int(10) DEFAULT NULL,
   `id_modelo` int(10) DEFAULT NULL,
   `destacado` tinyint(1) DEFAULT 0,
-  `imagen` varchar(255) NOT NULL
+  `imagen` varchar(255) NOT NULL,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `productos`
 --
 
-INSERT INTO `productos` (`id`, `nombre`, `descripcion`, `precio`, `stock`, `categoria_id`, `id_marca`, `id_modelo`, `destacado`, `imagen`) VALUES
-(1, 'Iphone 15', 'Descubre la innovación con el iPhone 15, un dispositivo diseñado para redefinir tus expectativas. Con una pantalla Super Retina XDR más brillante y tecnología Dynamic Island, cada interacción se vuelve más intuitiva. Equipado con el potente chip A16 Bionic, asegura un rendimiento ultrarrápido y eficiencia energética. Su cámara de 48 MP eleva la fotografía móvil al siguiente nivel, permitiendo capturar cada momento con una nitidez impresionante. Además, la integración de USB-C facilita la conectividad universal. El iPhone 15 combina diseño elegante y tecnología de vanguardia, listo para acompañarte en cada aventura.', 3000.00, 28, 1, 1, 1, 0, 'Iphone_15.png'),
-(2, 'Iphone 12', 'El iPhone 12 sigue destacando como un clásico moderno, ofreciendo la combinación perfecta entre estilo y rendimiento. Con una pantalla OLED Super Retina XDR y el poderoso chip A14 Bionic, brinda una experiencia fluida para multitareas y juegos. Su sistema de cámara dual captura fotos vibrantes y vídeos en 4K, mientras que su diseño con bordes planos aporta elegancia y durabilidad. Compatible con 5G y con carga rápida MagSafe, el iPhone 12 es una opción sólida para los amantes de la tecnología que buscan calidad y eficiencia en un solo dispositivo.', 2300.00, 20, 1, 1, 2, 0, 'Iphone_12.png'),
-(3, 'Apple Watch SE', 'El Apple Watch SE combina las mejores funciones esenciales del Apple Watch con un diseño moderno y accesible. Perfecto para llevar un estilo de vida activo, ofrece seguimiento avanzado de actividad física, notificaciones de frecuencia cardíaca y detección de caídas. Su integración con watchOS permite acceder a aplicaciones, responder mensajes y controlar tu música desde la muñeca. Compatible con Apple Fitness+, este reloj inteligente se convierte en tu aliado ideal para alcanzar metas de salud y bienestar. Además, su diseño ligero y personalizable con correas intercambiables lo convierte en el complemento perfecto para cualquier ocasión.', 1200.00, 18, 2, 1, 3, 0, 'applewatch_se.jpg'),
-(4, 'Airpods Max', 'Sumérgete en una experiencia de sonido única con los AirPods Max. Diseñados con una combinación perfecta de lujo y tecnología, estos audífonos inalámbricos ofrecen un audio envolvente con cancelación activa de ruido y modo de sonido ambiente para mantenerte conectado con tu entorno cuando lo necesites. Equipados con controladores dinámicos diseñados por Apple, brindan una calidad de sonido excepcional con graves profundos y agudos cristalinos. Su diadema de malla transpirable y almohadillas de espuma viscoelástica garantizan comodidad durante horas de uso. Con Audio Espacial y compatibilidad con Siri, los AirPods Max son la opción perfecta para quienes buscan disfrutar de la música y el entretenimiento sin compromisos.', 2500.00, 14, 3, 1, 4, 0, 'airpods_max.jpg'),
-(5, 'PS5 Slim', 'Vive la próxima generación de videojuegos con la PS5 Slim, la versión más compacta y elegante de la consola insignia de Sony. Manteniendo el poder del hardware original, esta consola ofrece gráficos impresionantes en 4K HDR, tiempos de carga ultrarrápidos gracias al SSD de alta velocidad, y compatibilidad con ray tracing para una inmersión visual sin precedentes. Su diseño más delgado y ligero se adapta perfectamente a cualquier espacio. Además, con acceso a juegos exclusivos de PlayStation y el servicio PS Plus, la PS5 Slim es ideal para quienes buscan potencia y estilo en una consola de nueva generación.', 2000.00, 18, 4, 3, 5, 0, 'ps5_slim.jpg'),
-(6, 'God of War Ragnarok', 'Embárcate en una épica aventura con God of War: Ragnarök, la esperada secuela que sigue la historia de Kratos y su hijo Atreus mientras enfrentan el fin de los tiempos en la mitología nórdica. Con un impresionante mundo abierto, gráficos mejorados en 4K y combates más fluidos, este título ofrece una experiencia inmersiva llena de desafíos y momentos inolvidables. Explora los nueve reinos y enfréntate a nuevos dioses y criaturas míticas mientras Kratos lidia con su destino como guerrero y padre. La jugabilidad combina acción intensa, resolución de acertijos y un profundo desarrollo narrativo que te atrapará desde el primer momento.\r\n\r\nPrepárate para desafiar el destino y enfrentar a los dioses en esta emocionante obra maestra exclusiva de PlayStation.', 200.00, 48, 5, NULL, NULL, 0, 'god_of_war_ragnarok.jpg'),
-(7, 'Crash Twinsanity', 'videojuego antiguos', 200.00, 97, 5, NULL, NULL, 0, 'crash.jpg'),
-(10, 'Iphone XR', 'un celular', 800.99, 19, 1, NULL, NULL, 0, 'iphone_xr.jpg'),
-(11, 'GTA V', 'Videojuego', 100.00, 9, 5, NULL, NULL, 0, 'gtav.jpg');
+INSERT INTO `productos` (`id`, `nombre`, `descripcion`, `precio`, `stock`, `categoria_id`, `id_marca`, `id_modelo`, `destacado`, `imagen`, `fecha_creacion`) VALUES
+(1, 'Iphone 15', 'Descubre la innovación con el iPhone 15, un dispositivo diseñado para redefinir tus expectativas. Con una pantalla Super Retina XDR más brillante y tecnología Dynamic Island, cada interacción se vuelve más intuitiva. Equipado con el potente chip A16 Bionic, asegura un rendimiento ultrarrápido y eficiencia energética. Su cámara de 48 MP eleva la fotografía móvil al siguiente nivel, permitiendo capturar cada momento con una nitidez impresionante. Además, la integración de USB-C facilita la conectividad universal. El iPhone 15 combina diseño elegante y tecnología de vanguardia, listo para acompañarte en cada aventura.', 3000.00, 0, 1, 1, 1, 0, 'Iphone_15.png', '2024-11-23 19:19:53'),
+(2, 'Iphone 12', 'El iPhone 12 sigue destacando como un clásico moderno, ofreciendo la combinación perfecta entre estilo y rendimiento. Con una pantalla OLED Super Retina XDR y el poderoso chip A14 Bionic, brinda una experiencia fluida para multitareas y juegos. Su sistema de cámara dual captura fotos vibrantes y vídeos en 4K, mientras que su diseño con bordes planos aporta elegancia y durabilidad. Compatible con 5G y con carga rápida MagSafe, el iPhone 12 es una opción sólida para los amantes de la tecnología que buscan calidad y eficiencia en un solo dispositivo.', 2300.00, 0, 1, 1, 2, 0, 'Iphone_12.png', '2024-11-23 19:19:53'),
+(3, 'Apple Watch SE', 'El Apple Watch SE combina las mejores funciones esenciales del Apple Watch con un diseño moderno y accesible. Perfecto para llevar un estilo de vida activo, ofrece seguimiento avanzado de actividad física, notificaciones de frecuencia cardíaca y detección de caídas. Su integración con watchOS permite acceder a aplicaciones, responder mensajes y controlar tu música desde la muñeca. Compatible con Apple Fitness+, este reloj inteligente se convierte en tu aliado ideal para alcanzar metas de salud y bienestar. Además, su diseño ligero y personalizable con correas intercambiables lo convierte en el complemento perfecto para cualquier ocasión.', 1200.00, 0, 2, 1, 3, 0, 'applewatch_se.jpg', '2024-11-23 19:19:53'),
+(4, 'Airpods Max', 'Sumérgete en una experiencia de sonido única con los AirPods Max. Diseñados con una combinación perfecta de lujo y tecnología, estos audífonos inalámbricos ofrecen un audio envolvente con cancelación activa de ruido y modo de sonido ambiente para mantenerte conectado con tu entorno cuando lo necesites. Equipados con controladores dinámicos diseñados por Apple, brindan una calidad de sonido excepcional con graves profundos y agudos cristalinos. Su diadema de malla transpirable y almohadillas de espuma viscoelástica garantizan comodidad durante horas de uso. Con Audio Espacial y compatibilidad con Siri, los AirPods Max son la opción perfecta para quienes buscan disfrutar de la música y el entretenimiento sin compromisos.', 2500.00, 0, 3, 1, 4, 0, 'airpods_max.jpg', '2024-11-23 19:19:53'),
+(5, 'PS5 Slim', 'Vive la próxima generación de videojuegos con la PS5 Slim, la versión más compacta y elegante de la consola insignia de Sony. Manteniendo el poder del hardware original, esta consola ofrece gráficos impresionantes en 4K HDR, tiempos de carga ultrarrápidos gracias al SSD de alta velocidad, y compatibilidad con ray tracing para una inmersión visual sin precedentes. Su diseño más delgado y ligero se adapta perfectamente a cualquier espacio. Además, con acceso a juegos exclusivos de PlayStation y el servicio PS Plus, la PS5 Slim es ideal para quienes buscan potencia y estilo en una consola de nueva generación.', 2000.00, 0, 4, 3, 5, 0, 'ps5_slim.jpg', '2024-11-23 19:19:53'),
+(6, 'God of War Ragnarok', 'Embárcate en una épica aventura con God of War: Ragnarök, la esperada secuela que sigue la historia de Kratos y su hijo Atreus mientras enfrentan el fin de los tiempos en la mitología nórdica. Con un impresionante mundo abierto, gráficos mejorados en 4K y combates más fluidos, este título ofrece una experiencia inmersiva llena de desafíos y momentos inolvidables. Explora los nueve reinos y enfréntate a nuevos dioses y criaturas míticas mientras Kratos lidia con su destino como guerrero y padre. La jugabilidad combina acción intensa, resolución de acertijos y un profundo desarrollo narrativo que te atrapará desde el primer momento.\r\n\r\nPrepárate para desafiar el destino y enfrentar a los dioses en esta emocionante obra maestra exclusiva de PlayStation.', 200.00, 48, 5, NULL, NULL, 0, 'god_of_war_ragnarok.jpg', '2024-11-23 19:19:53'),
+(7, 'Crash Twinsanity', 'videojuego antiguos', 200.00, 97, 5, NULL, NULL, 0, 'crash.jpg', '2024-11-23 19:19:53'),
+(10, 'Iphone XR', 'un celular', 800.99, 19, 1, NULL, NULL, 0, 'iphone_xr.jpg', '2024-11-23 19:19:53'),
+(11, 'GTA V', 'Videojuego', 100.00, 6, 5, NULL, NULL, 0, 'gtav.jpg', '2024-11-23 19:19:53');
 
 -- --------------------------------------------------------
 
@@ -798,7 +816,7 @@ ALTER TABLE `ciudades`
 -- AUTO_INCREMENT de la tabla `detalles_pedido`
 --
 ALTER TABLE `detalles_pedido`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=88;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=89;
 
 --
 -- AUTO_INCREMENT de la tabla `direcciones`
@@ -822,7 +840,7 @@ ALTER TABLE `estados`
 -- AUTO_INCREMENT de la tabla `favoritos`
 --
 ALTER TABLE `favoritos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT de la tabla `geocoding_cache`
@@ -846,7 +864,7 @@ ALTER TABLE `marcas`
 -- AUTO_INCREMENT de la tabla `metodos_pago`
 --
 ALTER TABLE `metodos_pago`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `modelos`
@@ -858,7 +876,7 @@ ALTER TABLE `modelos`
 -- AUTO_INCREMENT de la tabla `notificaciones`
 --
 ALTER TABLE `notificaciones`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT de la tabla `opiniones`
@@ -876,7 +894,7 @@ ALTER TABLE `paises`
 -- AUTO_INCREMENT de la tabla `pedidos`
 --
 ALTER TABLE `pedidos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
 
 --
 -- AUTO_INCREMENT de la tabla `productos`

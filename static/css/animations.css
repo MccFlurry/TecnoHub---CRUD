@@ -1,0 +1,29 @@
+@keyframes favorite-pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.15);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.animate-favorite {
+    animation: favorite-pulse 0.3s ease-in-out;
+}
+
+.transition-all {
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms;
+}
+
+.scale-90 {
+    transform: scale(0.9);
+}
+
+.hover\:scale-110:hover {
+    transform: scale(1.1);
+}
