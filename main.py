@@ -1,15 +1,14 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_from_directory, Blueprint
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_from_directory, Blueprint, current_app
 from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt
 from functools import wraps
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import BadRequest
-from flask_wtf.csrf import generate_csrf
+from flask_wtf.csrf import CSRFProtect, generate_csrf
 import os
 import re
 import logging
 from bd import obtener_conexion
 from pymysql.err import IntegrityError
-from flask_wtf import CSRFProtect
 from controllers import controlador_direcciones
 from controllers import controlador_usuario
 from controllers import controlador_producto
@@ -130,6 +129,9 @@ def admin_required(f):
 
 # Crear el Blueprint de administración
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin', template_folder='templates/admin', static_folder='static')
+
+# Inicializar CSRF Protection
+csrf = CSRFProtect()
 
 # Aplicar la protección CSRF al Blueprint de administración
 @admin_bp.before_request
