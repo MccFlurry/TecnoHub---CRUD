@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: localhost
--- Tiempo de generación: 23-11-2024 a las 22:24:07
+-- Tiempo de generación: 24-11-2024 a las 23:57:43
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -177,7 +177,10 @@ INSERT INTO `detalles_pedido` (`id`, `pedido_id`, `producto_id`, `cantidad`, `pr
 (85, 59, 1, 1, 3000.00, '2024-11-23 19:19:53'),
 (86, 59, 3, 1, 1200.00, '2024-11-23 19:19:53'),
 (87, 59, 4, 1, 2500.00, '2024-11-23 19:19:53'),
-(88, 60, 11, 3, 100.00, '2024-11-23 19:42:16');
+(88, 60, 11, 3, 100.00, '2024-11-23 19:42:16'),
+(89, 61, 10, 4, 800.99, '2024-11-23 21:58:08'),
+(90, 62, 6, 1, 200.00, '2024-11-24 00:25:08'),
+(91, 63, 6, 1, 200.00, '2024-11-24 04:23:49');
 
 -- --------------------------------------------------------
 
@@ -209,11 +212,11 @@ CREATE TABLE `direcciones` (
 --
 
 INSERT INTO `direcciones` (`id`, `usuario_id`, `direccion`, `ciudad`, `estado`, `pais`, `codigo_postal`, `distrito_id`, `latitud`, `longitud`, `direccion_completa`, `numero`, `departamento`, `direccion_predeterminada`, `cached_ubicacion_id`, `fecha_creacion`) VALUES
-(1, 1, 'Av. Elvira Garcia y Garcia 455', 'Lima', 'Lima', 'Perú', '140117', 1, NULL, NULL, 'Av. Elvira Garcia y Garcia 455, Miraflores, Lima, Lima, Perú', NULL, NULL, 1, NULL, '2024-11-23 19:21:42'),
+(1, 1, 'Av. Elvira Garcia y Garcia 455', 'Lima', 'Lima', 'Perú', '140117', 1, NULL, NULL, 'Av. Elvira Garcia y Garcia 455, Miraflores, Lima, Lima, Perú', NULL, NULL, 0, NULL, '2024-11-23 19:21:42'),
 (7, 3, '355 East Primm Boulevard', 'Jean', 'NV', 'United States', '89019', NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, '2024-11-23 19:21:42'),
 (12, 3, 'Av. Elvira Garcia y Garcia 455', 'Chiclayo', 'Lambayeque', 'Perú', '14011', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, '2024-11-23 19:21:42'),
 (13, 3, 'Av. Argentina', 'Lima', 'MIraflores', 'Perú', '14000', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, '2024-11-23 19:21:42'),
-(14, 1, 'Av Gran Chimu 1624', 'Benito Juárez', 'Ciudad de México', 'México', '13012', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, '2024-11-23 19:21:42');
+(14, 1, 'Av Gran Chimu 1624', 'Benito Juárez', 'Ciudad de México', 'México', '13012', NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, '2024-11-23 19:21:42');
 
 -- --------------------------------------------------------
 
@@ -300,13 +303,6 @@ CREATE TABLE `favoritos` (
   `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Volcado de datos para la tabla `favoritos`
---
-
-INSERT INTO `favoritos` (`id`, `usuario_id`, `producto_id`, `fecha_creacion`) VALUES
-(15, 3, 4, '2024-11-23 19:35:51');
-
 -- --------------------------------------------------------
 
 --
@@ -345,7 +341,8 @@ CREATE TABLE `kits` (
 
 INSERT INTO `kits` (`id`, `usuario_id`, `celular_id`, `smartwatch_id`, `accesorios_id`, `fecha_creacion`) VALUES
 (4, 1, 1, 3, 4, '2024-10-17 02:06:12'),
-(5, 1, 1, 3, 4, '2024-10-17 04:02:13');
+(5, 1, 1, 3, 4, '2024-10-17 04:02:13'),
+(8, 1, 2, 3, 4, '2024-11-24 02:11:09');
 
 -- --------------------------------------------------------
 
@@ -395,7 +392,8 @@ CREATE TABLE `metodos_pago` (
 
 INSERT INTO `metodos_pago` (`id`, `usuario_id`, `tipo`, `numero_tarjeta`, `titular`, `fecha_vencimiento`, `cvv`, `predeterminado`, `fecha_registro`, `activo`) VALUES
 (1, 1, 'mastercard', '1231241241414144', 'Roger Zavaleta', '2029-06-01', '$2b$12$dAfPROgACCcIne25jGCB1eDZW4z0FOoJN.Qsl2hCZRQjg7Zrf9vYO', 1, '2024-11-16 19:29:23', 1),
-(2, 3, 'visa', '1111111111111111', 'Abraham Viduarre', '2028-11-01', '$2b$12$i7uzRtZo2DP2ZNn971e5MOksI4Rjtl.3DLnye3mW63TED5FxVEwN6', 1, '2024-11-23 19:42:09', 1);
+(2, 3, 'visa', '1111111111111111', 'Abraham Viduarre', '2028-11-01', '$2b$12$i7uzRtZo2DP2ZNn971e5MOksI4Rjtl.3DLnye3mW63TED5FxVEwN6', 1, '2024-11-23 19:42:09', 1),
+(3, 1, 'visa', '4532456789012345', 'Test User Updated 2', '2025-12-31', '$2b$12$70mykBupu4pJX9NaEwxCmexZKCkRhTu5Y9f8bDabzwlJEbeYsFQJG', 0, '2024-11-24 02:49:31', 0);
 
 -- --------------------------------------------------------
 
@@ -461,9 +459,11 @@ INSERT INTO `notificaciones` (`id`, `usuario_id`, `pedido_id`, `mensaje`, `fecha
 (30, 3, 54, 'El usuario \"Abraham\" acaba de realizar una compra por S/. 800.99', '2024-11-15 23:23:43', 0),
 (31, 1, 55, 'El usuario \"Roger\" acaba de realizar una compra por S/. 3000.00', '2024-11-16 20:03:54', 0),
 (32, 1, 56, 'El usuario \"Roger\" acaba de realizar una compra por S/. 2500.00', '2024-11-16 20:06:41', 0),
-(33, 1, 57, 'El usuario \"Roger\" acaba de realizar una compra por S/. 2000.00', '2024-11-16 20:09:33', 0),
+(33, 1, 57, 'El usuario \"Roger\" acaba de realizar una compra por S/. 2000.00', '2024-11-16 20:09:33', 1),
 (34, 1, 59, 'El usuario \"Roger\" acaba de realizar una compra por S/. 6700.00', '2024-11-17 01:14:16', 0),
-(35, 3, 60, 'El usuario \"Abraham\" acaba de realizar una compra por S/. 300.00', '2024-11-23 19:42:16', 0);
+(35, 3, 60, 'El usuario \"Abraham\" acaba de realizar una compra por S/. 300.00', '2024-11-23 19:42:16', 0),
+(36, 3, 61, 'El usuario \"Abraham\" acaba de realizar una compra por S/. 3203.96', '2024-11-23 21:58:08', 0),
+(37, 1, 62, 'El usuario \"Roger\" acaba de realizar una compra por S/. 200.00', '2024-11-24 00:25:08', 1);
 
 -- --------------------------------------------------------
 
@@ -490,7 +490,9 @@ INSERT INTO `opiniones` (`id`, `producto_id`, `usuario_id`, `comentario`, `calif
 (5, 1, 1, 'Bueno', 3, '2024-10-24 01:06:47'),
 (6, 3, 1, 'Me gusto mas de lo que esperaba', 2, '2024-10-24 23:08:19'),
 (7, 3, 1, 'EL MEJOR PRODUCTO DE TODOS', 5, '2024-10-24 23:08:35'),
-(8, 11, 1, 'El GOTY', 5, '2024-10-26 00:35:27');
+(8, 11, 1, 'El GOTY', 5, '2024-10-26 00:35:27'),
+(9, 1, 1, 'Excelente producto, muy recomendado!', 5, '2024-11-24 03:07:20'),
+(10, 1, 1, '¡Me encanta este producto! La calidad es excelente.', 5, '2024-11-24 03:09:51');
 
 -- --------------------------------------------------------
 
@@ -594,7 +596,10 @@ INSERT INTO `pedidos` (`id`, `usuario_id`, `direccion_id`, `fecha_pedido`, `esta
 (57, 1, 1, '2024-11-16 15:09:33', 'pendiente', 1),
 (58, 1, 14, '2024-11-16 20:12:47', 'pendiente', 1),
 (59, 1, 1, '2024-11-16 20:14:16', 'pendiente', 1),
-(60, 3, 7, '2024-11-23 14:42:16', 'pendiente', 2);
+(60, 3, 7, '2024-11-23 14:42:16', 'pendiente', 2),
+(61, 3, 7, '2024-11-23 16:58:08', 'pendiente', 2),
+(62, 1, 1, '2024-11-23 19:25:08', 'enviado', 1),
+(63, 1, 1, '2024-11-23 23:23:49', 'enviado', 1);
 
 -- --------------------------------------------------------
 
@@ -621,14 +626,14 @@ CREATE TABLE `productos` (
 --
 
 INSERT INTO `productos` (`id`, `nombre`, `descripcion`, `precio`, `stock`, `categoria_id`, `id_marca`, `id_modelo`, `destacado`, `imagen`, `fecha_creacion`) VALUES
-(1, 'Iphone 15', 'Descubre la innovación con el iPhone 15, un dispositivo diseñado para redefinir tus expectativas. Con una pantalla Super Retina XDR más brillante y tecnología Dynamic Island, cada interacción se vuelve más intuitiva. Equipado con el potente chip A16 Bionic, asegura un rendimiento ultrarrápido y eficiencia energética. Su cámara de 48 MP eleva la fotografía móvil al siguiente nivel, permitiendo capturar cada momento con una nitidez impresionante. Además, la integración de USB-C facilita la conectividad universal. El iPhone 15 combina diseño elegante y tecnología de vanguardia, listo para acompañarte en cada aventura.', 3000.00, 0, 1, 1, 1, 0, 'Iphone_15.png', '2024-11-23 19:19:53'),
-(2, 'Iphone 12', 'El iPhone 12 sigue destacando como un clásico moderno, ofreciendo la combinación perfecta entre estilo y rendimiento. Con una pantalla OLED Super Retina XDR y el poderoso chip A14 Bionic, brinda una experiencia fluida para multitareas y juegos. Su sistema de cámara dual captura fotos vibrantes y vídeos en 4K, mientras que su diseño con bordes planos aporta elegancia y durabilidad. Compatible con 5G y con carga rápida MagSafe, el iPhone 12 es una opción sólida para los amantes de la tecnología que buscan calidad y eficiencia en un solo dispositivo.', 2300.00, 0, 1, 1, 2, 0, 'Iphone_12.png', '2024-11-23 19:19:53'),
-(3, 'Apple Watch SE', 'El Apple Watch SE combina las mejores funciones esenciales del Apple Watch con un diseño moderno y accesible. Perfecto para llevar un estilo de vida activo, ofrece seguimiento avanzado de actividad física, notificaciones de frecuencia cardíaca y detección de caídas. Su integración con watchOS permite acceder a aplicaciones, responder mensajes y controlar tu música desde la muñeca. Compatible con Apple Fitness+, este reloj inteligente se convierte en tu aliado ideal para alcanzar metas de salud y bienestar. Además, su diseño ligero y personalizable con correas intercambiables lo convierte en el complemento perfecto para cualquier ocasión.', 1200.00, 0, 2, 1, 3, 0, 'applewatch_se.jpg', '2024-11-23 19:19:53'),
+(1, 'Iphone 15', 'Descubre la innovación con el iPhone 15, un dispositivo diseñado para redefinir tus expectativas. Con una pantalla Super Retina XDR más brillante y tecnología Dynamic Island, cada interacción se vuelve más intuitiva. Equipado con el potente chip A16 Bionic, asegura un rendimiento ultrarrápido y eficiencia energética. Su cámara de 48 MP eleva la fotografía móvil al siguiente nivel, permitiendo capturar cada momento con una nitidez impresionante. Además, la integración de USB-C facilita la conectividad universal. El iPhone 15 combina diseño elegante y tecnología de vanguardia, listo para acompañarte en cada aventura.', 3000.00, 10, 1, 1, 1, 0, 'Iphone_15.png', '2024-11-23 19:19:53'),
+(2, 'Iphone 12', 'El iPhone 12 sigue destacando como un clásico moderno, ofreciendo la combinación perfecta entre estilo y rendimiento. Con una pantalla OLED Super Retina XDR y el poderoso chip A14 Bionic, brinda una experiencia fluida para multitareas y juegos. Su sistema de cámara dual captura fotos vibrantes y vídeos en 4K, mientras que su diseño con bordes planos aporta elegancia y durabilidad. Compatible con 5G y con carga rápida MagSafe, el iPhone 12 es una opción sólida para los amantes de la tecnología que buscan calidad y eficiencia en un solo dispositivo.', 2300.00, 10, 1, 1, 2, 0, 'Iphone_12.png', '2024-11-23 19:19:53'),
+(3, 'Apple Watch SE', 'El Apple Watch SE combina las mejores funciones esenciales del Apple Watch con un diseño moderno y accesible. Perfecto para llevar un estilo de vida activo, ofrece seguimiento avanzado de actividad física, notificaciones de frecuencia cardíaca y detección de caídas. Su integración con watchOS permite acceder a aplicaciones, responder mensajes y controlar tu música desde la muñeca. Compatible con Apple Fitness+, este reloj inteligente se convierte en tu aliado ideal para alcanzar metas de salud y bienestar. Además, su diseño ligero y personalizable con correas intercambiables lo convierte en el complemento perfecto para cualquier ocasión.', 1200.00, 10, 2, 1, 3, 0, 'applewatch_se.jpg', '2024-11-23 19:19:53'),
 (4, 'Airpods Max', 'Sumérgete en una experiencia de sonido única con los AirPods Max. Diseñados con una combinación perfecta de lujo y tecnología, estos audífonos inalámbricos ofrecen un audio envolvente con cancelación activa de ruido y modo de sonido ambiente para mantenerte conectado con tu entorno cuando lo necesites. Equipados con controladores dinámicos diseñados por Apple, brindan una calidad de sonido excepcional con graves profundos y agudos cristalinos. Su diadema de malla transpirable y almohadillas de espuma viscoelástica garantizan comodidad durante horas de uso. Con Audio Espacial y compatibilidad con Siri, los AirPods Max son la opción perfecta para quienes buscan disfrutar de la música y el entretenimiento sin compromisos.', 2500.00, 0, 3, 1, 4, 0, 'airpods_max.jpg', '2024-11-23 19:19:53'),
 (5, 'PS5 Slim', 'Vive la próxima generación de videojuegos con la PS5 Slim, la versión más compacta y elegante de la consola insignia de Sony. Manteniendo el poder del hardware original, esta consola ofrece gráficos impresionantes en 4K HDR, tiempos de carga ultrarrápidos gracias al SSD de alta velocidad, y compatibilidad con ray tracing para una inmersión visual sin precedentes. Su diseño más delgado y ligero se adapta perfectamente a cualquier espacio. Además, con acceso a juegos exclusivos de PlayStation y el servicio PS Plus, la PS5 Slim es ideal para quienes buscan potencia y estilo en una consola de nueva generación.', 2000.00, 0, 4, 3, 5, 0, 'ps5_slim.jpg', '2024-11-23 19:19:53'),
-(6, 'God of War Ragnarok', 'Embárcate en una épica aventura con God of War: Ragnarök, la esperada secuela que sigue la historia de Kratos y su hijo Atreus mientras enfrentan el fin de los tiempos en la mitología nórdica. Con un impresionante mundo abierto, gráficos mejorados en 4K y combates más fluidos, este título ofrece una experiencia inmersiva llena de desafíos y momentos inolvidables. Explora los nueve reinos y enfréntate a nuevos dioses y criaturas míticas mientras Kratos lidia con su destino como guerrero y padre. La jugabilidad combina acción intensa, resolución de acertijos y un profundo desarrollo narrativo que te atrapará desde el primer momento.\r\n\r\nPrepárate para desafiar el destino y enfrentar a los dioses en esta emocionante obra maestra exclusiva de PlayStation.', 200.00, 48, 5, NULL, NULL, 0, 'god_of_war_ragnarok.jpg', '2024-11-23 19:19:53'),
+(6, 'God of War Ragnarok', 'Embárcate en una épica aventura con God of War: Ragnarök, la esperada secuela que sigue la historia de Kratos y su hijo Atreus mientras enfrentan el fin de los tiempos en la mitología nórdica. Con un impresionante mundo abierto, gráficos mejorados en 4K y combates más fluidos, este título ofrece una experiencia inmersiva llena de desafíos y momentos inolvidables. Explora los nueve reinos y enfréntate a nuevos dioses y criaturas míticas mientras Kratos lidia con su destino como guerrero y padre. La jugabilidad combina acción intensa, resolución de acertijos y un profundo desarrollo narrativo que te atrapará desde el primer momento.\r\n\r\nPrepárate para desafiar el destino y enfrentar a los dioses en esta emocionante obra maestra exclusiva de PlayStation.', 200.00, 47, 5, NULL, NULL, 0, 'god_of_war_ragnarok.jpg', '2024-11-23 19:19:53'),
 (7, 'Crash Twinsanity', 'videojuego antiguos', 200.00, 97, 5, NULL, NULL, 0, 'crash.jpg', '2024-11-23 19:19:53'),
-(10, 'Iphone XR', 'un celular', 800.99, 19, 1, NULL, NULL, 0, 'iphone_xr.jpg', '2024-11-23 19:19:53'),
+(10, 'Iphone XR', 'un celular', 800.99, 15, 1, NULL, NULL, 0, 'iphone_xr.jpg', '2024-11-23 19:19:53'),
 (11, 'GTA V', 'Videojuego', 100.00, 6, 5, NULL, NULL, 0, 'gtav.jpg', '2024-11-23 19:19:53');
 
 -- --------------------------------------------------------
@@ -804,7 +809,7 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT de la tabla `categorias`
 --
 ALTER TABLE `categorias`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT de la tabla `ciudades`
@@ -816,7 +821,7 @@ ALTER TABLE `ciudades`
 -- AUTO_INCREMENT de la tabla `detalles_pedido`
 --
 ALTER TABLE `detalles_pedido`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=89;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=92;
 
 --
 -- AUTO_INCREMENT de la tabla `direcciones`
@@ -840,7 +845,7 @@ ALTER TABLE `estados`
 -- AUTO_INCREMENT de la tabla `favoritos`
 --
 ALTER TABLE `favoritos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT de la tabla `geocoding_cache`
@@ -852,37 +857,37 @@ ALTER TABLE `geocoding_cache`
 -- AUTO_INCREMENT de la tabla `kits`
 --
 ALTER TABLE `kits`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT de la tabla `marcas`
 --
 ALTER TABLE `marcas`
-  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `metodos_pago`
 --
 ALTER TABLE `metodos_pago`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `modelos`
 --
 ALTER TABLE `modelos`
-  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT de la tabla `notificaciones`
 --
 ALTER TABLE `notificaciones`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT de la tabla `opiniones`
 --
 ALTER TABLE `opiniones`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de la tabla `paises`
@@ -894,7 +899,7 @@ ALTER TABLE `paises`
 -- AUTO_INCREMENT de la tabla `pedidos`
 --
 ALTER TABLE `pedidos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64;
 
 --
 -- AUTO_INCREMENT de la tabla `productos`
@@ -906,7 +911,7 @@ ALTER TABLE `productos`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- Restricciones para tablas volcadas
