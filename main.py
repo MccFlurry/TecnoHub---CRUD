@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, make_response, Blueprint, current_app
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_from_directory, Blueprint
+from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt
 from functools import wraps
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import BadRequest
@@ -11,7 +12,6 @@ from pymysql.err import IntegrityError
 from flask_wtf import CSRFProtect
 from controllers import controlador_direcciones
 from controllers import controlador_usuario
-from controllers import controlador_categorias
 from controllers import controlador_producto
 from controllers import controlador_pedido
 from controllers import controlador_kit
@@ -22,7 +22,7 @@ from controllers import controlador_ubicacion
 from controllers import controlador_metodo_pago
 from controllers import controlador_marca
 from controllers import controlador_modelo
-from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
+from controllers import controlador_categorias
 import datetime
 
 app = Flask(__name__)
@@ -1552,8 +1552,8 @@ def refresh():
     new_access_token = create_access_token(
         identity=current_user_id,
         additional_claims={
-            'tipo': usuario['tipo'],
-            'email': usuario['email']
+            'tipo': usuario.tipo,
+            'email': usuario.email
         }
     )
     return jsonify({"access_token": new_access_token})
@@ -1561,7 +1561,6 @@ def refresh():
 @app.route('/api/auth/verify', methods=['GET'])
 @jwt_required()
 def verify_token():
-    """Endpoint para verificar si el token es válido"""
     current_user_id = get_jwt_identity()
     usuario = controlador_usuario.obtener_usuario_por_id(current_user_id)
     
@@ -1570,8 +1569,8 @@ def verify_token():
         
     return jsonify({
         "user_id": current_user_id,
-        "user_type": usuario['tipo'],
-        "email": usuario['email']
+        "user_type": usuario.tipo,
+        "email": usuario.email
     })
 
 @app.route('/api/auth/logout', methods=['POST'])
@@ -1972,11 +1971,7 @@ def api_actualizar_estado_pedido(id):
 def api_obtener_categorias():
     try:
         categorias = controlador_categorias.obtener_todas_categorias()
-        return jsonify([{
-            'id': c.id,
-            'nombre': c.nombre,
-            'descripcion': c.descripcion
-        } for c in categorias]), 200
+        return jsonify(categorias), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -1986,12 +1981,9 @@ def api_obtener_categoria(id):
     try:
         categoria = controlador_categorias.obtener_categorias_por_id(id)
         if categoria:
-            return jsonify({
-                'id': categoria.id,
-                'nombre': categoria.nombre,
-                'descripcion': categoria.descripcion
-            }), 200
-        return jsonify({'error': 'Categoría no encontrada'}), 404
+            return jsonify(categoria), 200
+        else:
+            return jsonify({'error': 'Categoría no encontrada'}), 404
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -2000,14 +1992,14 @@ def api_obtener_categoria(id):
 def api_crear_categoria():
     try:
         data = request.get_json()
-        nueva_categoria = controlador_categorias.insertar_categorias(
-            data['nombre'],
-            data.get('descripcion', '')
-        )
-        return jsonify({
-            'mensaje': 'Categoría creada exitosamente',
-            'id': nueva_categoria.id
-        }), 201
+        if not data or 'nombre' not in data:
+            return jsonify({'error': 'El nombre de la categoría es requerido'}), 400
+            
+        resultado = controlador_categorias.insertar_categorias(data['nombre'])
+        if resultado:
+            return jsonify({'mensaje': 'Categoría creada exitosamente'}), 201
+        else:
+            return jsonify({'error': 'No se pudo crear la categoría'}), 500
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -2016,11 +2008,10 @@ def api_crear_categoria():
 def api_actualizar_categoria(id):
     try:
         data = request.get_json()
-        controlador_categorias.actualizar_categoria(
-            id,
-            data.get('nombre'),
-            data.get('descripcion')
-        )
+        if not data or 'nombre' not in data:
+            return jsonify({'error': 'El nombre de la categoría es requerido'}), 400
+            
+        controlador_categorias.actualizar_categorias(id, data['nombre'])
         return jsonify({'mensaje': 'Categoría actualizada exitosamente'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -2029,8 +2020,7 @@ def api_actualizar_categoria(id):
 @jwt_required()
 def api_eliminar_categoria(id):
     try:
-        from controlador_categorias import controlador_categorias
-        controlador_categorias.eliminar_categoria(id)
+        controlador_categorias.eliminar_categorias(id)
         return jsonify({'mensaje': 'Categoría eliminada exitosamente'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -2040,16 +2030,16 @@ def api_eliminar_categoria(id):
 @jwt_required()
 def api_obtener_productos():
     try:
-        page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 10, type=int)
         categoria_id = request.args.get('categoria_id', type=int)
         
-        productos = controlador_producto.obtener_productos(
-            page=page,
-            per_page=per_page,
-            categoria_id=categoria_id
-        )
-        return jsonify({"status": "success", "data": productos}), 200
+        if categoria_id:
+            productos = controlador_producto.obtener_productos_por_categorias(categoria_id)
+        else:
+            productos = controlador_producto.obtener_todos_productos()
+            
+        # Convert products to dictionaries for JSON serialization
+        productos_dict = [producto.to_dict() for producto in productos]
+        return jsonify({"status": "success", "data": productos_dict}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -2060,7 +2050,7 @@ def api_obtener_producto(id):
         producto = controlador_producto.obtener_producto_por_id(id)
         if not producto:
             return jsonify({"status": "error", "message": "Producto no encontrado"}), 404
-        return jsonify({"status": "success", "data": producto}), 200
+        return jsonify({"status": "success", "data": producto.to_dict()}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -2171,7 +2161,7 @@ def api_buscar_productos():
             id_marca=marca_id,
             id_modelo=modelo_id
         )
-        return jsonify({"status": "success", "data": productos}), 200
+        return jsonify({"status": "success", "data": [p.to_dict() for p in productos]}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -2181,7 +2171,7 @@ def api_obtener_productos_destacados():
     try:
         limite = request.args.get('limite', 4, type=int)
         productos = controlador_producto.obtener_productos_destacados(limite)
-        return jsonify({"status": "success", "data": productos}), 200
+        return jsonify({"status": "success", "data": [p.to_dict() for p in productos]}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -2191,7 +2181,7 @@ def api_obtener_productos_relacionados(id):
     try:
         limite = request.args.get('limite', 4, type=int)
         productos = controlador_producto.obtener_productos_relacionados(id, limite)
-        return jsonify({"status": "success", "data": productos}), 200
+        return jsonify({"status": "success", "data": [p.to_dict() for p in productos]}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 

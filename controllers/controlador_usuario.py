@@ -142,3 +142,16 @@ def tiene_pedidos_pendientes(usuario_id):
     finally:
         if conexion:
             conexion.close()
+
+def iniciar_sesion(email, password):
+    usuario = obtener_usuario_por_email(email)
+    if usuario and check_password(usuario.contrasena, password):
+        return {
+            'id': usuario.id,
+            'nombre': usuario.nombre,
+            'apellido': usuario.apellido,
+            'email': usuario.email,
+            'tipo': usuario.tipo,
+            'foto': usuario.foto
+        }
+    return None

@@ -600,13 +600,14 @@ def obtener_productos_destacados(limite=4):
         productos = []
         with conexion.cursor(DictCursor) as cursor:
             sql = """
-            SELECT id, nombre, descripcion, precio, imagen, categoria_id, id_marca, id_modelo
+            SELECT id, nombre, descripcion, precio, stock, imagen, categoria_id, id_marca, id_modelo, destacado
             FROM productos
             ORDER BY RAND()
             LIMIT %s
             """
             cursor.execute(sql, (limite,))
-            productos = list(cursor.fetchall())
+            for row in cursor.fetchall():
+                productos.append(Producto(**row))
 
         return productos
     except Exception as e:
