@@ -1,0 +1,29 @@
+2024-11-23 21:06:24,016 - tecnohub - INFO - Database Operation - SELECT on kits - Status: SUCCESS, Message: Obtenidos 2 kits para usuario 1
+2024-11-23 21:06:39,408 - tecnohub - INFO - Database Operation - INSERT on kits - Status: SUCCESS, Message: Kit 7 creado para usuario 1
+2024-11-23 21:06:53,389 - tecnohub - INFO - Database Operation - SELECT on kits - Status: SUCCESS, Message: Obtenidos 3 kits para usuario 1
+2024-11-23 21:07:41,800 - tecnohub - INFO - Database Operation - UPDATE on kits - Status: SUCCESS, Message: Kit 7 actualizado
+2024-11-23 21:07:59,685 - tecnohub - INFO - Database Operation - SELECT on kits - Status: SUCCESS, Message: Obtenidos 0 kits para usuario 7
+2024-11-23 21:08:14,960 - tecnohub - INFO - Database Operation - DELETE on kits - Status: SUCCESS, Message: Kit 7 eliminado
+2024-11-23 21:10:01,434 - tecnohub - ERROR - Error al actualizar kit: Kit 1 no existe
+2024-11-23 21:10:01,434 - tecnohub - ERROR - Error de validación al actualizar kit: El kit especificado no existe
+2024-11-23 21:10:53,757 - tecnohub - ERROR - Error al actualizar kit: Kit 1 no existe
+2024-11-23 21:10:53,757 - tecnohub - ERROR - Error de validación al actualizar kit: El kit especificado no existe
+2024-11-23 21:10:53,757 - tecnohub - INFO - API Call - PUT /api/kits/1 - Status: 400 - Message: El kit especificado no existe
+2024-11-23 21:11:09,979 - tecnohub - INFO - Database Operation - INSERT on kits - Status: SUCCESS, Message: Kit 8 creado para usuario 1
+2024-11-23 21:11:22,279 - tecnohub - INFO - Database Operation - SELECT on kits - Status: SUCCESS, Message: Obtenidos 3 kits para usuario 1
+2024-11-23 21:11:36,618 - tecnohub - INFO - Database Operation - UPDATE on kits - Status: SUCCESS, Message: Kit 8 actualizado
+2024-11-23 21:11:36,618 - tecnohub - INFO - API Call - PUT /api/kits/8 - Status: 200 - Message: Kit actualizado exitosamente
+2024-11-23 21:11:49,934 - tecnohub - INFO - Database Operation - SELECT on kits - Status: SUCCESS, Message: Obtenidos 0 kits para usuario 8
+2024-11-23 21:13:49,792 - tecnohub - INFO - Database Operation - SELECT on kits - Status: SUCCESS, Message: Obtenidos 3 kits para usuario 1
+2024-11-23 21:14:07,359 - tecnohub - INFO - Database Operation - UPDATE on kits - Status: SUCCESS, Message: Kit 8 actualizado
+2024-11-23 21:14:07,359 - tecnohub - INFO - API Call - PUT /api/kits/8 - Status: 200 - Message: Kit actualizado exitosamente
+2024-11-23 21:14:25,151 - tecnohub - INFO - Database Operation - SELECT on kits - Status: SUCCESS, Message: Obtenidos 0 kits para usuario 8
+2024-11-23 21:15:52,707 - tecnohub - INFO - Database Operation - SELECT on kits - Status: SUCCESS, Message: Obtenidos 0 kits para usuario 8
+2024-11-23 21:16:06,483 - tecnohub - INFO - Database Operation - SELECT on kits - Status: SUCCESS, Message: Obtenidos 3 kits para usuario 1
+2024-11-23 21:16:23,170 - tecnohub - INFO - Database Operation - UPDATE on kits - Status: SUCCESS, Message: Kit 8 actualizado
+2024-11-23 21:16:23,171 - tecnohub - INFO - API Call - PUT /api/kits/8 - Status: 200 - Message: Kit actualizado exitosamente
+2024-11-23 21:16:36,581 - tecnohub - INFO - Database Operation - SELECT on kits - Status: SUCCESS, Message: Obtenidos 0 kits para usuario 8
+2024-11-23 21:17:20,808 - tecnohub - INFO - Database Operation - SELECT on kits - Status: SUCCESS, Message: Obtenidos 0 kits para usuario 8
+2024-11-23 21:19:25,109 - tecnohub - INFO - Database Operation - SELECT on kits - Status: SUCCESS, Message: Obtenidos 0 kits para usuario 8
+2024-11-23 21:19:38,702 - tecnohub - INFO - Database Operation - SELECT on kits - Status: SUCCESS, Message: Obtenidos 3 kits para usuario 1
+2024-11-23 21:20:30,706 - tecnohub - INFO - Database Operation - SELECT on kits - Status: SUCCESS, Message: Obtenidos 0 kits para usuario 8

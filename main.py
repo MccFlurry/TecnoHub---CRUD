@@ -23,6 +23,8 @@ from controllers import controlador_marca
 from controllers import controlador_modelo
 from controllers import controlador_categorias
 import datetime
+import logging
+from utils.logger import log_api_call, log_error, log_info, log_warning, log_debug
 
 app = Flask(__name__)
 csrf = CSRFProtect()
@@ -2265,18 +2267,7 @@ def api_toggle_favorito(usuario_id, producto_id):
 def api_obtener_kits_usuario(usuario_id):
     try:
         kits = controlador_kit.obtener_kits_usuario(usuario_id)
-        return jsonify({"status": "success", "data": kits}), 200
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-@app.route('/api/kits/<int:kit_id>', methods=['GET'])
-@jwt_required()
-def api_obtener_kit(kit_id):
-    try:
-        kit = controlador_kit.obtener_kit_por_id(kit_id)
-        if not kit:
-            return jsonify({"status": "error", "message": "Kit no encontrado"}), 404
-        return jsonify({"status": "success", "data": kit}), 200
+        return jsonify({"status": "success", "data": [kit.to_dict() for kit in kits]}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -2318,9 +2309,62 @@ def api_obtener_kits_recientes(usuario_id):
         kits = controlador_kit.obtener_kits_usuario(usuario_id)
         # Limitamos a los 5 más recientes
         kits_recientes = kits[:5] if len(kits) > 5 else kits
-        return jsonify({"status": "success", "data": kits_recientes}), 200
+        return jsonify({"status": "success", "data": [kit.to_dict() for kit in kits_recientes]}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/kits/<int:kit_id>', methods=['PUT'])
+@jwt_required()
+def api_actualizar_kit(kit_id):
+    try:
+        data = request.get_json()
+        required_fields = ['celular_id', 'smartwatch_id', 'accesorios_id']
+        
+        # Validar que todos los campos requeridos estén presentes
+        for field in required_fields:
+            if field not in data:
+                log_api_call("PUT", f"/api/kits/{kit_id}", 400, f"Campo {field} faltante")
+                return jsonify({
+                    "status": "error",
+                    "message": f"El campo {field} es requerido"
+                }), 400
+
+        # Validar que los IDs sean números positivos
+        for field in required_fields:
+            if not isinstance(data[field], int) or data[field] <= 0:
+                log_api_call("PUT", f"/api/kits/{kit_id}", 400, f"Campo {field} inválido")
+                return jsonify({
+                    "status": "error",
+                    "message": f"El campo {field} debe ser un número positivo"
+                }), 400
+
+        success, message = controlador_kit.actualizar_kit(
+            kit_id,
+            data['celular_id'],
+            data['smartwatch_id'],
+            data['accesorios_id']
+        )
+
+        if not success:
+            log_api_call("PUT", f"/api/kits/{kit_id}", 400, message)
+            return jsonify({
+                "status": "error",
+                "message": message
+            }), 400
+
+        log_api_call("PUT", f"/api/kits/{kit_id}", 200, "Kit actualizado exitosamente")
+        return jsonify({
+            "status": "success",
+            "message": message
+        }), 200
+
+    except Exception as e:
+        log_error(f"Error en PUT /api/kits/{kit_id}", e)
+        return jsonify({
+            "status": "error",
+            "message": "Error al procesar la solicitud",
+            "error": str(e)
+        }), 500
 
 # APIs para Opiniones
 @app.route('/api/opiniones/producto/<int:producto_id>', methods=['GET'])
