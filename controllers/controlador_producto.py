@@ -6,6 +6,8 @@ import time
 import os
 from functools import wraps
 from datetime import datetime
+import pymysql
+import csv
 
 # Configuración de logging
 def setup_logging():
@@ -639,3 +641,132 @@ def obtener_stock(id_producto):
     finally:
         if conexion:
             conexion.close()
+
+def obtener_productos_mas_vendidos(limite=10, periodo='30d'):
+    """
+    Obtiene los productos más vendidos en un período
+    
+    Args:
+        limite (int, optional): Número máximo de productos a retornar
+        periodo (str, optional): Período para calcular ventas (ej: '30d', '90d')
+    
+    Returns:
+        list: Lista de productos más vendidos
+    """
+    conexion = obtener_conexion()
+    productos = []
+    
+    # Convertir periodo a días y asegurar que limite sea un entero
+    dias = int(periodo[:-1]) if periodo.endswith('d') else 30
+    limite = int(limite)
+    
+    print(f"Buscando productos más vendidos - Periodo: {dias} días, Límite: {limite}")
+    
+    try:
+        with conexion.cursor(DictCursor) as cursor:
+            sql = """
+            SELECT 
+                p.id, 
+                p.nombre, 
+                COALESCE(SUM(dp.cantidad), 0) AS cantidad_vendida,
+                COALESCE(SUM(dp.cantidad * dp.precio_unitario), 0) AS total_ventas
+            FROM productos p
+            LEFT JOIN detalles_pedido dp ON p.id = dp.producto_id
+            LEFT JOIN pedidos ped ON dp.pedido_id = ped.id
+            WHERE ped.fecha_pedido >= DATE_SUB(CURRENT_DATE, INTERVAL %s DAY)
+                OR ped.fecha_pedido IS NULL
+            GROUP BY p.id, p.nombre
+            HAVING cantidad_vendida > 0
+            ORDER BY cantidad_vendida DESC
+            LIMIT %s
+            """
+            cursor.execute(sql, (dias, limite))
+            productos = cursor.fetchall()
+            print(f"Productos encontrados: {len(productos)}")
+            
+            # Formatear los resultados
+            productos = [{
+                'id': p['id'],
+                'nombre': p['nombre'],
+                'cantidad_vendida': int(p['cantidad_vendida']),
+                'total_ventas': float(p['total_ventas'])
+            } for p in productos]
+            
+    except Exception as e:
+        print(f"Error al obtener productos más vendidos: {str(e)}")
+        raise Exception(f"Error al obtener productos más vendidos: {str(e)}")
+    finally:
+        conexion.close()
+    
+    return productos
+    
+def exportar_productos(formato='csv'):
+    """
+    Exporta productos en un formato específico
+    
+    Args:
+        formato (str, optional): Formato de exportación (csv, json, etc.)
+    
+    Returns:
+        dict: Datos de productos y ruta del archivo si es CSV
+    """
+    conexion = obtener_conexion()
+    datos = []
+    
+    try:
+        with conexion.cursor(DictCursor) as cursor:
+            sql = """
+            SELECT 
+                p.id, 
+                p.nombre, 
+                p.descripcion, 
+                p.precio, 
+                p.stock, 
+                c.nombre AS categoria,
+                m.nombre AS marca,
+                mo.nombre AS modelo
+            FROM productos p
+            LEFT JOIN categorias c ON p.categoria_id = c.id
+            LEFT JOIN marcas m ON p.id_marca = m.id
+            LEFT JOIN modelos mo ON p.id_modelo = mo.id
+            ORDER BY p.id
+            """
+            cursor.execute(sql)
+            datos = cursor.fetchall()
+
+            if formato.lower() == 'csv':
+                # Crear directorio para exportaciones si no existe
+                export_dir = 'exports'
+                if not os.path.exists(export_dir):
+                    os.makedirs(export_dir)
+
+                # Generar nombre de archivo único
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                filename = f'productos_{timestamp}.csv'
+                filepath = os.path.join(export_dir, filename)
+
+                # Escribir datos al archivo CSV
+                with open(filepath, 'w', newline='', encoding='utf-8') as csvfile:
+                    # Definir las columnas
+                    fieldnames = ['id', 'nombre', 'descripcion', 'precio', 'stock', 'categoria', 'marca', 'modelo']
+                    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                    
+                    # Escribir encabezados
+                    writer.writeheader()
+                    
+                    # Escribir datos
+                    for producto in datos:
+                        writer.writerow(producto)
+
+                return {
+                    'datos': datos,
+                    'archivo': filename,
+                    'ruta': filepath
+                }
+
+    except pymysql.Error as e:
+        logger.error(f"Error al exportar productos: {str(e)}")
+    finally:
+        conexion.close()
+    
+    return {'datos': datos}

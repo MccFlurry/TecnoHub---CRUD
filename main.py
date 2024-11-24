@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_from_directory, Blueprint, current_app
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, send_file, Blueprint, current_app
 from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt
 from functools import wraps
 from werkzeug.utils import secure_filename
@@ -32,16 +32,43 @@ csrf = CSRFProtect()
 app.secret_key = 'tu_clave_secreta'
 
 # Configuración JWT
-app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'tu-clave-jwt-secreta')  # Mejor usar variable de entorno
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)
+app.config['JWT_SECRET_KEY'] = 'tu_clave_secreta_jwt'  # Cambia esto por una clave segura
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
+app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
 app.config['JWT_TOKEN_LOCATION'] = ['headers']  # Dónde buscar el token
 app.config['JWT_HEADER_NAME'] = 'Authorization'  # Nombre del header
 app.config['JWT_HEADER_TYPE'] = 'Bearer'  # Tipo de token
 app.config['JWT_ERROR_MESSAGE_KEY'] = 'message'  # Clave para mensajes de error
+app.config['JWT_ALGORITHM'] = 'HS256'  # Algoritmo de firma
+app.config['JWT_VERIFY_CLAIMS'] = ['signature', 'exp', 'nbf', 'iat']  # Claims a verificar
 
 jwt = JWTManager(app)
 
 # Manejadores de errores JWT
+@jwt.unauthorized_loader
+def unauthorized_callback(error_message):
+    return jsonify({
+        'status': 'error',
+        'message': 'Authentication required',
+        'error': error_message
+    }), 401
+
+@jwt.invalid_token_loader
+def invalid_token_callback(error_message):
+    return jsonify({
+        'status': 'error',
+        'message': 'Invalid token',
+        'error': error_message
+    }), 422
+
+@jwt.revoked_token_loader
+def revoked_token_callback(jwt_header, jwt_payload):
+    return jsonify({
+        'status': 'error',
+        'message': 'Token has been revoked',
+        'error': 'Token revoked'
+    }), 401
+
 @jwt.expired_token_loader
 def expired_token_callback(jwt_header, jwt_payload):
     return jsonify({
@@ -2398,7 +2425,6 @@ def api_actualizar_kit(kit_id):
         }), 200
 
     except Exception as e:
-        log_error(f"Error en PUT /api/kits/{kit_id}", e)
         return jsonify({
             "status": "error",
             "message": "Error al procesar la solicitud",
@@ -2754,72 +2780,198 @@ def api_eliminar_modelo(id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# APIs de Chatbot
-@app.route('/api/chatbot/consulta', methods=['POST'])
-@jwt_required()
-def api_chatbot_consulta():
-    try:
-        data = request.get_json()
-        respuesta = {
-            'mensaje': 'Lo siento, el chatbot está en mantenimiento.',
-            'sugerencias': [
-                'Revisa nuestras preguntas frecuentes',
-                'Contacta a servicio al cliente',
-                'Explora nuestro catálogo'
-            ]
-        }
-        return jsonify(respuesta), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/chatbot/feedback', methods=['POST'])
-@jwt_required()
-def api_chatbot_feedback():
-    try:
-        data = request.get_json()
-        return jsonify({'mensaje': 'Gracias por tu feedback'}), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
 # APIs de Reportes
+@app.route('/api/reportes/pedidos/por-estado', methods=['GET'])
+@jwt_required()
+def api_reporte_pedidos_por_estado():
+    try:
+        estado = request.args.get('estado')
+        if not estado:
+            return jsonify({'error': 'El parámetro estado es requerido'}), 400
+            
+        pedidos = controlador_pedido.obtener_pedidos_por_estado(estado)
+        # Los pedidos ya vienen formateados desde el controlador
+        return jsonify(pedidos), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/reportes/ventas/diarias', methods=['GET'])
 @jwt_required()
 def api_reporte_ventas_diarias():
     try:
+        # Verificar que el usuario sea administrador
+        jwt_data = get_jwt()
+        if jwt_data.get('tipo') != 'administrador':
+            app.logger.warning(f"Intento de acceso no autorizado por usuario {jwt_data.get('email')}")
+            return jsonify({
+                'status': 'error', 
+                'message': 'Acceso denegado: se requieren permisos de administrador'
+            }), 403
+        
+        # Validar parámetros de fecha
         fecha_inicio = request.args.get('fecha_inicio')
         fecha_fin = request.args.get('fecha_fin')
-        from controlador_pedido import ControladorPedido
-        reporte = ControladorPedido.generar_reporte_ventas_diarias(fecha_inicio, fecha_fin)
-        return jsonify(reporte), 200
+        
+        try:
+            reporte = controlador_pedido.generar_reporte_ventas_diarias(fecha_inicio, fecha_fin)
+            
+            # Registrar el reporte generado
+            app.logger.info(f"Reporte de ventas diarias generado. Rango: {fecha_inicio} - {fecha_fin}")
+            
+            return jsonify({
+                'status': 'success',
+                'total_ventas': sum(float(dia['total_ventas']) for dia in reporte),
+                'total_pedidos': sum(dia['num_pedidos'] for dia in reporte),
+                'ventas_por_dia': reporte
+            }), 200
+        
+        except ValueError as ve:
+            app.logger.warning(f"Error en parámetros de fecha: {ve}")
+            return jsonify({
+                'status': 'error',
+                'message': 'Formato de fecha inválido. Use YYYY-MM-DD.',
+                'error': str(ve)
+            }), 400
+        
+        except Exception as db_error:
+            app.logger.error(f"Error al generar reporte de ventas diarias: {str(db_error)}")
+            return jsonify({
+                'status': 'error', 
+                'message': 'Error al generar reporte de ventas diarias',
+                'error': str(db_error)
+            }), 500
+    
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Error inesperado en reporte de ventas diarias: {str(e)}")
+        return jsonify({
+            'status': 'error', 
+            'message': 'Error interno del servidor',
+            'error': str(e)
+        }), 500
 
 @app.route('/api/reportes/productos/stock-bajo', methods=['GET'])
 @jwt_required()
 def api_reporte_productos_stock_bajo():
     try:
-        limite = request.args.get('limite', 10)
-        from controlador_producto import ControladorProducto
-        productos = ControladorProducto.obtener_productos_stock_bajo(limite)
-        return jsonify([{
-            'id': p.id,
-            'nombre': p.nombre,
-            'stock_actual': p.stock,
-            'stock_minimo': p.stock_minimo
-        } for p in productos]), 200
+        # Verificar que el usuario sea administrador
+        jwt_data = get_jwt()
+        if jwt_data.get('tipo') != 'administrador':
+            app.logger.warning(f"Intento de acceso no autorizado por usuario {jwt_data.get('email')}")
+            return jsonify({
+                'status': 'error', 
+                'message': 'Acceso denegado: se requieren permisos de administrador'
+            }), 403
+        
+        try:
+            # Obtener todos los productos
+            conexion = obtener_conexion()
+            with conexion.cursor() as cursor:
+                # Consulta para obtener todos los productos y su estado de stock
+                cursor.execute("""
+                    SELECT 
+                        id, 
+                        nombre, 
+                        stock
+                    FROM productos
+                """)
+                todos_productos = cursor.fetchall()
+                
+                # Calcular totales y porcentajes
+                total_productos = len(todos_productos)
+                productos_sin_stock = [p for p in todos_productos if p[2] == 0]
+                total_sin_stock = len(productos_sin_stock)
+                
+                # Calcular porcentajes
+                porcentaje_sin_stock = (total_sin_stock / total_productos) * 100 if total_productos > 0 else 0
+                porcentaje_con_stock = 100 - porcentaje_sin_stock
+                
+                # Formatear productos sin stock
+                reporte = [{
+                    'id': p[0],
+                    'nombre': p[1],
+                    'stock_actual': p[2]
+                } for p in productos_sin_stock]
+            
+            # Registrar el reporte generado
+            app.logger.info(f"Reporte de productos sin stock generado. Total de productos sin stock: {total_sin_stock}")
+            
+            return jsonify({
+                'status': 'success',
+                'total_productos': total_productos,
+                'total_sin_stock': total_sin_stock,
+                'porcentaje_sin_stock': round(porcentaje_sin_stock, 2),
+                'porcentaje_con_stock': round(porcentaje_con_stock, 2),
+                'productos_sin_stock': reporte
+            }), 200
+        
+        except Exception as db_error:
+            app.logger.error(f"Error al consultar productos sin stock: {str(db_error)}")
+            return jsonify({
+                'status': 'error', 
+                'message': 'Error al consultar productos sin stock',
+                'error': str(db_error)
+            }), 500
+    
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Error inesperado en reporte de stock bajo: {str(e)}")
+        return jsonify({
+            'status': 'error', 
+            'message': 'Error interno del servidor',
+            'error': str(e)
+        }), 500
 
 @app.route('/api/reportes/usuarios/actividad', methods=['GET'])
 @jwt_required()
 def api_reporte_actividad_usuarios():
     try:
+        # Verificar que el usuario sea administrador
+        jwt_data = get_jwt()
+        if jwt_data.get('tipo') != 'administrador':
+            app.logger.warning(f"Intento de acceso no autorizado por usuario {jwt_data.get('email')}")
+            return jsonify({
+                'status': 'error', 
+                'message': 'Acceso denegado: se requieren permisos de administrador'
+            }), 403
+        
+        # Validar periodo de actividad
+        periodos_validos = ['7d', '30d', '90d']
         periodo = request.args.get('periodo', '7d')
-        from controlador_usuario import ControladorUsuario
-        reporte = ControladorUsuario.generar_reporte_actividad(periodo)
-        return jsonify(reporte), 200
+        
+        if periodo not in periodos_validos:
+            app.logger.warning(f"Periodo de actividad inválido: {periodo}")
+            return jsonify({
+                'status': 'error',
+                'message': f'Periodo inválido. Debe ser uno de: {", ".join(periodos_validos)}'
+            }), 400
+        
+        try:
+            reporte = controlador_usuario.generar_reporte_actividad(periodo)
+            
+            # Registrar el reporte generado
+            app.logger.info(f"Reporte de actividad de usuarios generado. Periodo: {periodo}")
+            
+            return jsonify({
+                'status': 'success',
+                'periodo': periodo,
+                'total_usuarios_activos': len(reporte),
+                'actividad_usuarios': reporte
+            }), 200
+        
+        except Exception as e:
+            app.logger.error(f"Error al generar reporte de actividad de usuarios: {str(e)}")
+            return jsonify({
+                'status': 'error', 
+                'message': 'Error al generar reporte de actividad de usuarios',
+                'error': str(e)
+            }), 500
+    
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Error inesperado en reporte de actividad de usuarios: {str(e)}")
+        return jsonify({
+            'status': 'error', 
+            'message': 'Error interno del servidor',
+            'error': str(e)
+        }), 500
 
 # APIs de Exportación
 @app.route('/api/exportar/productos', methods=['GET'])
@@ -2827,10 +2979,19 @@ def api_reporte_actividad_usuarios():
 def api_exportar_productos():
     try:
         formato = request.args.get('formato', 'csv')
-        from controlador_producto import ControladorProducto
-        datos = ControladorProducto.exportar_productos(formato)
+        resultado = controlador_producto.exportar_productos(formato)
+        
+        if formato.lower() == 'csv' and 'archivo' in resultado:
+            # Devolver el archivo CSV para descarga
+            return send_file(
+                resultado['ruta'],
+                mimetype='text/csv',
+                as_attachment=True,
+                download_name=resultado['archivo']
+            )
+        
         return jsonify({
-            'datos': datos,
+            'datos': resultado['datos'],
             'formato': formato
         }), 200
     except Exception as e:
@@ -2843,12 +3004,102 @@ def api_exportar_pedidos():
         formato = request.args.get('formato', 'csv')
         fecha_inicio = request.args.get('fecha_inicio')
         fecha_fin = request.args.get('fecha_fin')
-        from controlador_pedido import ControladorPedido
-        datos = ControladorPedido.exportar_pedidos(formato, fecha_inicio, fecha_fin)
+        
+        resultado = controlador_pedido.exportar_pedidos(formato, fecha_inicio, fecha_fin)
+        
+        if formato.lower() == 'csv' and 'ruta' in resultado:
+            return send_file(
+                resultado['ruta'],
+                mimetype='text/csv',
+                as_attachment=True,
+                download_name=resultado['archivo']
+            )
+        
         return jsonify({
-            'datos': datos,
+            'datos': resultado['datos'],
             'formato': formato
         }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/reportes/productos/por-categoria', methods=['GET'])
+@jwt_required()
+def api_reporte_productos_por_categoria():
+    try:
+        categoria_id = request.args.get('categoria_id')
+        productos = controlador_producto.obtener_productos_por_categorias(categoria_id)
+        return jsonify([{
+            'id': p.id,
+            'nombre': p.nombre,
+            'precio': p.precio,
+            'stock': p.stock
+        } for p in productos]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+        
+@app.route('/api/reportes/productos/mas-vendidos', methods=['GET'])
+@jwt_required()
+def api_reporte_productos_mas_vendidos():
+    try:
+        limite = request.args.get('limite', 10)
+        periodo = request.args.get('periodo', '30d')
+        productos = controlador_producto.obtener_productos_mas_vendidos(limite, periodo)
+        # Los productos ya vienen formateados desde el controlador
+        return jsonify(productos), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/reportes/pedidos/ingresos-mensuales', methods=['GET'])
+@jwt_required()
+def api_reporte_ingresos_mensuales():
+    try:
+        anio = request.args.get('anio', datetime.now().year)
+        reporte = controlador_pedido.generar_reporte_ingresos_mensuales(anio)
+        return jsonify(reporte), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/reportes/usuarios/registros', methods=['GET'])
+@jwt_required()
+def api_reporte_registros_usuarios():
+    try:
+        periodo = request.args.get('periodo', '30d')
+        reporte = controlador_usuario.generar_reporte_registros(periodo)
+        return jsonify(reporte), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/reportes/usuarios/top-compradores', methods=['GET'])
+@jwt_required()
+def api_reporte_top_compradores():
+    try:
+        limite = request.args.get('limite', 10)
+        reporte = controlador_usuario.obtener_top_compradores(limite)
+        return jsonify([{
+            'id': u.id,
+            'nombre': u.nombre,
+            'total_compras': u.total_compras
+        } for u in reporte]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/reportes/pagos/distribucion', methods=['GET'])
+@jwt_required()
+def api_reporte_distribucion_metodos_pago():
+    try:
+        periodo = request.args.get('periodo', '30d')
+        reporte = controlador_metodo_pago.generar_reporte_distribucion(periodo)
+        return jsonify(reporte), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/reportes/ubicaciones/ventas', methods=['GET'])
+@jwt_required()
+def api_reporte_ventas_por_ubicacion():
+    try:
+        periodo = request.args.get('periodo', '30d')
+        reporte = controlador_ubicacion.generar_reporte_ventas_por_ubicacion(periodo)
+        return jsonify(reporte), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

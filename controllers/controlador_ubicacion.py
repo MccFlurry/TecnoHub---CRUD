@@ -4,6 +4,7 @@ from clase.clase_estado import Estado
 from clase.clase_ciudad import Ciudad
 from clase.clase_distrito import Distrito
 import logging
+import pymysql.cursors
 
 logger = logging.getLogger(__name__)
 
@@ -258,5 +259,70 @@ def obtener_ubicacion_completa(distrito_id):
     except Exception as e:
         logger.error(f"Error al obtener ubicación completa: {str(e)}")
         return None
+    finally:
+        conexion.close()
+
+def generar_reporte_ventas_por_ubicacion(periodo):
+    """
+    Genera un reporte de ventas por ubicación en un período específico
+    
+    Args:
+        periodo (str): Período de tiempo ('7d', '30d', '90d', '1y')
+        
+    Returns:
+        dict: Reporte con estadísticas de ventas por ubicación
+    """
+    conexion = obtener_conexion()
+    try:
+        with conexion.cursor(pymysql.cursors.DictCursor) as cursor:
+            # Convertir período a días
+            dias = {
+                '7d': 7,
+                '30d': 30,
+                '90d': 90,
+                '1y': 365
+            }.get(periodo, 30)
+            
+            sql = """
+            SELECT 
+                d.pais,
+                d.ciudad,
+                COUNT(DISTINCT p.id) as total_pedidos,
+                COUNT(DISTINCT p.usuario_id) as total_clientes,
+                COALESCE(SUM(dp.cantidad * dp.precio_unitario), 0) as total_ventas
+            FROM direcciones d
+            LEFT JOIN pedidos p ON d.id = p.direccion_id
+            LEFT JOIN detalles_pedido dp ON p.id = dp.pedido_id
+            WHERE p.fecha_pedido >= DATE_SUB(CURDATE(), INTERVAL %s DAY)
+            AND p.estado = 'completado'
+            GROUP BY d.pais, d.ciudad
+            ORDER BY total_ventas DESC
+            """
+            cursor.execute(sql, (dias,))
+            ubicaciones = cursor.fetchall()
+            
+            # Calcular totales
+            total_pedidos = sum(u['total_pedidos'] for u in ubicaciones)
+            total_ventas = sum(float(u['total_ventas']) for u in ubicaciones)
+            total_clientes = sum(u['total_clientes'] for u in ubicaciones)
+            
+            return {
+                'periodo': periodo,
+                'total_pedidos': total_pedidos,
+                'total_ventas': float(total_ventas),
+                'total_clientes': total_clientes,
+                'ventas_por_ubicacion': [{
+                    'pais': u['pais'],
+                    'ciudad': u['ciudad'],
+                    'total_pedidos': u['total_pedidos'],
+                    'total_clientes': u['total_clientes'],
+                    'total_ventas': float(u['total_ventas']),
+                    'porcentaje_ventas': round((float(u['total_ventas']) / total_ventas * 100) if total_ventas > 0 else 0, 2)
+                } for u in ubicaciones]
+            }
+            
+    except Exception as e:
+        print(f"Error al generar reporte de ventas por ubicación: {str(e)}")
+        raise Exception(f"Error al generar reporte de ventas por ubicación: {str(e)}")
     finally:
         conexion.close()

@@ -1,0 +1,24 @@
+id,usuario_id,cliente,fecha_pedido,estado,direccion,ciudad,pais,metodo_pago,total
+63,1,Roger Zavaleta,2024-11-23 23:23:49,enviado,Av. Elvira Garcia y Garcia 455,Lima,Perú,mastercard,200.00
+62,1,Roger Zavaleta,2024-11-23 19:25:08,enviado,Av. Elvira Garcia y Garcia 455,Lima,Perú,mastercard,200.00
+61,3,Abraham Vidaurre,2024-11-23 16:58:08,pendiente,355 East Primm Boulevard,Jean,United States,visa,3203.96
+60,3,Abraham Vidaurre,2024-11-23 14:42:16,pendiente,355 East Primm Boulevard,Jean,United States,visa,300.00
+59,1,Roger Zavaleta,2024-11-16 20:14:16,pendiente,Av. Elvira Garcia y Garcia 455,Lima,Perú,mastercard,6700.00
+58,1,Roger Zavaleta,2024-11-16 20:12:47,pendiente,Av Gran Chimu 1624,Benito Juárez,México,mastercard,3000.00
+57,1,Roger Zavaleta,2024-11-16 15:09:33,pendiente,Av. Elvira Garcia y Garcia 455,Lima,Perú,mastercard,2000.00
+56,1,Roger Zavaleta,2024-11-16 15:06:41,pendiente,Av. Elvira Garcia y Garcia 455,Lima,Perú,mastercard,2500.00
+55,1,Roger Zavaleta,2024-11-16 15:03:54,pendiente,Av. Elvira Garcia y Garcia 455,Lima,Perú,mastercard,3000.00
+54,3,Abraham Vidaurre,2024-11-15 18:23:43,pendiente,355 East Primm Boulevard,Jean,United States,,800.99
+53,1,Roger Zavaleta,2024-11-13 18:35:14,pendiente,Av. Elvira Garcia y Garcia 455,Lima,Perú,,100.00
+52,3,Abraham Vidaurre,2024-11-09 13:58:32,pendiente,355 East Primm Boulevard,Jean,United States,,1200.00
+51,1,Roger Zavaleta,2024-11-09 13:58:03,pendiente,Av. Elvira Garcia y Garcia 455,Lima,Perú,,1200.00
+50,1,Roger Zavaleta,2024-11-09 13:47:06,pendiente,Av. Elvira Garcia y Garcia 455,Lima,Perú,,2500.00
+49,1,Roger Zavaleta,2024-11-09 13:45:33,pendiente,Av Gran Chimu 1624,Benito Juárez,México,,2500.00
+48,1,Roger Zavaleta,2024-11-08 19:32:11,pendiente,Av. Elvira Garcia y Garcia 455,Lima,Perú,,3000.00
+47,1,Roger Zavaleta,2024-11-08 19:15:50,pendiente,Av. Elvira Garcia y Garcia 455,Lima,Perú,,200.00
+46,1,Roger Zavaleta,2024-11-08 17:52:53,pendiente,Av. Elvira Garcia y Garcia 455,Lima,Perú,,2500.00
+45,3,Abraham Vidaurre,2024-11-08 17:47:31,pendiente,Av. Elvira Garcia y Garcia 455,Chiclayo,Perú,,200.00
+44,1,Roger Zavaleta,2024-11-07 23:06:47,pendiente,Av. Elvira Garcia y Garcia 455,Lima,Perú,,1200.00
+43,1,Roger Zavaleta,2024-10-25 19:18:01,pendiente,Av Gran Chimu 1624,Benito Juárez,México,,6700.00
+42,1,Roger Zavaleta,2024-10-25 16:34:37,pendiente,Av Gran Chimu 1624,Benito Juárez,México,,1200.00
+41,1,Roger Zavaleta,2024-10-25 16:30:14,pendiente,Av. Elvira Garcia y Garcia 455,Lima,Perú,,1200.00

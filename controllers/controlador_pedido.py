@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 import pymysql as MySQLdb
 import pymysql
 from pymysql.cursors import DictCursor
+import os
+import csv
 
 def crear_pedido(usuario_id, direccion_id, metodo_pago_id=None):
     conexion = obtener_conexion()
@@ -274,3 +276,237 @@ def editar_pedido(pedido_id, direccion, ciudad, estado, pais, fecha_pedido, esta
         raise e
     finally:
         conexion.close()
+
+def generar_reporte_ventas_diarias(fecha_inicio=None, fecha_fin=None):
+    """
+    Genera un reporte de ventas diarias
+    
+    Args:
+        fecha_inicio (str, optional): Fecha de inicio del reporte en formato 'YYYY-MM-DD'
+        fecha_fin (str, optional): Fecha de fin del reporte en formato 'YYYY-MM-DD'
+    
+    Returns:
+        dict: Reporte de ventas diarias
+    """
+    conexion = obtener_conexion()
+    reporte = []
+    try:
+        with conexion.cursor(DictCursor) as cursor:
+            # Si no se proporcionan fechas, usar el último mes por defecto
+            if not fecha_inicio or not fecha_fin:
+                fecha_fin = datetime.now().strftime('%Y-%m-%d')
+                fecha_inicio = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
+            
+            sql = """
+            SELECT 
+                DATE(fecha_pedido) AS fecha, 
+                COUNT(DISTINCT id) AS num_pedidos, 
+                SUM(total) AS total_ventas
+            FROM (
+                SELECT 
+                    p.id, 
+                    p.fecha_pedido, 
+                    SUM(dp.cantidad * dp.precio_unitario) AS total
+                FROM pedidos p
+                JOIN detalles_pedido dp ON p.id = dp.pedido_id
+                WHERE p.fecha_pedido BETWEEN %s AND %s
+                GROUP BY p.id, p.fecha_pedido
+            ) AS ventas_diarias
+            GROUP BY fecha
+            ORDER BY fecha
+            """
+            cursor.execute(sql, (fecha_inicio, fecha_fin))
+            reporte = cursor.fetchall()
+    except MySQLdb.Error as e:
+        print(f"Error al generar reporte de ventas diarias: {str(e)}")
+    finally:
+        conexion.close()
+    
+    return reporte
+
+def obtener_pedidos_por_estado(estado):
+    """
+    Obtiene los pedidos filtrados por estado
+    
+    Args:
+        estado (str): Estado del pedido (pendiente, completado, cancelado, etc.)
+    
+    Returns:
+        list: Lista de pedidos con el estado especificado
+    """
+    conexion = obtener_conexion()
+    pedidos = []
+    
+    print(f"Buscando pedidos con estado: {estado}")
+    
+    try:
+        with conexion.cursor(DictCursor) as cursor:
+            sql = """
+            SELECT 
+                p.id, 
+                p.fecha_pedido, 
+                p.estado, 
+                COALESCE(SUM(dp.cantidad * dp.precio_unitario), 0) AS total
+            FROM pedidos p
+            LEFT JOIN detalles_pedido dp ON p.id = dp.pedido_id
+            WHERE p.estado = %s
+            GROUP BY p.id, p.fecha_pedido, p.estado
+            ORDER BY p.fecha_pedido DESC
+            """
+            cursor.execute(sql, (estado,))
+            pedidos = cursor.fetchall()
+            print(f"Pedidos encontrados: {len(pedidos)}")
+            
+            # Formatear los resultados
+            pedidos = [{
+                'id': p['id'],
+                'fecha': p['fecha_pedido'].strftime('%Y-%m-%d %H:%M:%S'),
+                'total': float(p['total']),
+                'estado': p['estado']
+            } for p in pedidos]
+            
+    except Exception as e:
+        print(f"Error al obtener pedidos por estado {estado}: {str(e)}")
+        raise Exception(f"Error al obtener pedidos por estado: {str(e)}")
+    finally:
+        conexion.close()
+    
+    return pedidos
+
+def generar_reporte_ingresos_mensuales(anio=None):
+    """
+    Genera un reporte de ingresos mensuales
+    
+    Args:
+        anio (int, optional): Año para el reporte. Si no se proporciona, se usa el año actual
+    
+    Returns:
+        list: Reporte de ingresos mensuales
+    """
+    conexion = obtener_conexion()
+    reporte = []
+    
+    # Si no se proporciona año, usar el año actual
+    if anio is None:
+        anio = datetime.now().year
+    
+    try:
+        with conexion.cursor(DictCursor) as cursor:
+            sql = """
+            SELECT 
+                MONTH(fecha_pedido) AS mes, 
+                COUNT(DISTINCT id) AS num_pedidos, 
+                SUM(total) AS total_ingresos
+            FROM (
+                SELECT 
+                    p.id, 
+                    p.fecha_pedido, 
+                    SUM(dp.cantidad * dp.precio_unitario) AS total
+                FROM pedidos p
+                JOIN detalles_pedido dp ON p.id = dp.pedido_id
+                WHERE YEAR(p.fecha_pedido) = %s
+                GROUP BY p.id, p.fecha_pedido
+            ) AS ingresos_mensuales
+            GROUP BY mes
+            ORDER BY mes
+            """
+            cursor.execute(sql, (anio,))
+            reporte = cursor.fetchall()
+    except MySQLdb.Error as e:
+        print(f"Error al generar reporte de ingresos mensuales: {str(e)}")
+    finally:
+        conexion.close()
+    
+    return reporte
+
+def exportar_pedidos(formato='csv', fecha_inicio=None, fecha_fin=None):
+    """
+    Exporta pedidos en un formato específico
+    
+    Args:
+        formato (str, optional): Formato de exportación (csv, json, etc.)
+        fecha_inicio (str, optional): Fecha de inicio del reporte
+        fecha_fin (str, optional): Fecha de fin del reporte
+    
+    Returns:
+        dict: Diccionario con datos de pedidos y ruta del archivo si es CSV
+    """
+    conexion = obtener_conexion()
+    datos = []
+    
+    print(f"Exportando pedidos - formato: {formato}, fecha_inicio: {fecha_inicio}, fecha_fin: {fecha_fin}")
+    
+    # Si no se proporcionan fechas, usar el último mes por defecto
+    if not fecha_inicio or not fecha_fin:
+        fecha_fin = datetime.now().strftime('%Y-%m-%d')
+        fecha_inicio = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
+    
+    print(f"Fechas ajustadas - inicio: {fecha_inicio}, fin: {fecha_fin}")
+    
+    try:
+        with conexion.cursor(DictCursor) as cursor:
+            sql = """
+            SELECT 
+                p.id, 
+                p.usuario_id, 
+                CONCAT(u.nombre, ' ', u.apellido) as cliente,
+                p.fecha_pedido, 
+                p.estado,
+                d.direccion,
+                d.ciudad,
+                d.pais,
+                mp.tipo as metodo_pago,
+                SUM(dp.cantidad * dp.precio_unitario) AS total
+            FROM pedidos p
+            JOIN usuarios u ON p.usuario_id = u.id
+            JOIN direcciones d ON p.direccion_id = d.id
+            LEFT JOIN metodos_pago mp ON p.metodo_pago_id = mp.id
+            JOIN detalles_pedido dp ON p.id = dp.pedido_id
+            WHERE p.fecha_pedido BETWEEN %s AND %s
+            GROUP BY p.id, p.usuario_id, u.nombre, u.apellido, p.fecha_pedido, p.estado, d.direccion, d.ciudad, d.pais, mp.tipo
+            ORDER BY p.fecha_pedido DESC
+            """
+            cursor.execute(sql, (fecha_inicio, fecha_fin))
+            datos = cursor.fetchall()
+            print(f"Datos obtenidos: {len(datos)} pedidos")
+            
+            if formato.lower() == 'csv':
+                # Asegurar que existe el directorio de exportaciones
+                if not os.path.exists('exports'):
+                    print("Creando directorio exports")
+                    os.makedirs('exports')
+                
+                # Generar nombre de archivo único con timestamp
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                nombre_archivo = f'pedidos_{timestamp}.csv'
+                ruta_archivo = os.path.join('exports', nombre_archivo)
+                print(f"Ruta del archivo: {ruta_archivo}")
+                
+                # Escribir datos al archivo CSV
+                with open(ruta_archivo, 'w', newline='', encoding='utf-8') as archivo_csv:
+                    writer = csv.DictWriter(archivo_csv, fieldnames=[
+                        'id', 'usuario_id', 'cliente', 'fecha_pedido', 'estado',
+                        'direccion', 'ciudad', 'pais', 'metodo_pago', 'total'
+                    ])
+                    writer.writeheader()
+                    for pedido in datos:
+                        # Formatear la fecha para el CSV
+                        pedido['fecha_pedido'] = pedido['fecha_pedido'].strftime('%Y-%m-%d %H:%M:%S')
+                        writer.writerow(pedido)
+                print(f"Archivo CSV generado exitosamente")
+                
+                return {
+                    'datos': datos,
+                    'archivo': nombre_archivo,
+                    'ruta': ruta_archivo
+                }
+    except MySQLdb.Error as e:
+        print(f"Error al exportar pedidos: {str(e)}")
+        raise Exception(f"Error al exportar pedidos: {str(e)}")
+    except Exception as e:
+        print(f"Error inesperado: {str(e)}")
+        raise e
+    finally:
+        conexion.close()
+    
+    return {'datos': datos}

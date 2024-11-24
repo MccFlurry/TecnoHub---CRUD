@@ -2,6 +2,7 @@ from clase.clase_metodo_pago import MetodoPago
 from bd import obtener_conexion
 from datetime import datetime
 import bcrypt
+import pymysql.cursors
 
 def listar_metodos_pago(usuario_id):
     conexion = obtener_conexion()
@@ -135,3 +136,63 @@ def establecer_predeterminado(id, usuario_id):
                         WHERE id = %s""", (id,))
     conexion.commit()
     conexion.close()
+
+def generar_reporte_distribucion(periodo):
+    """
+    Genera un reporte de la distribución de métodos de pago en un período específico
+    
+    Args:
+        periodo (str): Período de tiempo ('7d', '30d', '90d', '1y')
+        
+    Returns:
+        dict: Reporte con estadísticas de uso de métodos de pago
+    """
+    conexion = obtener_conexion()
+    try:
+        with conexion.cursor(pymysql.cursors.DictCursor) as cursor:
+            # Convertir período a días
+            dias = {
+                '7d': 7,
+                '30d': 30,
+                '90d': 90,
+                '1y': 365
+            }.get(periodo, 30)
+            
+            sql = """
+            SELECT 
+                mp.tipo as metodo,
+                COUNT(p.id) as total_pedidos,
+                COALESCE(SUM(dp.cantidad * dp.precio_unitario), 0) as total_ventas
+            FROM metodos_pago mp
+            LEFT JOIN pedidos p ON mp.id = p.metodo_pago_id
+            LEFT JOIN detalles_pedido dp ON p.id = dp.pedido_id
+            WHERE p.fecha_pedido >= DATE_SUB(CURDATE(), INTERVAL %s DAY)
+            AND p.estado = 'completado'
+            GROUP BY mp.id, mp.tipo
+            ORDER BY total_pedidos DESC
+            """
+            cursor.execute(sql, (dias,))
+            distribucion = cursor.fetchall()
+            
+            # Calcular totales
+            total_pedidos = sum(d['total_pedidos'] for d in distribucion)
+            total_ventas = sum(float(d['total_ventas']) for d in distribucion)
+            
+            return {
+                'periodo': periodo,
+                'total_pedidos': total_pedidos,
+                'total_ventas': float(total_ventas),
+                'distribucion': [{
+                    'metodo': d['metodo'],
+                    'total_pedidos': d['total_pedidos'],
+                    'porcentaje_pedidos': round((d['total_pedidos'] / total_pedidos * 100) if total_pedidos > 0 else 0, 2),
+                    'total_ventas': float(d['total_ventas']),
+                    'porcentaje_ventas': round((float(d['total_ventas']) / total_ventas * 100) if total_ventas > 0 else 0, 2)
+                } for d in distribucion]
+            }
+            
+    except Exception as e:
+        print(f"Error al generar reporte de distribución de métodos de pago: {str(e)}")
+        raise Exception(f"Error al generar reporte de distribución de métodos de pago: {str(e)}")
+    finally:
+        conexion.close()
