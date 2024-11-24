@@ -22,10 +22,58 @@ from controllers import controlador_ubicacion
 from controllers import controlador_metodo_pago
 from controllers import controlador_marca
 from controllers import controlador_modelo
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
+import datetime
 
 app = Flask(__name__)
 csrf = CSRFProtect()
 app.secret_key = 'tu_clave_secreta'
+
+# Configuración JWT
+app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'tu-clave-jwt-secreta')  # Mejor usar variable de entorno
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(days=1)
+app.config['JWT_TOKEN_LOCATION'] = ['headers']  # Dónde buscar el token
+app.config['JWT_HEADER_NAME'] = 'Authorization'  # Nombre del header
+app.config['JWT_HEADER_TYPE'] = 'Bearer'  # Tipo de token
+app.config['JWT_ERROR_MESSAGE_KEY'] = 'message'  # Clave para mensajes de error
+
+jwt = JWTManager(app)
+
+# Manejadores de errores JWT
+@jwt.expired_token_loader
+def expired_token_callback(jwt_header, jwt_payload):
+    return jsonify({
+        'message': 'El token ha expirado',
+        'error': 'token_expired'
+    }), 401
+
+@jwt.invalid_token_loader
+def invalid_token_callback(error):
+    return jsonify({
+        'message': 'Verificación de token fallida',
+        'error': 'invalid_token'
+    }), 401
+
+@jwt.unauthorized_loader
+def missing_token_callback(error):
+    return jsonify({
+        'message': 'No se proporcionó token de acceso',
+        'error': 'authorization_required'
+    }), 401
+
+@jwt.needs_fresh_token_loader
+def token_not_fresh_callback(jwt_header, jwt_payload):
+    return jsonify({
+        'message': 'Se requiere un token fresco para esta operación',
+        'error': 'fresh_token_required'
+    }), 401
+
+@jwt.revoked_token_loader
+def revoked_token_callback(jwt_header, jwt_payload):
+    return jsonify({
+        'message': 'El token ha sido revocado',
+        'error': 'token_revoked'
+    }), 401
 
 # Configuración de carga de archivos
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -1145,7 +1193,7 @@ def admin_eliminar_pedido(id):
             
     except IntegrityError as e:
         logger.error(f"Error de integridad al eliminar pedido {id}: {str(e)}")
-        if e.args[0] == 1451:
+        if e.args[0] == 1451:  # Código de error de clave foránea
             flash('No se puede eliminar el pedido porque está relacionado con otros registros.', 'error')
         else:
             flash('Error de integridad en la base de datos.', 'error')
@@ -1450,8 +1498,93 @@ def obtener_notificaciones_recientes():
 
 app.register_blueprint(admin_bp)
 
+# JWT Authentication endpoints
+@app.route('/api/auth/login', methods=['POST'])
+def api_login():
+    if not request.is_json:
+        return jsonify({"message": "Missing JSON in request"}), 400
+
+    email = request.json.get('email', None)
+    password = request.json.get('password', None)
+
+    if not email or not password:
+        return jsonify({"message": "Missing email or password"}), 400
+
+    # Verificar credenciales usando el controlador existente
+    usuario = controlador_usuario.iniciar_sesion(email, password)
+    
+    if not usuario:
+        return jsonify({"message": "Bad email or password"}), 401
+
+    # Crear tokens de acceso y actualización
+    access_token = create_access_token(
+        identity=usuario['id'],
+        additional_claims={
+            'tipo': usuario['tipo'],
+            'email': usuario['email']
+        }
+    )
+    refresh_token = create_refresh_token(
+        identity=usuario['id'],
+        additional_claims={
+            'tipo': usuario['tipo'],
+            'email': usuario['email']
+        }
+    )
+
+    return jsonify({
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "user_id": usuario['id'],
+        "user_type": usuario['tipo']
+    })
+
+@app.route('/api/auth/refresh', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh():
+    """Endpoint para renovar el token de acceso usando el refresh token"""
+    current_user_id = get_jwt_identity()
+    usuario = controlador_usuario.obtener_usuario_por_id(current_user_id)
+    
+    if not usuario:
+        return jsonify({"message": "Usuario no encontrado"}), 404
+
+    new_access_token = create_access_token(
+        identity=current_user_id,
+        additional_claims={
+            'tipo': usuario['tipo'],
+            'email': usuario['email']
+        }
+    )
+    return jsonify({"access_token": new_access_token})
+
+@app.route('/api/auth/verify', methods=['GET'])
+@jwt_required()
+def verify_token():
+    """Endpoint para verificar si el token es válido"""
+    current_user_id = get_jwt_identity()
+    usuario = controlador_usuario.obtener_usuario_por_id(current_user_id)
+    
+    if not usuario:
+        return jsonify({"message": "Usuario no encontrado"}), 404
+        
+    return jsonify({
+        "user_id": current_user_id,
+        "user_type": usuario['tipo'],
+        "email": usuario['email']
+    })
+
+@app.route('/api/auth/logout', methods=['POST'])
+@jwt_required()
+def api_logout():
+    """Endpoint para cerrar sesión (en el futuro se puede implementar blacklisting de tokens)"""
+    jti = get_jwt()['jti']
+    # Aquí se podría agregar el token a una lista negra si se implementa
+    return jsonify({"message": "Sesión cerrada exitosamente"})
+
 #APIS
 @app.route('/api/ubicacion/paises', methods=['GET'])
+@jwt_required()
 def obtener_paises():
     try:
         paises = controlador_ubicacion.obtener_paises()
@@ -1461,6 +1594,7 @@ def obtener_paises():
         return jsonify({"status": "error", "message": "Error al obtener países"}), 500
 
 @app.route('/api/ubicacion/estados/<int:pais_id>', methods=['GET'])
+@jwt_required()
 def obtener_estados(pais_id):
     try:
         estados = controlador_ubicacion.obtener_estados_por_pais(pais_id)
@@ -1470,6 +1604,7 @@ def obtener_estados(pais_id):
         return jsonify({"status": "error", "message": "Error al obtener estados"}), 500
 
 @app.route('/api/ubicacion/ciudades/<int:estado_id>', methods=['GET'])
+@jwt_required()
 def obtener_ciudades(estado_id):
     try:
         ciudades = controlador_ubicacion.obtener_ciudades_por_estado(estado_id)
@@ -1479,6 +1614,7 @@ def obtener_ciudades(estado_id):
         return jsonify({"status": "error", "message": "Error al obtener ciudades"}), 500
 
 @app.route('/api/ubicacion/distritos/<int:ciudad_id>', methods=['GET'])
+@jwt_required()
 def obtener_distritos(ciudad_id):
     try:
         distritos = controlador_ubicacion.obtener_distritos_por_ciudad(ciudad_id)
@@ -1505,6 +1641,7 @@ def geocodificar_direccion():
 
 # APIs para Ubicación
 @app.route('/api/estados/<int:pais_id>', methods=['GET'])
+@jwt_required()
 def api_obtener_estados(pais_id):
     try:
         estados = controlador_ubicacion.obtener_estados_por_pais(pais_id)
@@ -1513,6 +1650,7 @@ def api_obtener_estados(pais_id):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/ciudades/<int:estado_id>', methods=['GET'])
+@jwt_required()
 def api_obtener_ciudades(estado_id):
     try:
         ciudades = controlador_ubicacion.obtener_ciudades_por_estado(estado_id)
@@ -1520,8 +1658,21 @@ def api_obtener_ciudades(estado_id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route('/api/ubicacion/completa/<int:distrito_id>', methods=['GET'])
+@jwt_required()
+def obtener_ubicacion_completa_api(distrito_id):
+    try:
+        ubicacion = controlador_ubicacion.obtener_ubicacion_completa(distrito_id)
+        if not ubicacion:
+            return jsonify({"status": "error", "message": "Ubicación no encontrada"}), 404
+        return jsonify({"status": "success", "data": ubicacion}), 200
+    except Exception as e:
+        logger.error(f"Error al obtener ubicación completa: {str(e)}")
+        return jsonify({"status": "error", "message": "Error al obtener ubicación completa"}), 500
+
 # APIs para Dirección
 @app.route('/api/usuarios/<int:usuario_id>/direcciones', methods=['GET'])
+@jwt_required()
 def api_obtener_direcciones_usuario(usuario_id):
     try:
         direcciones = controlador_direcciones.obtener_direcciones_usuario(usuario_id)
@@ -1532,6 +1683,7 @@ def api_obtener_direcciones_usuario(usuario_id):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/direcciones/<int:id>', methods=['GET'])
+@jwt_required()
 def api_obtener_direccion(id):
     try:
         direccion = controlador_direcciones.obtener_direccion_por_id(id)
@@ -1542,6 +1694,7 @@ def api_obtener_direccion(id):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/direcciones', methods=['POST'])
+@jwt_required()
 def api_crear_direccion():
     try:
         datos = request.get_json()
@@ -1583,6 +1736,7 @@ def api_crear_direccion():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/direcciones/<int:id>', methods=['PUT'])
+@jwt_required()
 def api_actualizar_direccion(id):
     try:
         datos = request.get_json()
@@ -1606,6 +1760,7 @@ def api_actualizar_direccion(id):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/direcciones/<int:id>/predeterminada', methods=['PUT'])
+@jwt_required()
 def api_establecer_direccion_predeterminada(id):
     try:
         direccion = controlador_direcciones.obtener_direccion_por_id(id)
@@ -1622,6 +1777,7 @@ def api_establecer_direccion_predeterminada(id):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/direcciones/<int:id>', methods=['DELETE'])
+@jwt_required()
 def api_eliminar_direccion(id):
     try:
         direccion = controlador_direcciones.obtener_direccion_por_id(id)
@@ -1637,6 +1793,7 @@ def api_eliminar_direccion(id):
 
 # APIs para Usuario
 @app.route('/api/usuarios', methods=['GET'])
+@jwt_required()
 def api_obtener_usuarios():
     try:
         usuarios = controlador_usuario.obtener_todos_usuarios()
@@ -1652,6 +1809,7 @@ def api_obtener_usuarios():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/usuarios/<int:id>', methods=['GET'])
+@jwt_required()
 def api_obtener_usuario(id):
     try:
         usuario = controlador_usuario.obtener_usuario_por_id(id)
@@ -1669,6 +1827,7 @@ def api_obtener_usuario(id):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/usuarios', methods=['POST'])
+@jwt_required()
 def api_crear_usuario():
     try:
         data = request.get_json()
@@ -1687,6 +1846,7 @@ def api_crear_usuario():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/usuarios/<int:id>', methods=['PUT'])
+@jwt_required()
 def api_actualizar_usuario(id):
     try:
         data = request.get_json()
@@ -1702,6 +1862,7 @@ def api_actualizar_usuario(id):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/usuarios/<int:id>', methods=['DELETE'])
+@jwt_required()
 def api_eliminar_usuario(id):
     try:
         controlador_usuario.eliminar_usuario(id)
@@ -1711,6 +1872,7 @@ def api_eliminar_usuario(id):
 
 # APIs para Pedido
 @app.route('/api/pedidos', methods=['GET'])
+@jwt_required()
 def api_obtener_pedidos():
     try:
         pedidos = controlador_pedido.obtener_pedidos()
@@ -1719,6 +1881,7 @@ def api_obtener_pedidos():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/pedidos/<int:id>', methods=['GET'])
+@jwt_required()
 def api_obtener_pedido(id):
     try:
         pedido = controlador_pedido.obtener_pedido_por_id(id)
@@ -1729,6 +1892,7 @@ def api_obtener_pedido(id):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/pedidos', methods=['POST'])
+@jwt_required()
 def api_crear_pedido():
     try:
         datos = request.get_json()
@@ -1753,12 +1917,13 @@ def api_crear_pedido():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/pedidos/<int:id>', methods=['PUT'])
+@jwt_required()
 def api_actualizar_pedido(id):
     try:
         datos = request.get_json()
         if not datos:
             return jsonify({"status": "error", "message": "Datos incompletos"}), 400
-        
+
         pedido_actual = controlador_pedido.obtener_pedido_por_id(id)
         if not pedido_actual:
             return jsonify({"status": "error", "message": "Pedido no encontrado"}), 404
@@ -1776,6 +1941,7 @@ def api_actualizar_pedido(id):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/pedidos/<int:id>', methods=['DELETE'])
+@jwt_required()
 def api_eliminar_pedido(id):
     try:
         resultado = controlador_pedido.eliminar_pedido(id)
@@ -1786,6 +1952,7 @@ def api_eliminar_pedido(id):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/pedidos/<int:id>/estado', methods=['PUT'])
+@jwt_required()
 def api_actualizar_estado_pedido(id):
     try:
         datos = request.get_json()
@@ -1801,6 +1968,7 @@ def api_actualizar_estado_pedido(id):
 
 # APIs para Categorías
 @app.route('/api/categorias', methods=['GET'])
+@jwt_required()
 def api_obtener_categorias():
     try:
         categorias = controlador_categorias.obtener_todas_categorias()
@@ -1813,6 +1981,7 @@ def api_obtener_categorias():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/categorias/<int:id>', methods=['GET'])
+@jwt_required()
 def api_obtener_categoria(id):
     try:
         categoria = controlador_categorias.obtener_categorias_por_id(id)
@@ -1827,6 +1996,7 @@ def api_obtener_categoria(id):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/categorias', methods=['POST'])
+@jwt_required()
 def api_crear_categoria():
     try:
         data = request.get_json()
@@ -1842,6 +2012,7 @@ def api_crear_categoria():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/categorias/<int:id>', methods=['PUT'])
+@jwt_required()
 def api_actualizar_categoria(id):
     try:
         data = request.get_json()
@@ -1855,6 +2026,7 @@ def api_actualizar_categoria(id):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/categorias/<int:id>', methods=['DELETE'])
+@jwt_required()
 def api_eliminar_categoria(id):
     try:
         from controlador_categorias import controlador_categorias
@@ -1865,6 +2037,7 @@ def api_eliminar_categoria(id):
 
 # APIs para Producto
 @app.route('/api/productos', methods=['GET'])
+@jwt_required()
 def api_obtener_productos():
     try:
         page = request.args.get('page', 1, type=int)
@@ -1881,6 +2054,7 @@ def api_obtener_productos():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/productos/<int:id>', methods=['GET'])
+@jwt_required()
 def api_obtener_producto(id):
     try:
         producto = controlador_producto.obtener_producto_por_id(id)
@@ -1891,6 +2065,7 @@ def api_obtener_producto(id):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/productos', methods=['POST'])
+@jwt_required()
 def api_crear_producto():
     try:
         datos = request.get_json()
@@ -1927,6 +2102,7 @@ def api_crear_producto():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/productos/<int:id>', methods=['PUT'])
+@jwt_required()
 def api_actualizar_producto(id):
     try:
         datos = request.get_json()
@@ -1962,6 +2138,7 @@ def api_actualizar_producto(id):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/productos/<int:id>', methods=['DELETE'])
+@jwt_required()
 def api_eliminar_producto(id):
     try:
         producto = controlador_producto.obtener_producto_por_id(id)
@@ -1976,6 +2153,7 @@ def api_eliminar_producto(id):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/productos/buscar', methods=['GET'])
+@jwt_required()
 def api_buscar_productos():
     try:
         query = request.args.get('q', '')
@@ -1998,6 +2176,7 @@ def api_buscar_productos():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/productos/destacados', methods=['GET'])
+@jwt_required()
 def api_obtener_productos_destacados():
     try:
         limite = request.args.get('limite', 4, type=int)
@@ -2007,6 +2186,7 @@ def api_obtener_productos_destacados():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/productos/<int:id>/relacionados', methods=['GET'])
+@jwt_required()
 def api_obtener_productos_relacionados(id):
     try:
         limite = request.args.get('limite', 4, type=int)
@@ -2017,6 +2197,7 @@ def api_obtener_productos_relacionados(id):
 
 # APIs de Favoritos
 @app.route('/api/usuarios/<int:usuario_id>/favoritos', methods=['GET'])
+@jwt_required()
 def api_obtener_favoritos_usuario(usuario_id):
     try:
         favoritos = controlador_favorito.obtener_favoritos_usuario(usuario_id)
@@ -2025,6 +2206,7 @@ def api_obtener_favoritos_usuario(usuario_id):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/usuarios/<int:usuario_id>/favoritos/<int:producto_id>', methods=['POST'])
+@jwt_required()
 def api_agregar_favorito(usuario_id, producto_id):
     try:
         producto = controlador_producto.obtener_producto_por_id(producto_id)
@@ -2039,6 +2221,7 @@ def api_agregar_favorito(usuario_id, producto_id):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/usuarios/<int:usuario_id>/favoritos/<int:producto_id>', methods=['DELETE'])
+@jwt_required()
 def api_eliminar_favorito(usuario_id, producto_id):
     try:
         resultado = controlador_favorito.eliminar_favorito(usuario_id, producto_id)
@@ -2048,8 +2231,419 @@ def api_eliminar_favorito(usuario_id, producto_id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route('/api/usuarios/<int:usuario_id>/favoritos/verificar/<int:producto_id>', methods=['GET'])
+@jwt_required()
+def api_verificar_favorito(usuario_id, producto_id):
+    try:
+        es_favorito = controlador_favorito.existe_favorito(usuario_id, producto_id)
+        return jsonify({
+            "status": "success", 
+            "data": {"es_favorito": es_favorito}
+        }), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/usuarios/<int:usuario_id>/favoritos/toggle/<int:producto_id>', methods=['POST'])
+@jwt_required()
+def api_toggle_favorito(usuario_id, producto_id):
+    try:
+        # Verificar si ya existe como favorito
+        es_favorito = controlador_favorito.existe_favorito(usuario_id, producto_id)
+        
+        if es_favorito:
+            # Si existe, lo eliminamos
+            controlador_favorito.eliminar_favorito(usuario_id, producto_id)
+            mensaje = "Producto eliminado de favoritos"
+        else:
+            # Si no existe, lo agregamos
+            controlador_favorito.agregar_favorito(usuario_id, producto_id)
+            mensaje = "Producto agregado a favoritos"
+            
+        return jsonify({
+            "status": "success",
+            "message": mensaje,
+            "data": {"es_favorito": not es_favorito}
+        }), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# APIs para Kit
+@app.route('/api/kits/<int:usuario_id>', methods=['GET'])
+@jwt_required()
+def api_obtener_kits_usuario(usuario_id):
+    try:
+        kits = controlador_kit.obtener_kits_usuario(usuario_id)
+        return jsonify({"status": "success", "data": kits}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/kits/<int:kit_id>', methods=['GET'])
+@jwt_required()
+def api_obtener_kit(kit_id):
+    try:
+        kit = controlador_kit.obtener_kit_por_id(kit_id)
+        if not kit:
+            return jsonify({"status": "error", "message": "Kit no encontrado"}), 404
+        return jsonify({"status": "success", "data": kit}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/kits', methods=['POST'])
+@jwt_required()
+def api_crear_kit():
+    try:
+        datos = request.get_json()
+        required_fields = ['usuario_id', 'celular_id', 'smartwatch_id', 'accesorios_id']
+        if not datos or not all(field in datos for field in required_fields):
+            return jsonify({
+                "status": "error",
+                "message": f"Datos incompletos. Se requieren los campos: {', '.join(required_fields)}"
+            }), 400
+
+        controlador_kit.crear_kit(
+            datos['usuario_id'],
+            datos['celular_id'],
+            datos['smartwatch_id'],
+            datos['accesorios_id']
+        )
+        return jsonify({"status": "success", "message": "Kit creado exitosamente"}), 201
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/kits/<int:kit_id>', methods=['DELETE'])
+@jwt_required()
+def api_eliminar_kit(kit_id):
+    try:
+        controlador_kit.eliminar_kit(kit_id)
+        return jsonify({"status": "success", "message": "Kit eliminado exitosamente"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/kits/usuario/<int:usuario_id>/recientes', methods=['GET'])
+@jwt_required()
+def api_obtener_kits_recientes(usuario_id):
+    try:
+        kits = controlador_kit.obtener_kits_usuario(usuario_id)
+        # Limitamos a los 5 más recientes
+        kits_recientes = kits[:5] if len(kits) > 5 else kits
+        return jsonify({"status": "success", "data": kits_recientes}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# APIs para Opiniones
+@app.route('/api/opiniones/producto/<int:producto_id>', methods=['GET'])
+@jwt_required()
+def api_obtener_opiniones_producto(producto_id):
+    try:
+        opiniones = controlador_opinion.obtener_opiniones_producto(producto_id)
+        return jsonify({"status": "success", "data": opiniones}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/opiniones', methods=['POST'])
+@jwt_required()
+def api_agregar_opinion():
+    try:
+        datos = request.get_json()
+        required_fields = ['producto_id', 'usuario_id', 'comentario', 'calificacion']
+        if not datos or not all(field in datos for field in required_fields):
+            return jsonify({
+                "status": "error",
+                "message": f"Datos incompletos. Se requieren los campos: {', '.join(required_fields)}"
+            }), 400
+
+        controlador_opinion.agregar_opiniones(
+            datos['producto_id'],
+            datos['usuario_id'],
+            datos['comentario'],
+            datos['calificacion']
+        )
+        return jsonify({"status": "success", "message": "Opinión agregada exitosamente"}), 201
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/opiniones/producto/<int:producto_id>/promedio', methods=['GET'])
+@jwt_required()
+def api_obtener_calificacion_promedio(producto_id):
+    try:
+        promedio = controlador_opinion.calcular_calificacion_promedio(producto_id)
+        return jsonify({"status": "success", "data": {"promedio": promedio}}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/opiniones/recientes', methods=['GET'])
+@jwt_required()
+def api_obtener_opiniones_recientes():
+    try:
+        limite = request.args.get('limite', 5, type=int)
+        opiniones = controlador_opinion.obtener_opiniones_producto(None)  # Modificar el controlador para aceptar límite
+        opiniones_recientes = opiniones[:limite]
+        return jsonify({"status": "success", "data": opiniones_recientes}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/opiniones/usuario/<int:usuario_id>', methods=['GET'])
+@jwt_required()
+def api_obtener_opiniones_usuario(usuario_id):
+    try:
+        opiniones = controlador_opinion.obtener_opiniones_producto(None)  # Modificar el controlador para filtrar por usuario
+        return jsonify({"status": "success", "data": opiniones}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# APIs para Notificaciones
+@app.route('/api/notificaciones/usuario/<int:usuario_id>', methods=['GET'])
+@jwt_required()
+def api_obtener_notificaciones_usuario(usuario_id):
+    try:
+        notificaciones = controlador_notificaciones.obtener_notificaciones()
+        return jsonify({"status": "success", "data": notificaciones}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/notificaciones', methods=['POST'])
+@jwt_required()
+def api_crear_notificacion():
+    try:
+        datos = request.get_json()
+        required_fields = ['usuario_id', 'pedido_id', 'mensaje']
+        if not datos or not all(field in datos for field in required_fields):
+            return jsonify({
+                "status": "error",
+                "message": f"Datos incompletos. Se requieren los campos: {', '.join(required_fields)}"
+            }), 400
+
+        controlador_notificaciones.agregar_notificacion(
+            datos['usuario_id'],
+            datos['pedido_id'],
+            datos['mensaje']
+        )
+        return jsonify({"status": "success", "message": "Notificación creada exitosamente"}), 201
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/notificaciones/<int:notificacion_id>', methods=['DELETE'])
+@jwt_required()
+def api_eliminar_notificacion(notificacion_id):
+    try:
+        controlador_notificaciones.eliminar_notificacion(notificacion_id)
+        return jsonify({"status": "success", "message": "Notificación eliminada exitosamente"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/notificaciones/<int:notificacion_id>/marcar-vista', methods=['PUT'])
+@jwt_required()
+def api_marcar_notificacion_vista(notificacion_id):
+    try:
+        controlador_notificaciones.marcar_notificacion_como_vista(notificacion_id)
+        return jsonify({"status": "success", "message": "Notificación marcada como vista"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/notificaciones/recientes', methods=['GET'])
+@jwt_required()
+def api_obtener_notificaciones_recientes():
+    try:
+        notificaciones = controlador_notificaciones.obtener_notificaciones_recientes()
+        return jsonify({"status": "success", "data": notificaciones}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# APIs para Método de Pago
+@app.route('/api/metodos-pago/usuario/<int:usuario_id>', methods=['GET'])
+@jwt_required()
+def api_listar_metodos_pago(usuario_id):
+    try:
+        metodos = controlador_metodo_pago.listar_metodos_pago(usuario_id)
+        return jsonify({"status": "success", "data": metodos}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/metodos-pago/<int:id>', methods=['GET'])
+@jwt_required()
+def api_obtener_metodo_pago(id):
+    try:
+        metodo = controlador_metodo_pago.obtener_metodo_pago(id)
+        if not metodo:
+            return jsonify({"status": "error", "message": "Método de pago no encontrado"}), 404
+        return jsonify({"status": "success", "data": metodo}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/metodos-pago', methods=['POST'])
+@jwt_required()
+def api_insertar_metodo_pago():
+    try:
+        datos = request.get_json()
+        required_fields = ['usuario_id', 'tipo', 'numero_tarjeta', 'titular', 'fecha_vencimiento', 'cvv']
+        if not datos or not all(field in datos for field in required_fields):
+            return jsonify({
+                "status": "error",
+                "message": f"Datos incompletos. Se requieren los campos: {', '.join(required_fields)}"
+            }), 400
+
+        metodo = MetodoPago(
+            id=None,
+            usuario_id=datos['usuario_id'],
+            tipo=datos['tipo'],
+            numero_tarjeta=datos['numero_tarjeta'],
+            titular=datos['titular'],
+            fecha_vencimiento=datos['fecha_vencimiento'],
+            cvv=datos['cvv'],
+            predeterminado=datos.get('predeterminado', False),
+            fecha_registro=datetime.now(),
+            activo=True
+        )
+        
+        controlador_metodo_pago.insertar_metodo_pago(metodo)
+        return jsonify({"status": "success", "message": "Método de pago agregado exitosamente"}), 201
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/metodos-pago/<int:id>', methods=['PUT'])
+@jwt_required()
+def api_actualizar_metodo_pago(id):
+    try:
+        datos = request.get_json()
+        if not datos:
+            return jsonify({"status": "error", "message": "No se proporcionaron datos para actualizar"}), 400
+
+        controlador_metodo_pago.actualizar_metodo_pago(id, datos)
+        return jsonify({"status": "success", "message": "Método de pago actualizado exitosamente"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/metodos-pago/<int:id>/predeterminado', methods=['PUT'])
+@jwt_required()
+def api_establecer_metodo_pago_predeterminado(id):
+    try:
+        datos = request.get_json()
+        if 'usuario_id' not in datos:
+            return jsonify({"status": "error", "message": "Se requiere el ID del usuario"}), 400
+
+        controlador_metodo_pago.establecer_predeterminado(id, datos['usuario_id'])
+        return jsonify({"status": "success", "message": "Método de pago establecido como predeterminado"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# APIs para Marca
+@app.route('/api/marcas', methods=['GET'])
+@jwt_required()
+def api_obtener_marcas():
+    try:
+        marcas = controlador_marca.obtener_marcas()
+        return jsonify({"status": "success", "data": marcas}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/marcas/<int:id>', methods=['GET'])
+@jwt_required()
+def api_obtener_marca(id):
+    try:
+        marca = controlador_marca.obtener_marca_por_id(id)
+        if not marca:
+            return jsonify({"status": "error", "message": "Marca no encontrada"}), 404
+        return jsonify({"status": "success", "data": marca}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/marcas', methods=['POST'])
+@jwt_required()
+def api_crear_marca():
+    try:
+        datos = request.get_json()
+        if not datos or 'nombre' not in datos:
+            return jsonify({"status": "error", "message": "Se requiere el nombre de la marca"}), 400
+
+        marca = Marca(nombre=datos['nombre'])
+        controlador_marca.insertar_marca(marca)
+        return jsonify({"status": "success", "message": "Marca creada exitosamente"}), 201
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/marcas/<int:id>', methods=['PUT'])
+@jwt_required()
+def api_actualizar_marca(id):
+    try:
+        datos = request.get_json()
+        if not datos or 'nombre' not in datos:
+            return jsonify({"status": "error", "message": "Se requiere el nombre de la marca"}), 400
+
+        controlador_marca.actualizar_marca(id, datos['nombre'])
+        return jsonify({"status": "success", "message": "Marca actualizada exitosamente"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/marcas/<int:id>', methods=['DELETE'])
+@jwt_required()
+def api_eliminar_marca(id):
+    try:
+        controlador_marca.eliminar_marca(id)
+        return jsonify({"status": "success", "message": "Marca eliminada exitosamente"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# APIs para Modelo
+@app.route('/api/modelos', methods=['GET'])
+@jwt_required()
+def api_obtener_modelos():
+    try:
+        modelos = controlador_modelo.obtener_modelos()
+        return jsonify({"status": "success", "data": modelos}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/modelos/<int:id>', methods=['GET'])
+@jwt_required()
+def api_obtener_modelo(id):
+    try:
+        modelo = controlador_modelo.obtener_modelo_por_id(id)
+        if not modelo:
+            return jsonify({"status": "error", "message": "Modelo no encontrado"}), 404
+        return jsonify({"status": "success", "data": modelo}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/modelos', methods=['POST'])
+@jwt_required()
+def api_crear_modelo():
+    try:
+        datos = request.get_json()
+        if not datos or 'nombre' not in datos:
+            return jsonify({"status": "error", "message": "Se requiere el nombre del modelo"}), 400
+
+        modelo = Modelo(nombre=datos['nombre'])
+        controlador_modelo.insertar_modelo(modelo)
+        return jsonify({"status": "success", "message": "Modelo creado exitosamente"}), 201
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/modelos/<int:id>', methods=['PUT'])
+@jwt_required()
+def api_actualizar_modelo(id):
+    try:
+        datos = request.get_json()
+        if not datos or 'nombre' not in datos:
+            return jsonify({"status": "error", "message": "Se requiere el nombre del modelo"}), 400
+
+        modelo = Modelo(nombre=datos['nombre'], id=id)
+        controlador_modelo.actualizar_modelo(modelo)
+        return jsonify({"status": "success", "message": "Modelo actualizado exitosamente"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/modelos/<int:id>', methods=['DELETE'])
+@jwt_required()
+def api_eliminar_modelo(id):
+    try:
+        controlador_modelo.eliminar_modelo(id)
+        return jsonify({"status": "success", "message": "Modelo eliminado exitosamente"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 # APIs de Chatbot
 @app.route('/api/chatbot/consulta', methods=['POST'])
+@jwt_required()
 def api_chatbot_consulta():
     try:
         data = request.get_json()
@@ -2066,6 +2660,7 @@ def api_chatbot_consulta():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/chatbot/feedback', methods=['POST'])
+@jwt_required()
 def api_chatbot_feedback():
     try:
         data = request.get_json()
@@ -2075,6 +2670,7 @@ def api_chatbot_feedback():
 
 # APIs de Reportes
 @app.route('/api/reportes/ventas/diarias', methods=['GET'])
+@jwt_required()
 def api_reporte_ventas_diarias():
     try:
         fecha_inicio = request.args.get('fecha_inicio')
@@ -2086,6 +2682,7 @@ def api_reporte_ventas_diarias():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/reportes/productos/stock-bajo', methods=['GET'])
+@jwt_required()
 def api_reporte_productos_stock_bajo():
     try:
         limite = request.args.get('limite', 10)
@@ -2101,6 +2698,7 @@ def api_reporte_productos_stock_bajo():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/reportes/usuarios/actividad', methods=['GET'])
+@jwt_required()
 def api_reporte_actividad_usuarios():
     try:
         periodo = request.args.get('periodo', '7d')
@@ -2112,6 +2710,7 @@ def api_reporte_actividad_usuarios():
 
 # APIs de Exportación
 @app.route('/api/exportar/productos', methods=['GET'])
+@jwt_required()
 def api_exportar_productos():
     try:
         formato = request.args.get('formato', 'csv')
@@ -2125,6 +2724,7 @@ def api_exportar_productos():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/exportar/pedidos', methods=['GET'])
+@jwt_required()
 def api_exportar_pedidos():
     try:
         formato = request.args.get('formato', 'csv')
