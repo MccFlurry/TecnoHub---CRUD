@@ -1,96 +1,183 @@
 # TecnoHub - Sistema de Gestión de Productos Tecnológicos
 
-TecnoHub es una aplicación web completa para la gestión de productos tecnológicos, que incluye sistema de usuarios, categorías, productos, pedidos y más funcionalidades.
+TecnoHub es una aplicación web completa para la gestión de productos tecnológicos, desarrollada con Flask y MySQL. El sistema proporciona una plataforma robusta para la administración de inventario, ventas y experiencia de usuario en el sector tecnológico.
 
-## 🚀 Características
+## Características
 
-- Gestión de usuarios y autenticación
-- Catálogo de productos tecnológicos
-- Sistema de categorías y marcas
-- Gestión de pedidos
-- Sistema de favoritos
-- Opiniones y valoraciones
-- Sistema de notificaciones
-- Gestión de direcciones y ubicaciones
-- Integración con servicios de geocodificación
-- Métodos de pago
-- Sistema de kits de productos
+- **Gestión de Usuarios**:
+  - Registro y autenticación segura
+  - Perfiles de usuario personalizables
+  - Roles y permisos (Admin, Usuario, Vendedor)
+  - Recuperación de contraseña por email
 
-## 🛠️ Tecnologías Utilizadas
+- **Gestión de Productos**:
+  - Catálogo completo con filtros avanzados
+  - Sistema de categorías y subcategorías
+  - Gestión de marcas y modelos
+  - Control de stock en tiempo real
+  - Imágenes múltiples por producto
+  - Especificaciones técnicas detalladas
 
-- **Backend**: 
-  - Python (Flask)
-  - PHP (Servicios adicionales)
-  - MySQL
-- **Frontend**:
-  - HTML/CSS
-  - JavaScript
-  - Node.js para dependencias frontend
+- **Sistema de Pedidos**:
+  - Carrito de compras
+  - Proceso de checkout optimizado
+  - Seguimiento de pedidos en tiempo real
+  - Historial de compras
+  - Facturación electrónica
 
-## 📋 Requisitos Previos
+- **Características Adicionales**:
+  - Lista de favoritos personalizada
+  - Sistema de reseñas y calificaciones
+  - Notificaciones en tiempo real
+  - Gestión de direcciones con geocodificación
+  - Integración con múltiples métodos de pago
+  - Sistema de kits y combos de productos
 
-- Python 3.x
-- PHP 7.x o superior
-- MySQL
-- Node.js y npm
+## Tecnologías Utilizadas
 
-## 🔧 Instalación
+### Backend
+- **Python 3.x**:
+  - Flask: Framework web principal
+  - SQLAlchemy: ORM para base de datos
+  - Flask-Login: Gestión de sesiones
+  - Flask-Mail: Envío de correos
+  - WTForms: Validación de formularios
 
-1. Clona el repositorio:
+### Frontend
+- **HTML5/CSS3**:
+  - Bootstrap 5: Framework CSS
+  - SASS: Preprocesador CSS
+- **JavaScript**:
+  - jQuery: Manipulación del DOM
+  - AJAX: Peticiones asíncronas
+  - SweetAlert2: Notificaciones elegantes
+- **Node.js**: Gestión de dependencias frontend
+
+### Base de Datos
+- **MySQL 8.0**:
+  - Procedimientos almacenados
+  - Triggers para automatización
+  - Índices optimizados
+
+### Servicios
+- Geocodificación para direcciones
+- Almacenamiento de imágenes
+- Sistema de caché
+- API RESTful
+
+## Requisitos Previos
+
+1. **Software Base**:
+   - Python 3.8 o superior
+   - MySQL 8.0 o superior
+   - Node.js 14.x o superior
+   - npm 6.x o superior
+
+2. **Configuración del Sistema**:
+   - Servidor web compatible con WSGI
+   - Permisos de escritura en directorio de uploads
+   - Puerto 5000 disponible (configurable)
+
+## Instalación
+
+1. **Preparación del Entorno**:
 ```bash
-git clone https://github.com/MccFlurry/TecnoHub---CRUD.git
-cd TecnoHub---CRUD
+# Crear y activar entorno virtual
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+venv\Scripts\activate     # Windows
 ```
 
-2. Instala las dependencias de Python:
+2. **Instalación de Dependencias**:
 ```bash
+# Instalar dependencias Python
 pip install -r requirements.txt
-```
 
-3. Instala las dependencias de Node.js:
-```bash
+# Instalar dependencias Node.js
 npm install
 ```
 
-4. Configura la base de datos:
-- Importa el archivo `py_paginaweb.sql` en tu servidor MySQL
-- Configura las credenciales de la base de datos en `bd.py` y `bd.php`
-
-5. Inicia el servidor:
+3. **Configuración de la Base de Datos**:
 ```bash
-python main.py
+# Importar estructura base
+mysql -u usuario -p < py_paginaweb.sql
 ```
 
-## 📁 Estructura del Proyecto
+4. **Variables de Entorno**:
+Crear archivo `.env` con:
+```env
+FLASK_APP=main.py
+FLASK_ENV=development
+DB_HOST=localhost
+DB_USER=usuario
+DB_PASS=contraseña
+DB_NAME=py_paginaweb
+MAIL_SERVER=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=tu_correo@gmail.com
+MAIL_PASSWORD=tu_contraseña
+```
+
+5. **Iniciar Aplicación**:
+```bash
+# Modo desarrollo
+flask run
+
+# Modo producción
+gunicorn -w 4 main:app
+```
+
+## Estructura del Proyecto Detallada
 
 ```
 TecnoHub---CRUD/
-├── main.py                     # Punto de entrada principal
-├── bd.py                      # Configuración de base de datos Python
-├── bd.php                     # Configuración de base de datos PHP
-├── controlador_*.py           # Controladores para diferentes funcionalidades
-├── static/                    # Archivos estáticos (CSS, JS, imágenes)
-├── templates/                 # Plantillas HTML
-├── clase/                    # Clases y modelos
-└── node_modules/             # Dependencias de Node.js
+├── main.py                    # Aplicación principal Flask
+├── config/
+│   ├── __init__.py           # Configuraciones generales
+│   ├── database.py           # Configuración de base de datos
+│   └── mail.py               # Configuración de correo
+├── controllers/              # Controladores de la aplicación
+│   ├── usuario.py
+│   ├── producto.py
+│   ├── pedido.py
+│   └── ...
+├── models/                   # Modelos de datos
+│   ├── usuario.py
+│   ├── producto.py
+│   └── ...
+├── static/
+│   ├── css/
+│   ├── js/
+│   ├── img/
+│   └── uploads/
+├── templates/
+│   ├── auth/
+│   ├── productos/
+│   ├── admin/
+│   └── ...
+├── utils/                    # Utilidades y helpers
+│   ├── decorators.py
+│   ├── validators.py
+│   └── helpers.py
+├── tests/                    # Pruebas unitarias
+├── requirements.txt          # Dependencias Python
+├── package.json             # Dependencias Node.js
+└── README.md
 ```
 
-## 🔐 Controladores Principales
+## Seguridad
 
-- `controlador_usuario.py`: Gestión de usuarios y autenticación
-- `controlador_producto.py`: Gestión de productos
-- `controlador_pedido.py`: Gestión de pedidos
-- `controlador_direcciones.py`: Gestión de direcciones
-- `controlador_notificaciones.py`: Sistema de notificaciones
-- `controlador_geocoding.py`: Servicios de geocodificación
-- `controlador_kit.py`: Gestión de kits de productos
+- Contraseñas hasheadas con bcrypt
+- Protección CSRF en formularios
+- Sanitización de entradas
+- Rate limiting en API
+- Sesiones seguras con Flask-Login
+- Validación de datos en frontend y backend
 
-## 🔄 Flujo de Trabajo
+## Rendimiento
 
-1. Los usuarios pueden registrarse y autenticarse
-2. Navegar por el catálogo de productos
-3. Agregar productos a favoritos
-4. Realizar pedidos
-5. Gestionar direcciones de envío
-6. Recibir notificaciones
-7. Dejar opiniones y valoraciones
+- Caché implementado para consultas frecuentes
+- Imágenes optimizadas y servidas desde CDN
+- Consultas SQL optimizadas
+- Lazy loading de imágenes
+- Minificación de assets estáticos
