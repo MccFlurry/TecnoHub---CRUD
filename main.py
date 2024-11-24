@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, send_file, Blueprint, current_app
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, send_file, Blueprint, current_app, make_response
 from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt
 from functools import wraps
 from werkzeug.utils import secure_filename
