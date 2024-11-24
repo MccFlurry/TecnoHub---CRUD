@@ -106,7 +106,9 @@ def actualizar_estado_pedido(pedido_id, nuevo_estado):
         with conexion.cursor() as cursor:
             sql = "UPDATE pedidos SET estado = %s WHERE id = %s"
             cursor.execute(sql, (nuevo_estado, pedido_id))
+            filas_afectadas = cursor.rowcount
         conexion.commit()
+        return filas_afectadas > 0
     except MySQLdb.Error as e:
         conexion.rollback()
         print(f"Error al actualizar el estado del pedido: {str(e)}")

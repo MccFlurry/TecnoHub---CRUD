@@ -154,7 +154,7 @@ def inject_csrf_token():
 def home():
     productos_destacados = controlador_producto.obtener_productos_destacados()
     categorias = controlador_categorias.obtener_todas_categorias()
-
+    
     productos_visitados = request.cookies.get('productos_visitados', '')
     productos_recientes = []
 
@@ -1089,7 +1089,7 @@ def admin_editar_producto(id):
                 imagen_filename = secure_filename(imagen.filename)
                 imagen.save(os.path.join(UPLOAD_FOLDER, imagen_filename))
             except Exception as e:
-                flash(f'Error al guardar la imagen: {str(e)}', 'error')
+                flash('Error al guardar la imagen: ' + str(e), 'error')
                 return render_template('admin/editar_nuevo_producto.html', 
                                     producto=producto,
                                     categorias=categorias,
@@ -1879,7 +1879,7 @@ def api_eliminar_usuario(id):
 @jwt_required()
 def api_obtener_pedidos():
     try:
-        pedidos = controlador_pedido.obtener_pedidos()
+        pedidos = controlador_pedido.obtener_todos_pedidos()
         return jsonify({"status": "success", "data": pedidos}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -1900,23 +1900,59 @@ def api_obtener_pedido(id):
 def api_crear_pedido():
     try:
         datos = request.get_json()
-        required_fields = ['usuario_id', 'productos', 'direccion_id']
+        required_fields = ['usuario_id', 'productos', 'direccion_id', 'metodo_pago_id']
         if not datos or not all(field in datos for field in required_fields):
             return jsonify({
                 "status": "error",
                 "message": f"Datos incompletos. Se requieren los campos: {', '.join(required_fields)}"
             }), 400
-        
-        resultado = controlador_pedido.crear_pedido(
+
+        # Validar estructura de productos
+        if not datos['productos'] or not isinstance(datos['productos'], list):
+            return jsonify({
+                "status": "error",
+                "message": "El campo 'productos' debe ser una lista no vacía"
+            }), 400
+
+        for producto in datos['productos']:
+            if not all(key in producto for key in ['producto_id', 'cantidad', 'precio_unitario']):
+                return jsonify({
+                    "status": "error",
+                    "message": "Cada producto debe tener producto_id, cantidad y precio_unitario"
+                }), 400
+
+        # Crear el pedido
+        pedido_id = controlador_pedido.crear_pedido(
             datos['usuario_id'],
-            datos['productos'],
             datos['direccion_id'],
-            datos.get('metodo_pago_id'),
-            datos.get('estado', 'pendiente')
+            datos['metodo_pago_id']
         )
-        if resultado:
-            return jsonify({"status": "success", "message": "Pedido creado exitosamente", "data": resultado}), 201
-        return jsonify({"status": "error", "message": "Error al crear el pedido"}), 500
+
+        if not pedido_id:
+            return jsonify({"status": "error", "message": "Error al crear el pedido"}), 500
+
+        # Agregar los detalles del pedido
+        try:
+            for producto in datos['productos']:
+                controlador_pedido.agregar_detalle_pedido(
+                    pedido_id,
+                    producto['producto_id'],
+                    producto['cantidad'],
+                    producto['precio_unitario']
+                )
+        except Exception as e:
+            # Si hay error al agregar detalles, eliminar el pedido
+            controlador_pedido.eliminar_pedido(pedido_id)
+            return jsonify({
+                "status": "error",
+                "message": f"Error al agregar detalles del pedido: {str(e)}"
+            }), 500
+
+        return jsonify({
+            "status": "success", 
+            "message": "Pedido creado exitosamente", 
+            "data": {"pedido_id": pedido_id}
+        }), 201
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -2373,7 +2409,10 @@ def api_actualizar_kit(kit_id):
 def api_obtener_opiniones_producto(producto_id):
     try:
         opiniones = controlador_opinion.obtener_opiniones_producto(producto_id)
-        return jsonify({"status": "success", "data": opiniones}), 200
+        return jsonify({
+            "status": "success", 
+            "data": [opinion.to_dict() for opinion in opiniones]
+        }), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
