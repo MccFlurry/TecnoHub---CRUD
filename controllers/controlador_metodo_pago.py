@@ -53,7 +53,7 @@ def obtener_metodo_pago(id):
                 fecha_registro=resultado[8],
                 activo=resultado[9]
             )
-            return metodo.to_dict()
+            return metodo
     conexion.close()
     return None
 

@@ -23,8 +23,9 @@ from controllers import controlador_marca
 from controllers import controlador_modelo
 from controllers import controlador_categorias
 import datetime
-import logging
-from utils.logger import log_api_call, log_error, log_info, log_warning, log_debug
+from datetime import datetime, timedelta
+from clase.clase_marca import Marca
+from clase.clase_metodo_pago import MetodoPago
 
 app = Flask(__name__)
 csrf = CSRFProtect()
@@ -32,7 +33,7 @@ app.secret_key = 'tu_clave_secreta'
 
 # Configuración JWT
 app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'tu-clave-jwt-secreta')  # Mejor usar variable de entorno
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(days=1)
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)
 app.config['JWT_TOKEN_LOCATION'] = ['headers']  # Dónde buscar el token
 app.config['JWT_HEADER_NAME'] = 'Authorization'  # Nombre del header
 app.config['JWT_HEADER_TYPE'] = 'Bearer'  # Tipo de token
@@ -833,7 +834,7 @@ def agregar_metodo_pago():
 @login_required
 def editar_metodo_pago(id):
     metodo = controlador_metodo_pago.obtener_metodo_pago(id)
-    if not metodo or metodo['usuario_id'] != session['usuario_id']:
+    if not metodo or metodo.usuario_id != session['usuario_id']:
         flash('Método de pago no encontrado', 'error')
         return redirect(url_for('mis_metodos_pago'))
     
@@ -865,7 +866,7 @@ def editar_metodo_pago(id):
 @login_required
 def eliminar_metodo_pago(id):
     metodo = controlador_metodo_pago.obtener_metodo_pago(id)
-    if not metodo or metodo['usuario_id'] != session['usuario_id']:
+    if not metodo or metodo.usuario_id != session['usuario_id']:
         flash('Método de pago no encontrado', 'error')
         return redirect(url_for('mis_metodos_pago'))
     
@@ -881,7 +882,7 @@ def eliminar_metodo_pago(id):
 @login_required
 def establecer_metodo_pago_predeterminado(id):
     metodo = controlador_metodo_pago.obtener_metodo_pago(id)
-    if not metodo or metodo['usuario_id'] != session['usuario_id']:
+    if not metodo or metodo.usuario_id != session['usuario_id']:
         flash('Método de pago no encontrado', 'error')
         return redirect(url_for('mis_metodos_pago'))
     
@@ -1165,7 +1166,7 @@ def admin_actualizar_estado_pedido(id):
 @admin_required
 def admin_editar_pedido(id):
     pedido = controlador_pedido.obtener_pedido_por_id(id)
-    
+
     if request.method == 'POST':
         calle = request.form.get('calle')
         ciudad = request.form.get('ciudad')
@@ -1375,7 +1376,7 @@ def admin_nueva_marca():
     if request.method == 'POST':
         nombre = request.form.get('nombre')
         try:
-            marca = controlador_marca.Marca(nombre=nombre)
+            marca = Marca(nombre=nombre)
             controlador_marca.insertar_marca(marca)
             flash('Marca agregada exitosamente', 'success')
             return redirect(url_for('admin.admin_marcas'))
@@ -2544,7 +2545,28 @@ def api_actualizar_metodo_pago(id):
         if not datos:
             return jsonify({"status": "error", "message": "No se proporcionaron datos para actualizar"}), 400
 
-        controlador_metodo_pago.actualizar_metodo_pago(id, datos)
+        # Obtener el método de pago existente
+        metodo_actual = controlador_metodo_pago.obtener_metodo_pago(id)
+        if not metodo_actual:
+            return jsonify({"status": "error", "message": "Método de pago no encontrado"}), 404
+
+        # Verificar que el método de pago pertenece al usuario actual
+        usuario_id = get_jwt_identity()
+        if metodo_actual.usuario_id != usuario_id:
+            return jsonify({"status": "error", "message": "No tienes permiso para modificar este método de pago"}), 403
+
+        # Actualizar solo los campos proporcionados
+        campos_actualizables = ['tipo', 'numero_tarjeta', 'titular', 'fecha_vencimiento', 'cvv']
+        for campo in campos_actualizables:
+            if campo in datos:
+                setattr(metodo_actual, campo, datos[campo])
+
+        # Mantener los campos que no deben cambiar
+        metodo_actual.id = id
+        metodo_actual.usuario_id = usuario_id
+        metodo_actual.activo = True
+
+        controlador_metodo_pago.actualizar_metodo_pago(id, metodo_actual)
         return jsonify({"status": "success", "message": "Método de pago actualizado exitosamente"}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -2553,12 +2575,21 @@ def api_actualizar_metodo_pago(id):
 @jwt_required()
 def api_establecer_metodo_pago_predeterminado(id):
     try:
-        datos = request.get_json()
-        if 'usuario_id' not in datos:
-            return jsonify({"status": "error", "message": "Se requiere el ID del usuario"}), 400
-
-        controlador_metodo_pago.establecer_predeterminado(id, datos['usuario_id'])
-        return jsonify({"status": "success", "message": "Método de pago establecido como predeterminado"}), 200
+        # Obtener usuario actual del JWT
+        usuario_id = get_jwt_identity()
+        
+        # Verificar que el método de pago existe
+        metodo = controlador_metodo_pago.obtener_metodo_pago(id)
+        if not metodo:
+            return jsonify({"status": "error", "message": "Método de pago no encontrado"}), 404
+            
+        # Verificar que el método de pago pertenece al usuario
+        if metodo.usuario_id != usuario_id:
+            return jsonify({"status": "error", "message": "No tienes permiso para modificar este método de pago"}), 403
+            
+        # Establecer como predeterminado
+        controlador_metodo_pago.establecer_predeterminado(id, usuario_id)
+        return jsonify({"status": "success", "message": "Método de pago establecido como predeterminado exitosamente"}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -2568,7 +2599,7 @@ def api_establecer_metodo_pago_predeterminado(id):
 def api_obtener_marcas():
     try:
         marcas = controlador_marca.obtener_marcas()
-        return jsonify({"status": "success", "data": marcas}), 200
+        return jsonify({"status": "success", "data": [marca.to_dict() for marca in marcas]}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -2579,7 +2610,7 @@ def api_obtener_marca(id):
         marca = controlador_marca.obtener_marca_por_id(id)
         if not marca:
             return jsonify({"status": "error", "message": "Marca no encontrada"}), 404
-        return jsonify({"status": "success", "data": marca}), 200
+        return jsonify({"status": "success", "data": marca.to_dict()}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -2590,10 +2621,15 @@ def api_crear_marca():
         datos = request.get_json()
         if not datos or 'nombre' not in datos:
             return jsonify({"status": "error", "message": "Se requiere el nombre de la marca"}), 400
-
-        marca = Marca(nombre=datos['nombre'])
-        controlador_marca.insertar_marca(marca)
-        return jsonify({"status": "success", "message": "Marca creada exitosamente"}), 201
+        
+        nueva_marca = Marca(nombre=datos['nombre'])
+        controlador_marca.insertar_marca(nueva_marca)
+        
+        return jsonify({
+            "status": "success",
+            "message": "Marca creada exitosamente",
+            "data": nueva_marca.to_dict()
+        }), 201
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -2604,7 +2640,7 @@ def api_actualizar_marca(id):
         datos = request.get_json()
         if not datos or 'nombre' not in datos:
             return jsonify({"status": "error", "message": "Se requiere el nombre de la marca"}), 400
-
+        
         controlador_marca.actualizar_marca(id, datos['nombre'])
         return jsonify({"status": "success", "message": "Marca actualizada exitosamente"}), 200
     except Exception as e:
@@ -2625,7 +2661,7 @@ def api_eliminar_marca(id):
 def api_obtener_modelos():
     try:
         modelos = controlador_modelo.obtener_modelos()
-        return jsonify({"status": "success", "data": modelos}), 200
+        return jsonify({"status": "success", "data": [modelo.to_dict() for modelo in modelos]}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -2636,7 +2672,7 @@ def api_obtener_modelo(id):
         modelo = controlador_modelo.obtener_modelo_por_id(id)
         if not modelo:
             return jsonify({"status": "error", "message": "Modelo no encontrado"}), 404
-        return jsonify({"status": "success", "data": modelo}), 200
+        return jsonify({"status": "success", "data": modelo.to_dict()}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -2647,8 +2683,8 @@ def api_crear_modelo():
         datos = request.get_json()
         if not datos or 'nombre' not in datos:
             return jsonify({"status": "error", "message": "Se requiere el nombre del modelo"}), 400
-
-        modelo = Modelo(nombre=datos['nombre'])
+        
+        modelo = controlador_modelo.Modelo(nombre=datos['nombre'])
         controlador_modelo.insertar_modelo(modelo)
         return jsonify({"status": "success", "message": "Modelo creado exitosamente"}), 201
     except Exception as e:
@@ -2661,8 +2697,8 @@ def api_actualizar_modelo(id):
         datos = request.get_json()
         if not datos or 'nombre' not in datos:
             return jsonify({"status": "error", "message": "Se requiere el nombre del modelo"}), 400
-
-        modelo = Modelo(nombre=datos['nombre'], id=id)
+        
+        modelo = controlador_modelo.Modelo(nombre=datos['nombre'], id=id)
         controlador_modelo.actualizar_modelo(modelo)
         return jsonify({"status": "success", "message": "Modelo actualizado exitosamente"}), 200
     except Exception as e:
