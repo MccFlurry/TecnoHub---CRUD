@@ -1591,7 +1591,7 @@ def api_logout():
 @jwt_required()
 def obtener_paises():
     try:
-        paises = controlador_ubicacion.obtener_paises()
+        paises = controlador_ubicacion.obtener_todos_paises()
         return jsonify({"status": "success", "data": paises}), 200
     except Exception as e:
         logger.error(f"Error al obtener países: {str(e)}")
@@ -1835,17 +1835,19 @@ def api_obtener_usuario(id):
 def api_crear_usuario():
     try:
         data = request.get_json()
-        nuevo_usuario = controlador_usuario.crear_usuario(
+        exito = controlador_usuario.insertar_usuario(
             data['nombre'],
             data['apellido'],
             data['email'],
             data['contrasena'],
-            data.get('tipo', 'cliente')
+            data.get('tipo', 'cliente'),
+            data.get('foto', None)
         )
-        return jsonify({
-            'mensaje': 'Usuario creado exitosamente',
-            'id': nuevo_usuario.id
-        }), 201
+        if exito:
+            return jsonify({
+                'mensaje': 'Usuario creado exitosamente'
+            }), 201
+        return jsonify({'error': 'No se pudo crear el usuario'}), 500
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -2388,7 +2390,7 @@ def api_actualizar_kit(kit_id):
                 "status": "error",
                 "message": message
             }), 400
-
+        
         log_api_call("PUT", f"/api/kits/{kit_id}", 200, "Kit actualizado exitosamente")
         return jsonify({
             "status": "success",
