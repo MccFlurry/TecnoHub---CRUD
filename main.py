@@ -37,7 +37,7 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
 app.config['JWT_TOKEN_LOCATION'] = ['headers']  # Dónde buscar el token
 app.config['JWT_HEADER_NAME'] = 'Authorization'  # Nombre del header
-app.config['JWT_HEADER_TYPE'] = 'Bearer'  # Tipo de token
+app.config['JWT_HEADER_TYPE'] = 'JWT'  # Tipo de token
 app.config['JWT_ERROR_MESSAGE_KEY'] = 'message'  # Clave para mensajes de error
 app.config['JWT_ALGORITHM'] = 'HS256'  # Algoritmo de firma
 app.config['JWT_VERIFY_CLAIMS'] = ['signature', 'exp', 'nbf', 'iat']  # Claims a verificar
