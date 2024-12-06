@@ -1615,7 +1615,6 @@ def api_logout():
 
 #APIS
 @app.route('/api/ubicacion/paises', methods=['GET'])
-@jwt_required()
 def obtener_paises():
     try:
         paises = controlador_ubicacion.obtener_todos_paises()
@@ -1625,7 +1624,6 @@ def obtener_paises():
         return jsonify({"status": "error", "message": "Error al obtener países"}), 500
 
 @app.route('/api/ubicacion/estados/<int:pais_id>', methods=['GET'])
-@jwt_required()
 def obtener_estados(pais_id):
     try:
         estados = controlador_ubicacion.obtener_estados_por_pais(pais_id)
@@ -1635,7 +1633,6 @@ def obtener_estados(pais_id):
         return jsonify({"status": "error", "message": "Error al obtener estados"}), 500
 
 @app.route('/api/ubicacion/ciudades/<int:estado_id>', methods=['GET'])
-@jwt_required()
 def obtener_ciudades(estado_id):
     try:
         ciudades = controlador_ubicacion.obtener_ciudades_por_estado(estado_id)
@@ -1645,7 +1642,6 @@ def obtener_ciudades(estado_id):
         return jsonify({"status": "error", "message": "Error al obtener ciudades"}), 500
 
 @app.route('/api/ubicacion/distritos/<int:ciudad_id>', methods=['GET'])
-@jwt_required()
 def obtener_distritos(ciudad_id):
     try:
         distritos = controlador_ubicacion.obtener_distritos_por_ciudad(ciudad_id)
